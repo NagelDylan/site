@@ -1,0 +1,114 @@
+---
+/**
+ * Mounts the client-side themes (Y2K, chat) and hands the page over to them.
+ *
+ * Rendered once per page by SiteShell. The paper tree is already in the HTML; if
+ * the active theme is Y2K or chat, this hides paper, dynamically imports that
+ * theme's App, and mounts it here. The dynamic import is what keeps a paper
+ * visitor from downloading the window manager or the chat client — Vite
+ * code-splits each into its own chunk, fetched only when its theme is chosen.
+ *
+ * See src/lib/theme-mount.ts for why the architecture is split this way.
+ */
+import { APP_ROOT_ID } from '../../lib/theme-mount';
+import { getResume } from '../../lib/resume';
+
+const resume = getResume();
+---
+
+<div id={APP_ROOT_ID} data-resume={JSON.stringify(resume)} hidden></div>
+
+<script>
+  import { APP_ROOT_ID, PAPER_ROOT_ID, isClientTheme } from '../../lib/theme-mount';
+  import { THEME_STORAGE_KEY } from '../../config';
+  import { isThemeId, type Mode } from '../../lib/theme';
+  import type { ThemeId } from '../../data/voice';
+
+  const appRoot = document.getElementById(APP_ROOT_ID);
+  const paperRoot = document.getElementById(PAPER_ROOT_ID);
+
+  let mounted: { theme: ThemeId; unmount: () => void } | null = null;
+
+  const readResume = () => {
+    try {
+      return JSON.parse(appRoot?.dataset.resume ?? '{}');
+    } catch {
+      return { available: false, href: '/resume.pdf', filename: 'resume.pdf' };
+    }
+  };
+
+  async function loadApp(theme: ThemeId) {
+    // Static specifiers so Vite can see and split each chunk at build time.
+    if (theme === 'y2k') return (await import('../y2k/App')).default;
+    if (theme === 'chat') return (await import('../chat/App')).default;
+    return null;
+  }
+
+  async function activate(theme: ThemeId | null) {
+    if (mounted && mounted.theme === theme) return;
+
+    if (mounted) {
+      mounted.unmount();
+      mounted = null;
+    }
+
+    if (!isClientTheme(theme) || !appRoot) {
+      // Paper: the server-rendered tree is the page.
+      if (paperRoot) paperRoot.hidden = false;
+      if (appRoot) appRoot.hidden = true;
+      return;
+    }
+
+    const [{ createRoot }, App] = await Promise.all([
+      import('react-dom/client'),
+      loadApp(theme as ThemeId),
+    ]);
+    if (!App) return;
+
+    const { createElement } = await import('react');
+    if (paperRoot) paperRoot.hidden = true;
+    appRoot.hidden = false;
+
+    const root = createRoot(appRoot);
+    root.render(
+      createElement(App, {
+        route: location.pathname,
+        resume: readResume(),
+        mode: (document.documentElement.dataset.mode as Mode) ?? 'light',
+      }),
+    );
+    mounted = { theme: theme as ThemeId, unmount: () => root.unmount() };
+  }
+
+  const current = () => {
+    const t = document.documentElement.dataset.theme;
+    return isThemeId(t) ? t : null;
+  };
+
+  void activate(current());
+
+  /**
+   * The always-visible theme switcher (G8) dispatches this instead of navigating,
+   * so switching is instant and the URL never changes.
+   */
+  window.addEventListener('nagel:theme-change', (event) => {
+    const next = (event as CustomEvent<{ theme: ThemeId }>).detail?.theme;
+    if (!isThemeId(next)) return;
+    document.documentElement.dataset.theme = next;
+    document.documentElement.dataset.themeChosen = 'true';
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+      /* private mode — the switch still works for this page view */
+    }
+    void activate(next);
+  });
+
+  // Another tab switched themes; follow it.
+  window.addEventListener('storage', (event) => {
+    if (event.key === THEME_STORAGE_KEY && isThemeId(event.newValue)) {
+      document.documentElement.dataset.theme = event.newValue;
+      void activate(event.newValue);
+    }
+  });
+</script>

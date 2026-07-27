@@ -1,0 +1,137 @@
+/*
+ * Print stylesheet (G15).
+ *
+ * A recruiter who prints this page should get something that reads like a
+ * document, not a screenshot of a corkboard or a Win98 desktop. So print
+ * collapses all three themes to the same clean typographic output: black on
+ * white, no textures, no window chrome, no decorative craft, and URLs spelled
+ * out after their links because a printed link is otherwise useless.
+ *
+ * Themes contribute to this by marking decoration with data-decorative and
+ * chrome with data-chrome, both of which are hidden below.
+ */
+@media print {
+  :root {
+    --print-ink: #111;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: var(--print-ink) !important;
+    font-family: Georgia, 'Times New Roman', serif !important;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+
+  /* Kill every theme's atmosphere in one pass. */
+  body::before,
+  body::after,
+  [data-decorative],
+  [data-chrome],
+  [data-grain],
+  [data-halftone],
+  [data-cursor-trail],
+  [data-motion-control],
+  .skip-link,
+  nav,
+  footer nav,
+  audio,
+  video,
+  iframe,
+  marquee,
+  blink {
+    display: none !important;
+  }
+
+  /* Flatten the craft: no rotation, no shadows, no overlap. */
+  * {
+    transform: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    background-image: none !important;
+    animation: none !important;
+    transition: none !important;
+    position: static !important;
+    float: none !important;
+  }
+
+  main,
+  [id='main'] {
+    display: block !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  a {
+    color: var(--print-ink) !important;
+    text-decoration: underline;
+  }
+
+  /* Spell out destinations — except in-page anchors, which mean nothing on paper. */
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    word-break: break-all;
+  }
+
+  a[href^='mailto']::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+  }
+
+  a[href^='#']::after,
+  a[href^='/']::after {
+    content: '';
+  }
+
+  h1 {
+    font-size: 20pt;
+    margin: 0 0 0.2em;
+  }
+
+  h2 {
+    font-size: 14pt;
+    margin: 1.2em 0 0.3em;
+    border-bottom: 1px solid #999;
+  }
+
+  h3 {
+    font-size: 12pt;
+    margin: 0.9em 0 0.2em;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  li,
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Keep a role and its bullets together where the page allows it. */
+  article,
+  section,
+  [data-print-block] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  img {
+    max-width: 40mm !important;
+    page-break-inside: avoid;
+  }
+
+  /* Media is decorative on paper; the poster still is enough. */
+  [data-motion-media] img {
+    max-width: 60mm !important;
+  }
+}

@@ -1,0 +1,39 @@
+---
+/**
+ * The only shared document shell. Themes wrap this with their own layout —
+ * PaperLayout, DesktopShell, ChatLayout — and own everything inside <body>
+ * except the skip link (G9, G12).
+ *
+ * Keep this file boring. Anything visual that lands here will leak across all
+ * three themes and quietly erode the point of having three of them.
+ */
+import BaseHead from '../components/shared/BaseHead.astro';
+import '../styles/base.css';
+import '../styles/print.css';
+
+type Props = {
+  title: string;
+  description?: string;
+  path?: string;
+  ogImage?: string;
+  noIndex?: boolean;
+  /** Rendered into data-theme so CSS and the switcher agree on the current theme. */
+  theme: 'paper' | 'y2k' | 'chat';
+  /** Extra classes for <body>, so a theme can hook its own root styles. */
+  bodyClass?: string;
+};
+
+const { theme, bodyClass, ...head } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme={theme}>
+  <head>
+    <BaseHead {...head} />
+    <slot name="head" />
+  </head>
+  <body class={bodyClass} data-theme={theme}>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot />
+  </body>
+</html>

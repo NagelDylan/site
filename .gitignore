@@ -1,0 +1,30 @@
+# build output
+dist/
+.astro/
+
+# deps
+node_modules/
+
+# env / credentials — Phase B (§18.4). Never commit real keys.
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# résumé is a drop-in (§13); Dylan's real PDF is not tracked
+public/resume.pdf
+
+# generated OG images
+public/og/*.png
+
+# os / editor
+.DS_Store
+*.log
+npm-debug.log*
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# NOTE: assets-src/ IS tracked on purpose. It holds the only surviving copies of
+# the eight carried-over assets — github.com is off the sandbox allowlist and
+# they cannot be re-fetched (§18.2). Do not add it here.

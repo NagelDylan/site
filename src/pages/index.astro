@@ -1,0 +1,24 @@
+---
+/**
+ * PLACEHOLDER — replaced by the paper theme build (spec §9, wireframe §19.2).
+ *
+ * Present only so the scaffold builds and can be verified end to end. The real
+ * home route is the corkboard: pinned hero card, Polaroid, three featured project
+ * cards, sketched timeline, résumé and contact CTAs.
+ */
+import SiteShell from '../layouts/SiteShell.astro';
+import { IDENTITY } from '../data/identity';
+import { VOICES } from '../data/voice';
+import { SITE } from '../config';
+
+const voice = VOICES.paper;
+---
+
+<SiteShell title={SITE.title} path="/">
+  <main id="main">
+    <h1>{IDENTITY.name}</h1>
+    <p>{IDENTITY.headline}</p>
+    <p>{IDENTITY.availability}</p>
+    <p>{voice.heroSub}</p>
+  </main>
+</SiteShell>

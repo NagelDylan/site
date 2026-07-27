@@ -1,0 +1,30 @@
+---
+/**
+ * The shell every paper route uses.
+ *
+ * Paper is server-rendered into static HTML here (see src/lib/theme-mount.ts for
+ * why), wrapped in #paper-root so ThemeBoot can hide it when a client-mounted
+ * theme takes over. Paper's own layout — corkboard, pinned nav, footer — belongs
+ * to the paper tree, not to this file.
+ */
+import BaseDocument from './BaseDocument.astro';
+import ThemeBoot from '../components/shared/ThemeBoot.astro';
+import { PAPER_ROOT_ID } from '../lib/theme-mount';
+
+type Props = {
+  title: string;
+  description?: string;
+  path?: string;
+  ogImage?: string;
+  noIndex?: boolean;
+};
+
+const props = Astro.props;
+---
+
+<BaseDocument {...props} theme="paper">
+  <div id={PAPER_ROOT_ID}>
+    <slot />
+  </div>
+  <ThemeBoot />
+</BaseDocument>

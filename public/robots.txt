@@ -1,0 +1,8 @@
+# Dylan Nagel — me.nagelbros.com (currently the Pages subdomain)
+User-agent: *
+Allow: /
+
+# Phase B API routes have nothing to index.
+Disallow: /api/
+
+Sitemap: https://nagel-site.pages.dev/sitemap-index.xml

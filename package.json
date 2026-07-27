@@ -1,0 +1,37 @@
+{
+  "name": "nagel-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dylan Nagel's personal site — three themes (paper, Y2K, chatbot), one fact layer.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "assets": "bash scripts/optimize-assets.sh",
+    "audit:links": "node scripts/audit-links.mjs",
+    "check:rules": "node scripts/check-rules.mjs",
+    "verify": "npm run check && npm run build && npm run check:rules"
+  },
+  "dependencies": {
+    "@astrojs/react": "^6.0.1",
+    "@astrojs/sitemap": "^3.7.3",
+    "@fontsource-variable/newsreader": "^5.3.0",
+    "@fontsource/caveat": "^5.3.0",
+    "@fontsource/press-start-2p": "^5.3.0",
+    "astro": "^7.1.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}
