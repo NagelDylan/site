@@ -25,7 +25,14 @@ import { IDENTITY } from '../../data/identity';
 import { THEME_STORAGE_KEY } from '../../config';
 ---
 
-<div id="splash" role="dialog" aria-modal="true" aria-labelledby="splash-name" data-decorative>
+<div
+  id="splash"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="splash-name"
+  tabindex="-1"
+  data-decorative
+>
   <div class="splash-inner">
     <header class="splash-head">
       <p id="splash-name" class="splash-title">{IDENTITY.name}</p>
@@ -121,8 +128,11 @@ import { THEME_STORAGE_KEY } from '../../config';
     });
 
     // Move focus in so keyboard and screen-reader users start inside the dialog.
-    var first = splash.querySelector('[data-theme-choice]');
-    if (first) first.focus();
+    // Focus the dialog itself, NOT the first panel: focusing an anchor
+    // programmatically makes Chrome match :focus-visible on it, so the Paper
+    // panel painted in its raised/hover state and looked pre-selected. From the
+    // container, Tab still lands on Paper first.
+    splash.focus({ preventScroll: true });
   })();
 </script>
 
@@ -130,6 +140,11 @@ import { THEME_STORAGE_KEY } from '../../config';
   /* Hidden unless the pre-paint script asked for it. */
   #splash {
     display: none;
+  }
+
+  /* The dialog itself takes focus on open, so it must not paint a ring. */
+  #splash:focus {
+    outline: none;
   }
 
   :global(html[data-splash='show']) #splash {

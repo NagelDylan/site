@@ -38,7 +38,7 @@ import Icon, { type IconName } from './Icon';
 import Taskbar from './Taskbar';
 import Y2kWindow from './Y2kWindow';
 import Clippy from './Clippy';
-import Boot, { hasBootedThisSession } from './Boot';
+import Boot from './Boot';
 import { Bsod, Dialog, type DialogSpec } from './Dialog';
 import { Screensaver, SparkleTrail } from './effects';
 import MobileY2k from './Mobile';
@@ -101,7 +101,19 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
   const narrow = useNarrow();
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>(initialMode);
-  const [booting, setBooting] = useState(() => !hasBootedThisSession());
+  /*
+   * The boot sequence plays on EVERY entry into this theme, not once per session.
+   *
+   * Spec §10 asked for once-per-session so that clicking around the site did not
+   * mean sitting through a cold boot on every deep link. Dylan overrode that: the
+   * BIOS post is the theme's opening joke and he wants it every time someone
+   * chooses Y2K. Since this component only mounts when the theme is activated
+   * (ThemeBoot unmounts it on the way out), a fresh mount is exactly "entered the
+   * theme again". It stays skippable with any key, click or tap.
+   */
+  const [booting, setBooting] = useState(true);
+  /** Set when the boot we are running is a reboot, which lands on the chooser. */
+  const [rebooting, setRebooting] = useState(false);
   const [crashed, setCrashed] = useState(false);
   const [assistant, setAssistant] = useState(false);
   const [dialog, setDialog] = useState<DialogSpec | null>(null);
@@ -276,7 +288,20 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
       {!reducedMotion ? <SparkleTrail /> : null}
       {idle && !booting && !crashed ? <Screensaver onWake={wake} /> : null}
 
-      {booting ? <Boot resumeAvailable={resume.available} onDone={() => setBooting(false)} /> : null}
+      {booting ? (
+        <Boot
+          resumeAvailable={resume.available}
+          onDone={() => {
+            setBooting(false);
+            // A reboot shows the console first and only then hands back to the
+            // chooser, so the restart is something you watch rather than a jump cut.
+            if (rebooting) {
+              setRebooting(false);
+              returnToChooser();
+            }
+          }}
+        />
+      ) : null}
 
       {/*
        * Only ever reachable from Start → Shut Down, so it can never be mistaken
@@ -288,16 +313,19 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
             setCrashed(false);
             wm.closeAll();
             /**
-             * A reboot returns to the theme chooser, not to this desktop.
+             * Reboot runs the real boot console, then hands back to the chooser.
              *
-             * Shutting the machine down and being dropped straight back into the
-             * same desktop makes the gag a no-op. Forgetting the persisted choice
-             * and re-showing the splash is what "restart" should mean — and the
-             * splash is the one screen that offers all three themes.
+             * Two things had to be true at once here. The restart should actually
+             * look like a restart — POST lines, loading bar — rather than a jump
+             * cut. And it should end at the theme chooser, because being dropped
+             * straight back into the same desktop makes the shut-down gag a no-op.
+             *
+             * So this only arms the sequence: `rebooting` tells the Boot onDone
+             * handler to call returnToChooser() once the console has finished
+             * playing. Skipping the boot skips straight to the chooser too, since
+             * the skip path is the same onDone.
              */
-            returnToChooser();
-            // So picking Y2K again gives a genuine cold boot rather than the
-            // desktop as it was left.
+            setRebooting(true);
             setBooting(true);
           }}
         />

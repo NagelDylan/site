@@ -1,33 +1,20 @@
 /**
  * Boot sequence: BIOS post, then a loading bar (§10).
  *
- * Once per session (sessionStorage) so a visitor clicking around the site is not
- * made to sit through a cold boot on every deep link, and skippable with any
- * keypress, click or tap — a joke that cannot be interrupted is not a joke.
+ * Plays on every entry into the Y2K theme, and again on reboot. It used to be
+ * gated to once per session via sessionStorage; Dylan asked for it every time,
+ * since the POST is the theme's opening joke. See the comment on `booting` in
+ * App.tsx.
+ *
+ * Skippable with any keypress, click or tap — a joke that cannot be interrupted is
+ * not a joke — and the skip path is the same `onDone` as a natural finish, so a
+ * reboot still lands where it should.
  *
  * Every line is either machine fiction or a count read from the fact layer. It
  * asserts nothing about Dylan that is not already true elsewhere on the desktop.
  */
 import { useEffect, useRef, useState } from 'react';
 import { FEATURED, SECONDARY } from '../../data';
-
-export const BOOT_KEY = 'nagel-y2k-booted';
-
-export function hasBootedThisSession(): boolean {
-  try {
-    return sessionStorage.getItem(BOOT_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-export function markBooted(): void {
-  try {
-    sessionStorage.setItem(BOOT_KEY, '1');
-  } catch {
-    /* private mode — worst case the boot plays again */
-  }
-}
 
 const pad = (label: string) => label.padEnd(30, '.');
 
@@ -59,7 +46,6 @@ const Boot = ({ resumeAvailable, onDone }: { resumeAvailable: boolean; onDone: (
     const finish = () => {
       if (cancelled) return;
       cancelled = true;
-      markBooted();
       onDone();
     };
 

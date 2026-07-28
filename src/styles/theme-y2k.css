@@ -410,7 +410,7 @@ html[data-mode='dark'] .y2k-tb-btn {
   top: 10px;
   left: 50%;
   translate: -50% 0;
-  width: min(520px, calc(100vw - 400px));
+  width: min(600px, calc(100vw - 360px));
   z-index: 2;
   padding: 6px;
   text-align: center;
@@ -427,9 +427,12 @@ html[data-mode='dark'] .y2k-tb-btn {
 }
 
 .y2k-banner .y2k-banner-head {
+  display: block;
   color: #fff;
   font-size: 11px;
   margin-top: 5px;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .y2k-avail {

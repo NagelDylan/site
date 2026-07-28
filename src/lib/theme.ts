@@ -122,10 +122,26 @@ export function returnToChooser(): void {
   const root = document.documentElement;
   delete root.dataset.themeChosen;
   root.dataset.splash = 'show';
-  // The splash's own focus handling runs at page load, so move focus in here too
-  // for anyone arriving by keyboard after the first paint.
-  const first = document.querySelector<HTMLElement>('#splash [data-theme-choice]');
-  first?.focus();
+  /*
+   * Tell ThemeBoot to unmount whichever client theme is running.
+   *
+   * Without this, re-picking the same theme from the splash is a no-op in
+   * ThemeBoot (it early-returns when the requested theme is already mounted), so
+   * you would land back on a desktop in exactly the state you left it — no boot
+   * sequence, windows still open. Unmounting makes the next pick a genuine fresh
+   * entry, which is what the Y2K boot console depends on.
+   */
+  window.dispatchEvent(new CustomEvent('nagel:theme-reset'));
+  /*
+   * The splash's own focus handling runs at page load, so move focus in here too
+   * for anyone arriving by keyboard after first paint.
+   *
+   * Focus the dialog, NOT the first panel: focusing an anchor programmatically
+   * makes Chrome match :focus-visible on it, which paints the Paper panel in its
+   * raised hover state and reads as pre-selected. Tab from the container still
+   * lands on Paper first.
+   */
+  document.getElementById('splash')?.focus({ preventScroll: true });
 }
 
 /**

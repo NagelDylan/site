@@ -111,4 +111,16 @@ const resume = getResume();
       void activate(event.newValue);
     }
   });
+
+  /**
+   * returnToChooser() fired: unmount the running client theme.
+   *
+   * activate() early-returns when the requested theme is already mounted, so
+   * without tearing down here, re-picking the same theme from the splash would
+   * leave the previous session intact — a Y2K desktop with its windows still open
+   * and no boot sequence. Unmounting makes the next pick a fresh mount.
+   */
+  window.addEventListener('nagel:theme-reset', () => {
+    void activate(null);
+  });
 </script>
