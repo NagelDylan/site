@@ -14,7 +14,9 @@
  * G12 grants this theme an AA-contrast exemption. It does NOT grant a
  * reduced-motion exemption or a focus-ring exemption; see the bottom of the file.
  */
-@import '@fontsource/press-start-2p/400.css';
+/* Latin subset only: the other six subsets would emit six more woff2 files that
+   this site's copy can never use. */
+@import '@fontsource/press-start-2p/latin-400.css';
 
 .y2k-root {
   /* Web-safe stack is more period-accurate than a webfont, and CDNs are blocked. */
@@ -408,7 +410,7 @@ html[data-mode='dark'] .y2k-tb-btn {
   top: 10px;
   left: 50%;
   translate: -50% 0;
-  width: min(560px, calc(100vw - 210px));
+  width: min(520px, calc(100vw - 400px));
   z-index: 2;
   padding: 6px;
   text-align: center;
@@ -1481,8 +1483,7 @@ html[data-mode='light'] .y2k-m :focus-visible {
 .y2k-sr {
   position: absolute;
   width: 1px;
-  height: 1px
-  ;
+  height: 1px;
   padding: 0;
   margin: -1px;
   overflow: hidden;

@@ -18,6 +18,42 @@ import Icon, { StartFlag } from './Icon';
 import { useClock } from './hooks';
 import type { OpenRequest, WindowState } from './wm';
 
+/**
+ * A Start-menu group with a fly-out.
+ *
+ * Defined at module scope on purpose: declared inside Taskbar it would be a new
+ * component type on every render, so React would unmount the open submenu the
+ * instant its own state changed and throw away keyboard focus with it.
+ */
+const Sub = ({
+  id,
+  label,
+  open,
+  onOpen,
+  children,
+}: {
+  id: string;
+  label: string;
+  open: boolean;
+  onOpen: (id: string | null) => void;
+  children: React.ReactNode;
+}) => (
+  <li onPointerEnter={() => onOpen(id)}>
+    <button
+      type="button"
+      className="y2k-mi"
+      aria-haspopup="true"
+      aria-expanded={open}
+      data-open={open || undefined}
+      onClick={() => onOpen(open ? null : id)}
+      onFocus={() => onOpen(id)}
+    >
+      {label}
+    </button>
+    {open ? <ul className="y2k-submenu y2k-out">{children}</ul> : null}
+  </li>
+);
+
 type Props = {
   windows: WindowState[];
   activeId: string | null;
@@ -71,21 +107,7 @@ const Taskbar = ({
     setSubmenu(null);
   };
 
-  const Sub = ({ id, label, children }: { id: string; label: string; children: React.ReactNode }) => (
-    <li onPointerEnter={() => setSubmenu(id)}>
-      <button
-        type="button"
-        className="y2k-mi"
-        aria-haspopup="true"
-        aria-expanded={submenu === id}
-        data-open={submenu === id || undefined}
-        onClick={() => setSubmenu(submenu === id ? null : id)}
-      >
-        {label}
-      </button>
-      {submenu === id ? <ul className="y2k-submenu y2k-out">{children}</ul> : null}
-    </li>
-  );
+  const subProps = (id: string) => ({ id, open: submenu === id, onOpen: setSubmenu });
 
   return (
     <div ref={rootRef}>
@@ -95,7 +117,7 @@ const Taskbar = ({
             Dylan OS 98
           </div>
           <ul>
-            <Sub id="programs" label="📁 Programs">
+            <Sub {...subProps('programs')} label="📁 Programs">
               <li>
                 <button type="button" className="y2k-mi" onClick={() => go({ kind: 'projects' })}>
                   <Icon name="folderOpen" /> C:\Projects\
@@ -130,7 +152,7 @@ const Taskbar = ({
               </li>
             </Sub>
 
-            <Sub id="documents" label="📄 Documents">
+            <Sub {...subProps('documents')} label="📄 Documents">
               <li>
                 <button type="button" className="y2k-mi" onClick={() => go({ kind: 'experience' })}>
                   <Icon name="briefcase" /> JOBS I HAVE HAD
@@ -161,7 +183,7 @@ const Taskbar = ({
               ) : null}
             </Sub>
 
-            <Sub id="themes" label="🎨 Themes">
+            <Sub {...subProps('themes')} label="🎨 Themes">
               {(['paper', 'y2k', 'chat'] as ThemeId[]).map((theme) => (
                 <li key={theme}>
                   <button

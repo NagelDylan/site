@@ -116,10 +116,12 @@ function reducer(state: State, action: Action): State {
       const def = WINDOW_DEFS[action.req.kind];
       const w = Math.min(def.w, Math.max(260, action.bounds.w - 40));
       const h = Math.min(def.h, Math.max(200, action.bounds.h - 60));
-      // Cascade, wrapping before it walks off the desktop.
+      // Cascade, wrapping before it walks off the desktop. The origin clears the
+      // icon columns on the left and the G10 banner along the top, so a freshly
+      // opened window never lands on the availability line.
       const step = (state.opened % 6) * 26;
-      const x = Math.max(8, Math.min(action.bounds.w - w - 8, 74 + step));
-      const y = Math.max(8, Math.min(action.bounds.h - h - 40, 84 + step));
+      const x = Math.max(8, Math.min(action.bounds.w - w - 8, 196 + step));
+      const y = Math.max(8, Math.min(action.bounds.h - h - 40, 152 + step));
       return {
         ...state,
         z,
@@ -212,8 +214,7 @@ export type WindowApi = {
   close: (id: string) => void;
   closeAll: () => void;
   focus: (id: string) => void;
-  minimize: (id: string) => void
-  ;
+  minimize: (id: string) => void;
   toggleTask: (id: string) => void;
   maximize: (id: string) => void;
   move: (id: string, x: number, y: number) => void;

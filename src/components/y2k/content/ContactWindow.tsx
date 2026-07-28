@@ -25,7 +25,7 @@ const ContactWindow = () => {
   const [sent, setSent] = useState<Sent>(null);
   const [copied, setCopied] = useState(false);
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = (event: React.SyntheticEvent) => {
     event.preventDefault();
     const payload = { name, email, message };
     // The only honest destination available right now.
