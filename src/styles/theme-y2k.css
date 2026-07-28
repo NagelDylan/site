@@ -1467,6 +1467,101 @@ html[data-mode='dark'] .y2k-m {
   color: var(--y2k-text);
 }
 
+/*
+ * Print (G15). print.css already strips [data-chrome] and [data-decorative] and
+ * flattens transforms, but this theme needs three things it cannot know about:
+ * the desktop is position:fixed, the windows have pixel heights, and the client
+ * areas scroll. Left alone, a printout would be one clipped window on a teal
+ * page. Unpinned, unsized and unscrolled, it prints as stacked documents.
+ */
+@media print {
+  .y2k-root,
+  .y2k-desktop {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .y2k-icons,
+  .y2k-clippy,
+  .y2k-dialog-layer,
+  .y2k-screensaver,
+  .y2k-boot,
+  .y2k-bsod,
+  .y2k-winamp {
+    display: none !important;
+  }
+
+  .y2k-window {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 0 1.4em !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: #fff !important;
+  }
+
+  .y2k-client,
+  .y2k-explorer,
+  .y2k-tree,
+  .y2k-filegrid {
+    overflow: visible !important;
+    height: auto !important;
+    border: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .y2k-explorer {
+    display: block !important;
+  }
+
+  .y2k-client h2,
+  .y2k-client h3,
+  .y2k-m-sec > h2,
+  .y2k-m-sec h3 {
+    font-family: Georgia, 'Times New Roman', serif !important;
+    color: #111 !important;
+  }
+
+  .y2k-m,
+  .y2k-m-sec,
+  .y2k-m-hero {
+    padding: 0 !important;
+    margin: 0 0 1em !important;
+    background: #fff !important;
+    color: #111 !important;
+    border: 0 !important;
+  }
+
+  .y2k-note,
+  .y2k-guest,
+  .y2k-tags li,
+  .y2k-avail {
+    background: none !important;
+    border: 0 !important;
+    color: #111 !important;
+    padding: 0 !important;
+  }
+
+  .y2k-tags {
+    display: block !important;
+  }
+
+  .y2k-tags li {
+    display: inline !important;
+  }
+
+  .y2k-tags li::after {
+    content: ' · ';
+  }
+}
+
 /* ── Accessibility floor (non-negotiable, §10) ────────────────────────────── */
 
 .y2k-root :focus-visible,
