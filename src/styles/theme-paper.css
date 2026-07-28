@@ -1,0 +1,1016 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PAPER / RISOGRAPH / CRAFT  (spec §9)
+ *
+ * This is the theme Dylan links on job applications: most legible, most
+ * charming, lowest risk. Its screenshot is the OG/social preview.
+ *
+ * The substrate is PROCEDURAL, not a scanned-paper photograph. Riso's signature
+ * is a small number of spot inks that overprint and multiply where they overlap,
+ * laid over visible paper grain, with the plates registered slightly off. All
+ * three of those are reproducible with gradients, blend modes, and one small SVG
+ * filter — which costs a few kilobytes instead of the megabytes a set of paper
+ * textures would, and stays sharp at any zoom.
+ *
+ *   grain           → one inline feTurbulence SVG, ~400 bytes, tiled
+ *   halftone        → repeating-radial-gradient dots
+ *   overprint       → mix-blend-mode: multiply on translucent spot colours
+ *   misregistration → the same edge/glyph drawn twice, offset ~1px, in two inks
+ *
+ * THE USABILITY RULE (§9), which outranks every decorative decision here:
+ * anything a recruiter needs in the first 20 seconds is never behind an
+ * interaction. Name, headline, "Seeking Summer 2027 co-op", résumé, and contact
+ * are always visible without dragging, peeling, or discovering. The craft is
+ * decoration around a legible page, not a puzzle in front of one.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/* ── Ink palette ──────────────────────────────────────────────────────────── */
+[data-theme='paper'] {
+  /* Riso spot inks. Dusty pastels, per §9. */
+  --ink-sage: #a8c3ae;
+  --ink-blush: #e8b4b8;
+  --ink-butter: #f0d59a;
+  --ink-sky: #a9c4d6;
+  /* The one saturated ink, used for pins, misregistration and accents. */
+  --ink-red: #c2543f;
+
+  /* Stock and text. */
+  --stock: #f7f2e8;
+  --stock-card: #fffdf7;
+  --text: #26241f;
+  --text-soft: #5c574f;
+  --rule: #cfc7b6;
+
+  --cork: #c8a878;
+  --cork-dark: #a9855a;
+
+  --shadow-card: 0 1px 2px rgba(38, 36, 31, 0.14), 0 6px 18px rgba(38, 36, 31, 0.1);
+
+  --font-hand: 'Caveat', 'Bradley Hand', 'Segoe Print', cursive;
+  --font-body: 'Newsreader Variable', 'Newsreader', Georgia, 'Iowan Old Style', serif;
+  --font-type: 'Courier New', Courier, monospace;
+
+  --tilt-a: -1.5deg;
+  --tilt-b: 1.2deg;
+  --tilt-c: -0.8deg;
+
+  color: var(--text);
+  background: var(--stock);
+  font-family: var(--font-body);
+}
+
+/*
+ * Dark mode — "night desk" (§9). A dark walnut desk with a warm lamp pool
+ * falling across the board; the paper stays cream INSIDE the light. Deliberately
+ * not a second art style — same artwork, different lighting.
+ */
+[data-theme='paper'][data-mode='dark'] {
+  --stock: #241a13;
+  --stock-card: #f3ead6;
+  --text: #1e1a15;
+  --text-soft: #4a4238;
+  --rule: #b8ab92;
+  --cork: #6b4f33;
+  --cork-dark: #4a3524;
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.45), 0 14px 34px rgba(0, 0, 0, 0.4);
+  /* Inks lose a little chroma under lamplight rather than glowing. */
+  --ink-sage: #8fae96;
+  --ink-blush: #d19ea3;
+  --ink-butter: #dcc086;
+  --ink-sky: #92aec2;
+}
+
+/* Text that sits directly on the desk (not on a card) must stay legible. */
+[data-theme='paper'][data-mode='dark'] .on-desk,
+[data-theme='paper'][data-mode='dark'] .paper-footer {
+  color: #efe4cf;
+}
+
+/* ── The board ────────────────────────────────────────────────────────────── */
+[data-theme='paper'] body,
+body[data-theme='paper'] {
+  background-color: var(--stock);
+  min-height: 100dvh;
+  position: relative;
+}
+
+/*
+ * Grain. One feTurbulence tile at low opacity over everything. `fractalNoise`
+ * with a high baseFrequency reads as paper fibre rather than TV static.
+ */
+[data-theme='paper'] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+[data-theme='paper'][data-mode='dark'] body::before {
+  opacity: 0.22;
+  mix-blend-mode: soft-light;
+}
+
+/*
+ * The lamp pool, dark mode only. A large off-centre radial that keeps the top of
+ * the board bright and lets the edges fall into the walnut.
+ */
+[data-theme='paper'][data-mode='dark'] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 90% at 50% -10%,
+    rgba(255, 214, 148, 0.22) 0%,
+    rgba(255, 200, 130, 0.1) 32%,
+    rgba(0, 0, 0, 0.32) 72%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+/* Cork surface behind the pinned area. */
+[data-theme='paper'] .cork {
+  position: relative;
+  background-color: var(--cork);
+  background-image:
+    repeating-radial-gradient(
+      circle at 30% 20%,
+      rgba(120, 80, 40, 0.16) 0 1.5px,
+      transparent 1.5px 7px
+    ),
+    repeating-radial-gradient(
+      circle at 70% 65%,
+      rgba(80, 50, 20, 0.13) 0 1.2px,
+      transparent 1.2px 5px
+    ),
+    linear-gradient(160deg, var(--cork) 0%, var(--cork-dark) 100%);
+  box-shadow: inset 0 0 60px rgba(70, 44, 20, 0.35);
+}
+
+/* ── Cards: the primitive everything is built from ────────────────────────── */
+/*
+ * Cards are rotated ±1.5° and overlap on an invisible grid (§9). The rotation is
+ * applied here rather than per-instance so `prefers-reduced-motion` and print can
+ * flatten every card in one rule.
+ */
+[data-theme='paper'] .card {
+  position: relative;
+  background: var(--stock-card);
+  color: var(--text);
+  padding: 1.6rem 1.8rem;
+  box-shadow: var(--shadow-card);
+  transform: rotate(var(--tilt, var(--tilt-a)));
+  /* Riso plates never line up perfectly. This is the misregistered second plate. */
+  outline: 1px solid rgba(194, 84, 63, 0.28);
+  outline-offset: 1px;
+}
+
+[data-theme='paper'] .card--tilt-b {
+  --tilt: var(--tilt-b);
+}
+[data-theme='paper'] .card--tilt-c {
+  --tilt: var(--tilt-c);
+}
+[data-theme='paper'] .card--flat {
+  --tilt: 0deg;
+}
+
+/* Halftone wash, applied to cards that want a tinted plate behind the text. */
+[data-theme='paper'] .halftone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+  background-image: repeating-radial-gradient(
+    circle at 0 0,
+    var(--halftone-ink, var(--ink-sage)) 0 1.4px,
+    transparent 1.4px 6px
+  );
+}
+
+/* Torn / deckled bottom edge. */
+[data-theme='paper'] .deckle {
+  --deckle: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 6px),
+    96% 100%,
+    92% calc(100% - 4px),
+    86% 100%,
+    79% calc(100% - 5px),
+    72% 100%,
+    64% calc(100% - 3px),
+    56% 100%,
+    48% calc(100% - 5px),
+    39% 100%,
+    31% calc(100% - 4px),
+    23% 100%,
+    15% calc(100% - 5px),
+    8% 100%,
+    0 calc(100% - 4px)
+  );
+  clip-path: var(--deckle);
+  padding-bottom: 2.2rem;
+}
+
+/* ── Craft elements ───────────────────────────────────────────────────────── */
+/*
+ * Curated per §9. Push pins are primary — it's a corkboard. Coffee stains and
+ * staples are DELIBERATELY CUT; with the rest in play they read as clutter.
+ * Do not add them back.
+ */
+
+/* Push pin. Drawn with gradients so it has a highlight and a cast shadow. */
+[data-theme='paper'] .pin {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.85) 0 18%, transparent 42%),
+    radial-gradient(circle at 50% 50%, var(--pin-ink, var(--ink-red)) 0 60%, #8e3526 100%);
+  box-shadow:
+    0 3px 5px rgba(38, 36, 31, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 3;
+}
+
+[data-theme='paper'] .pin--sage {
+  --pin-ink: #6f9179;
+}
+[data-theme='paper'] .pin--sky {
+  --pin-ink: #6f93ab;
+}
+[data-theme='paper'] .pin--left {
+  left: 22px;
+  transform: none;
+}
+[data-theme='paper'] .pin--right {
+  left: auto;
+  right: 22px;
+  transform: none;
+}
+
+/* Washi tape. Translucent and multiplied, so what's underneath shows through. */
+[data-theme='paper'] .tape {
+  position: absolute;
+  width: 108px;
+  height: 30px;
+  background-color: var(--tape-ink, var(--ink-sage));
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.28) 0 3px,
+    transparent 3px 7px
+  );
+  opacity: 0.78;
+  mix-blend-mode: multiply;
+  /* Torn ends. */
+  clip-path: polygon(4% 0, 96% 2%, 100% 96%, 2% 100%);
+  z-index: 4;
+  pointer-events: none;
+}
+
+[data-theme='paper'] .tape--tl {
+  top: -14px;
+  left: -22px;
+  transform: rotate(-28deg);
+}
+[data-theme='paper'] .tape--tr {
+  top: -14px;
+  right: -22px;
+  transform: rotate(24deg);
+}
+[data-theme='paper'] .tape--bl {
+  bottom: -14px;
+  left: -18px;
+  transform: rotate(18deg);
+}
+[data-theme='paper'] .tape--br {
+  bottom: -14px;
+  right: -18px;
+  transform: rotate(-20deg);
+}
+[data-theme='paper'] .tape--blush {
+  --tape-ink: var(--ink-blush);
+}
+[data-theme='paper'] .tape--butter {
+  --tape-ink: var(--ink-butter);
+}
+[data-theme='paper'] .tape--sky {
+  --tape-ink: var(--ink-sky);
+}
+
+/* Paper clip, for the résumé sheet (§9). */
+[data-theme='paper'] .clip {
+  position: absolute;
+  top: -16px;
+  left: 28px;
+  width: 22px;
+  height: 46px;
+  border: 2.5px solid #9aa0a6;
+  border-radius: 11px 11px 8px 8px;
+  border-bottom-color: transparent;
+  z-index: 5;
+  transform: rotate(-6deg);
+}
+
+[data-theme='paper'] .clip::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 5px;
+  width: 10px;
+  height: 30px;
+  border: 2.5px solid #b6bcc2;
+  border-radius: 6px 6px 5px 5px;
+  border-bottom-color: transparent;
+}
+
+/* Highlighter swipe. Multiply keeps the text readable through the ink. */
+[data-theme='paper'] .highlight {
+  position: relative;
+  display: inline-block;
+  padding: 0.1em 0.35em;
+  isolation: isolate;
+}
+
+[data-theme='paper'] .highlight::before {
+  content: '';
+  position: absolute;
+  inset: 0.12em -0.1em 0.05em;
+  z-index: -1;
+  background: var(--hl-ink, var(--ink-butter));
+  mix-blend-mode: multiply;
+  /* Hand-drawn: uneven ends, slight skew. */
+  clip-path: polygon(1% 8%, 99% 0, 100% 88%, 2% 100%);
+  transform: rotate(-0.5deg);
+}
+
+[data-theme='paper'] .highlight--sage {
+  --hl-ink: var(--ink-sage);
+}
+[data-theme='paper'] .highlight--blush {
+  --hl-ink: var(--ink-blush);
+}
+
+/* Thread stitching, used as a section divider. */
+[data-theme='paper'] .stitch {
+  border: 0;
+  height: 2px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--ink-red) 0 9px,
+    transparent 9px 17px
+  );
+  opacity: 0.55;
+  margin: 2rem 0;
+}
+
+/* Sticker. Draggable ones get their own class from the island. */
+[data-theme='paper'] .sticker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--sticker-ink, var(--ink-sky));
+  color: var(--text);
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+  box-shadow: 0 2px 4px rgba(38, 36, 31, 0.25);
+  transform: rotate(-3deg);
+}
+
+/* ── Type ─────────────────────────────────────────────────────────────────── */
+/*
+ * Mixed, per §9: neat-print handwriting for annotations, labels and captions;
+ * serif for body. Sustained handwriting is unreadable at paragraph length, so
+ * Caveat is never used for more than a line or two.
+ */
+[data-theme='paper'] .hand {
+  font-family: var(--font-hand);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+[data-theme='paper'] .annotation {
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  color: var(--ink-red);
+  transform: rotate(-2deg);
+  display: inline-block;
+}
+
+[data-theme='paper'] .typewriter {
+  font-family: var(--font-type);
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * Section headings are hand-lettered and letterspaced, as in the wireframes
+ * ("✎ E X P E R I E N C E"). The misregistered ghost copy is what makes them
+ * read as printed rather than typed.
+ */
+[data-theme='paper'] .lettered {
+  font-family: var(--font-hand);
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.1;
+  text-transform: lowercase;
+  color: var(--text);
+  text-shadow: 1px 1px 0 rgba(194, 84, 63, 0.42);
+}
+
+[data-theme='paper'] h1.display {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 6vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  /* Misregistration: a second plate 1px off in sage. */
+  text-shadow: 1px 1px 0 rgba(111, 145, 121, 0.5);
+}
+
+[data-theme='paper'] .lede {
+  font-size: 1.12rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+[data-theme='paper'] p {
+  line-height: 1.68;
+}
+
+[data-theme='paper'] a {
+  color: var(--text);
+  text-decoration-color: var(--ink-red);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+[data-theme='paper'] a:hover {
+  text-decoration-thickness: 3px;
+}
+
+/* ── Tags ─────────────────────────────────────────────────────────────────── */
+[data-theme='paper'] .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+[data-theme='paper'] .tag {
+  font-family: var(--font-type);
+  font-size: 0.76rem;
+  padding: 0.16rem 0.5rem;
+  border: 1px solid rgba(38, 36, 31, 0.35);
+  background: color-mix(in srgb, var(--ink-sage) 26%, transparent);
+  mix-blend-mode: multiply;
+  white-space: nowrap;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+[data-theme='paper'] .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.15rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--stock-card);
+  border: 1.5px solid var(--text);
+  box-shadow: 3px 3px 0 var(--ink-red);
+  text-decoration: none;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+[data-theme='paper'] .btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--ink-red);
+}
+
+[data-theme='paper'] .btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink-red);
+}
+
+[data-theme='paper'] .btn--primary {
+  background: var(--ink-butter);
+}
+
+/* ── Layout scaffolding ───────────────────────────────────────────────────── */
+[data-theme='paper'] .wrap {
+  width: min(1120px, 100% - 2.5rem);
+  margin-inline: auto;
+}
+
+[data-theme='paper'] .board {
+  position: relative;
+  padding: 2.5rem 0 4rem;
+}
+
+/*
+ * The invisible grid. Cards are placed on it and then rotated, so the layout is
+ * orderly underneath even though nothing looks aligned.
+ */
+[data-theme='paper'] .grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+[data-theme='paper'] .col-7 {
+  grid-column: span 7;
+}
+[data-theme='paper'] .col-5 {
+  grid-column: span 5;
+}
+[data-theme='paper'] .col-6 {
+  grid-column: span 6;
+}
+[data-theme='paper'] .col-4 {
+  grid-column: span 4;
+}
+[data-theme='paper'] .col-12 {
+  grid-column: span 12;
+}
+
+/* Overlap: the pinned hero and the polaroid tuck under each other slightly. */
+[data-theme='paper'] .overlap-left {
+  margin-right: -2.5rem;
+  z-index: 2;
+}
+
+[data-theme='paper'] .overlap-up {
+  margin-top: -1.6rem;
+}
+
+/* ── Header / nav ─────────────────────────────────────────────────────────── */
+[data-theme='paper'] .paper-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  background: color-mix(in srgb, var(--stock) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--rule);
+}
+
+[data-theme='paper'][data-mode='dark'] .paper-header {
+  border-bottom-color: rgba(255, 240, 214, 0.18);
+}
+
+[data-theme='paper'] .brand {
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+[data-theme='paper'][data-mode='dark'] .brand {
+  color: #f3e8d2;
+}
+
+/*
+ * Nav as pinned index cards (§9 bulletin-board metaphor). These are real links
+ * in the static HTML — the metaphor decorates them, it doesn't replace them.
+ */
+[data-theme='paper'] .nav-cards {
+  display: flex;
+  gap: 0.55rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+[data-theme='paper'] .nav-card {
+  position: relative;
+  padding: 0.35rem 0.85rem;
+  background: var(--stock-card);
+  border: 1px solid rgba(38, 36, 31, 0.3);
+  box-shadow: 1px 2px 3px rgba(38, 36, 31, 0.18);
+  font-family: var(--font-hand);
+  font-size: 1.12rem;
+  text-decoration: none;
+  transform: rotate(var(--nav-tilt, -1deg));
+}
+
+[data-theme='paper'] .nav-card:nth-child(even) {
+  --nav-tilt: 1.4deg;
+}
+
+[data-theme='paper'] .nav-card:hover {
+  transform: rotate(0deg) translateY(-2px);
+}
+
+[data-theme='paper'] .nav-card[aria-current='page'] {
+  background: var(--ink-butter);
+  box-shadow: 2px 3px 0 var(--ink-red);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+[data-theme='paper'] .paper-footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 3rem;
+  padding: 2rem 0 3rem;
+  font-size: 0.95rem;
+}
+
+[data-theme='paper'] .footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.6rem;
+  align-items: center;
+}
+
+/* ── Polaroid ─────────────────────────────────────────────────────────────── */
+[data-theme='paper'] .polaroid {
+  position: relative;
+  display: inline-block;
+  padding: 0.85rem 0.85rem 3.2rem;
+  background: #fffefa;
+  box-shadow: var(--shadow-card);
+  transform: rotate(var(--tilt, 1.8deg));
+}
+
+[data-theme='paper'] .polaroid img {
+  display: block;
+  width: 100%;
+  background: #ded7c6;
+}
+
+[data-theme='paper'] .polaroid figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.7rem;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  color: #2f2b24;
+}
+
+/* ── Hand-drawn arrow ─────────────────────────────────────────────────────── */
+[data-theme='paper'] .arrow {
+  position: absolute;
+  pointer-events: none;
+  color: var(--ink-red);
+  opacity: 0.75;
+}
+
+/* ── Sketched timeline (§9) ───────────────────────────────────────────────── */
+[data-theme='paper'] .sketch-timeline {
+  position: relative;
+  padding-left: 2.4rem;
+  list-style: none;
+  margin: 0;
+}
+
+/* The pencil spine: a hand-wobbled vertical line. */
+[data-theme='paper'] .sketch-timeline::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--text-soft);
+  opacity: 0.55;
+  /* A pencil line is never perfectly straight. */
+  mask-image: repeating-linear-gradient(
+    180deg,
+    #000 0 22px,
+    rgba(0, 0, 0, 0.55) 22px 26px
+  );
+}
+
+[data-theme='paper'] .sketch-node {
+  position: relative;
+  margin-bottom: 1.9rem;
+}
+
+[data-theme='paper'] .sketch-node::before {
+  content: '';
+  position: absolute;
+  left: -2.4rem;
+  top: 0.45rem;
+  width: 14px;
+  height: 14px;
+  margin-left: 3px;
+  border: 2px solid var(--ink-red);
+  border-radius: 50%;
+  background: var(--stock-card);
+}
+
+[data-theme='paper'] .sketch-date {
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  color: var(--ink-red);
+}
+
+/* ── Media (wraps the shared MotionMedia primitive) ───────────────────────── */
+/*
+ * Project GIFs are framed as taped-in Polaroids (§9). MotionMedia only ever
+ * loads the poster still until the visitor asks for motion; see its header.
+ */
+[data-theme='paper'] .media-frame {
+  position: relative;
+  padding: 0.7rem 0.7rem 0.9rem;
+  background: #fffefa;
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme='paper'] .media-frame img {
+  width: 100%;
+  background: #e6dfce;
+}
+
+[data-theme='paper'] .media-frame [data-motion-control] {
+  position: absolute;
+  right: 1rem;
+  bottom: 1.2rem;
+  padding: 0.25rem 0.7rem;
+  border: 1.5px solid var(--text);
+  background: var(--stock-card);
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  box-shadow: 2px 2px 0 var(--ink-red);
+}
+
+/* ── Project cards ────────────────────────────────────────────────────────── */
+[data-theme='paper'] .project-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+[data-theme='paper'] .project-card .card {
+  height: 100%;
+  padding: 1rem 1rem 1.3rem;
+}
+
+[data-theme='paper'] .project-card:hover .card {
+  transform: rotate(0deg) translateY(-3px);
+}
+
+[data-theme='paper'] .project-title {
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+  margin-top: 0.6rem;
+}
+
+[data-theme='paper'] .project-meta {
+  font-family: var(--font-type);
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+/* ── Forms ────────────────────────────────────────────────────────────────── */
+[data-theme='paper'] .field {
+  display: block;
+  margin-bottom: 1.1rem;
+}
+
+[data-theme='paper'] .field > span {
+  display: block;
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  margin-bottom: 0.15rem;
+}
+
+/* Inputs are ruled lines on the card, not boxes. */
+[data-theme='paper'] .field input,
+[data-theme='paper'] .field textarea {
+  width: 100%;
+  padding: 0.4rem 0.2rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid rgba(38, 36, 31, 0.45);
+  border-radius: 0;
+}
+
+[data-theme='paper'] .field textarea {
+  min-height: 7rem;
+  resize: vertical;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 1.7rem,
+    rgba(38, 36, 31, 0.16) 1.7rem calc(1.7rem + 1px)
+  );
+  border-bottom: 0;
+  line-height: 1.7rem;
+}
+
+[data-theme='paper'] .field input:focus,
+[data-theme='paper'] .field textarea:focus {
+  outline: none;
+  border-bottom-color: var(--ink-red);
+  border-bottom-width: 2.5px;
+}
+
+/* Keyboard users still need a visible ring; the border shift alone is too subtle. */
+[data-theme='paper'] .field input:focus-visible,
+[data-theme='paper'] .field textarea:focus-visible {
+  outline: 2px solid var(--ink-red);
+  outline-offset: 3px;
+}
+
+/* ── Pencil cursor (§9) ───────────────────────────────────────────────────── */
+/*
+ * Hotspot at the pencil tip, bottom-left. Browsers cap cursor bitmaps near
+ * 32px, so this is drawn small. Safari's SVG-cursor support is patchy, hence the
+ * `auto` fallback — a missing cursor is cosmetic, a broken one is not.
+ */
+[data-theme='paper'] body {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='rotate(-45 14 14)'%3E%3Crect x='11' y='3' width='6' height='15' fill='%23f0d59a' stroke='%2326241f' stroke-width='1'/%3E%3Cpath d='M11 18h6l-3 6z' fill='%23f7f2e8' stroke='%2326241f' stroke-width='1'/%3E%3Cpath d='M12.6 22.2h2.8l-1.4 2.8z' fill='%2326241f'/%3E%3Crect x='11' y='2' width='6' height='3' fill='%23e8b4b8' stroke='%2326241f' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E")
+      2 26,
+    auto;
+}
+
+[data-theme='paper'] a,
+[data-theme='paper'] button,
+[data-theme='paper'] .nav-card {
+  cursor: pointer;
+}
+
+[data-theme='paper'] input,
+[data-theme='paper'] textarea {
+  cursor: text;
+}
+
+/* ── Controls cluster (theme switcher, mode, sound) ───────────────────────── */
+[data-theme='paper'] .controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+[data-theme='paper'] .ctrl {
+  padding: 0.28rem 0.6rem;
+  font-family: var(--font-hand);
+  font-size: 1.02rem;
+  background: var(--stock-card);
+  border: 1px solid rgba(38, 36, 31, 0.4);
+  box-shadow: 1px 2px 0 rgba(38, 36, 31, 0.22);
+}
+
+[data-theme='paper'] .ctrl[aria-pressed='true'] {
+  background: var(--ink-sage);
+  box-shadow: 1px 2px 0 var(--ink-red);
+}
+
+[data-theme='paper'] .ctrl-group {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border: 1px dashed rgba(38, 36, 31, 0.35);
+}
+
+[data-theme='paper'][data-mode='dark'] .ctrl-group {
+  border-color: rgba(255, 240, 214, 0.32);
+}
+
+/* ── Page-turn: project detail pages only (§9) ────────────────────────────── */
+/*
+ * Never on the primary scroll — a page-turn there would fight reading. This
+ * animates only when navigating between /projects/:slug pages.
+ */
+@keyframes paper-turn-in {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-7deg) translateX(26px);
+    transform-origin: left center;
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(0deg) translateX(0);
+  }
+}
+
+[data-theme='paper'] .page-turn {
+  animation: paper-turn-in 420ms ease-out both;
+}
+
+/* ── Interactive rewards ──────────────────────────────────────────────────── */
+/* Draggable stickers and peelable tape are rewards for lingering, never gates. */
+[data-theme='paper'] .draggable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+[data-theme='paper'] .draggable[data-dragging='true'] {
+  cursor: grabbing;
+  z-index: 50;
+  filter: drop-shadow(0 8px 10px rgba(38, 36, 31, 0.35));
+}
+
+[data-theme='paper'] .peelable {
+  transition: transform 260ms ease, opacity 260ms ease;
+  transform-origin: top left;
+}
+
+[data-theme='paper'] .peelable[data-peeled='true'] {
+  transform: rotate(-46deg) translate(-14px, -8px) scaleY(0.55);
+  opacity: 0.45;
+}
+
+/* ── Reduced motion (G17) ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='paper'] .page-turn {
+    animation: none;
+  }
+  [data-theme='paper'] .card,
+  [data-theme='paper'] .nav-card,
+  [data-theme='paper'] .polaroid,
+  [data-theme='paper'] .sticker {
+    transition: none;
+  }
+  /* Keep the tilt — it's static decoration, not motion. */
+}
+
+/* ── Mobile (G14, §19.6) ──────────────────────────────────────────────────── */
+/*
+ * The corkboard becomes a vertical scroll. Cards keep their tilt and pins, but
+ * overlap is removed so nothing occludes text.
+ */
+@media (max-width: 860px) {
+  [data-theme='paper'] .grid {
+    grid-template-columns: 1fr;
+    gap: 1.9rem;
+  }
+  [data-theme='paper'] .col-7,
+  [data-theme='paper'] .col-5,
+  [data-theme='paper'] .col-6,
+  [data-theme='paper'] .col-4,
+  [data-theme='paper'] .col-12 {
+    grid-column: 1 / -1;
+  }
+  [data-theme='paper'] .overlap-left {
+    margin-right: 0;
+  }
+  [data-theme='paper'] .overlap-up {
+    margin-top: 0;
+  }
+  [data-theme='paper'] .card {
+    padding: 1.2rem 1.25rem;
+  }
+  /* Tighter tilt so long lines don't wrap awkwardly inside a rotated box. */
+  [data-theme='paper'] {
+    --tilt-a: -0.8deg;
+    --tilt-b: 0.7deg;
+    --tilt-c: -0.5deg;
+  }
+  [data-theme='paper'] .tape {
+    width: 84px;
+  }
+  /* The pencil cursor is meaningless on touch. */
+  [data-theme='paper'] body {
+    cursor: auto;
+  }
+}
+
+/* Nav collapses to a pinned index-card menu (§19.6). */
+@media (max-width: 700px) {
+  [data-theme='paper'] .paper-header {
+    position: static;
+  }
+  [data-theme='paper'] .nav-cards {
+    width: 100%;
+    margin-left: 0;
+    order: 3;
+  }
+  [data-theme='paper'] .nav-card {
+    flex: 1 1 auto;
+    text-align: center;
+    font-size: 1rem;
+    padding: 0.3rem 0.5rem;
+  }
+}

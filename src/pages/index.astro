@@ -1,24 +1,129 @@
 ---
 /**
- * PLACEHOLDER — replaced by the paper theme build (spec §9, wireframe §19.2).
+ * Home — the corkboard (spec §9, wireframe §19.2).
  *
- * Present only so the scaffold builds and can be verified end to end. The real
- * home route is the corkboard: pinned hero card, Polaroid, three featured project
- * cards, sketched timeline, résumé and contact CTAs.
+ * Layout order matters more than the craft here. Name, headline, the Summer 2027
+ * availability line, and the contact/résumé CTAs are all in the first screen and
+ * all in the static HTML — never behind a drag, a peel, or a page turn (§9
+ * usability rule). The tilted, overlapping cards decorate that; they don't gate it.
  */
-import SiteShell from '../layouts/SiteShell.astro';
-import { IDENTITY } from '../data/identity';
-import { VOICES } from '../data/voice';
+import PaperLayout from '../components/paper/PaperLayout.astro';
+import Card from '../components/paper/Card.astro';
+import ProjectCard from '../components/paper/ProjectCard.astro';
+import ResumeSheet from '../components/paper/ResumeSheet.astro';
+import { IDENTITY, PHOTO } from '../data/identity';
+import { FEATURED } from '../data/projects';
+import { ROLES } from '../data/experience';
+import { VOICES, CANONICAL } from '../data/voice';
 import { SITE } from '../config';
 
 const voice = VOICES.paper;
+const tilts = ['a', 'b', 'c'] as const;
+const tapes = ['butter', 'sage', 'blush'] as const;
 ---
 
-<SiteShell title={SITE.title} path="/">
-  <main id="main">
-    <h1>{IDENTITY.name}</h1>
-    <p>{IDENTITY.headline}</p>
-    <p>{IDENTITY.availability}</p>
-    <p>{voice.heroSub}</p>
-  </main>
-</SiteShell>
+<PaperLayout title={SITE.title} description={CANONICAL.metaDescription} path="/">
+  <div class="cork">
+    <div class="wrap board">
+      <div class="grid">
+        <!-- Hero card -->
+        <div class="col-7 overlap-left">
+          <Card tilt="a" pin="left" tape={['tr']} tapeColor="sage">
+            <p class="annotation">{voice.greeting}</p>
+            <h1 class="display" style="margin-top:0.35rem;">{IDENTITY.name}</h1>
+            <p class="hand" style="font-size:1.5rem;margin-top:0.2rem;">{IDENTITY.headline}</p>
+            <hr class="stitch" style="margin:1.1rem 0;" data-decorative />
+            <p class="lede">{voice.heroSub}</p>
+            <p style="margin-top:1.2rem;font-size:1.3rem;" class="hand">
+              <span aria-hidden="true">▸</span>
+              <span class="highlight">{IDENTITY.availability}</span>
+            </p>
+            <p style="margin-top:1.4rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+              <a class="btn btn--primary" href="/projects">{voice.ctaPrimary}</a>
+              <a class="btn" href="/contact">{voice.ctaSecondary}</a>
+            </p>
+          </Card>
+        </div>
+
+        <!-- Polaroid -->
+        <div class="col-5">
+          <figure class="polaroid" style="--tilt:2.2deg;" data-print-block>
+            <span class="pin pin--sky" data-decorative aria-hidden="true"></span>
+            <img
+              src={PHOTO.small}
+              alt={PHOTO.alt}
+              width="400"
+              height="400"
+              loading="eager"
+              decoding="async"
+            />
+            <figcaption>hello!</figcaption>
+          </figure>
+        </div>
+
+        <!-- Featured work -->
+        <div class="col-12" style="margin-top:2.5rem;">
+          <p class="lettered" style="position:relative;display:inline-block;">
+            <span aria-hidden="true">✎</span> work
+          </p>
+        </div>
+
+        {
+          FEATURED.map((project, i) => (
+            <div class="col-4">
+              <ProjectCard
+                project={project}
+                blurb={voice.projectBlurbs[project.slug as keyof typeof voice.projectBlurbs]}
+                tilt={tilts[i % tilts.length]}
+                tapeColor={tapes[i % tapes.length]}
+              />
+            </div>
+          ))
+        }
+
+        <!-- Condensed timeline -->
+        <div class="col-12" style="margin-top:3rem;">
+          <p class="lettered"><span aria-hidden="true">✎</span> where I've been</p>
+          <Card tilt="flat" pin="none" class="on-desk" style="margin-top:1.2rem;background:transparent;box-shadow:none;outline:none;padding-left:0;">
+            <ol class="sketch-timeline">
+              {
+                ROLES.map((role) => (
+                  <li class="sketch-node">
+                    <p class="sketch-date">{role.datesShort}</p>
+                    <p style="font-size:1.1rem;">
+                      <strong>{role.company}</strong> — {role.title}
+                    </p>
+                    <p class="typewriter" style="color:var(--text-soft);">
+                      {role.location} · {role.arrangement}
+                    </p>
+                  </li>
+                ))
+              }
+            </ol>
+            <p style="margin-top:0.5rem;">
+              <a class="btn" href="/experience">Full experience →</a>
+            </p>
+          </Card>
+        </div>
+
+        <!-- Résumé + contact -->
+        <div class="col-6" style="margin-top:2rem;">
+          <ResumeSheet />
+        </div>
+        <div class="col-6" style="margin-top:2rem;">
+          <Card tilt="b" pin="right" halftone="blush">
+            <p class="hand" style="font-size:1.5rem;">
+              <span aria-hidden="true">✉</span> get in touch
+            </p>
+            <p style="margin-top:0.4rem;">
+              I'm looking for a Summer 2027 co-op. If you're hiring, I'd love to hear from you.
+            </p>
+            <p style="margin-top:1rem;">
+              <a class="btn" href="/contact">Contact me →</a>
+            </p>
+          </Card>
+        </div>
+      </div>
+    </div>
+  </div>
+</PaperLayout>

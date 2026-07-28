@@ -1,0 +1,112 @@
+---
+/**
+ * /about — photo, long bio, education, skills, interests, résumé (wireframe §19.5).
+ *
+ * Skills render as grouped lists with no proficiency tiers (§7) — no stars, no
+ * percentages, no expert/intermediate labels.
+ */
+import PaperLayout from '../components/paper/PaperLayout.astro';
+import Card from '../components/paper/Card.astro';
+import ResumeSheet from '../components/paper/ResumeSheet.astro';
+import { IDENTITY, INTERESTS, PHOTO } from '../data/identity';
+import { EDUCATION, SKILLS } from '../data/education';
+import { CANONICAL, VOICES } from '../data/voice';
+
+const voice = VOICES.paper;
+---
+
+<PaperLayout
+  title={`About — ${IDENTITY.name}`}
+  description={CANONICAL.bioShort}
+  path="/about"
+>
+  <div class="cork">
+    <div class="wrap board">
+      <p class="lettered"><span aria-hidden="true">✎</span> about</p>
+
+      <div class="grid" style="margin-top:1.6rem;">
+        <div class="col-4">
+          <figure class="polaroid" style="--tilt:-2.4deg;" data-print-block>
+            <span class="pin" data-decorative aria-hidden="true"></span>
+            <img
+              src={PHOTO.src}
+              alt={PHOTO.alt}
+              width="800"
+              height="800"
+              loading="eager"
+              decoding="async"
+            />
+            <figcaption>somewhere between a compiler and a coffee</figcaption>
+          </figure>
+
+          <div style="margin-top:2rem;">
+            <ResumeSheet />
+          </div>
+        </div>
+
+        <div class="col-8">
+          <Card tilt="a" pin="left" tape={['tr']} tapeColor="blush">
+            <p class="lede">{voice.bioShort}</p>
+            <hr class="stitch" style="margin:1.2rem 0;" data-decorative />
+            {voice.bioLong.map((para) => <p style="margin-bottom:0.9rem;">{para}</p>)}
+          </Card>
+        </div>
+
+        <!-- Education -->
+        <div class="col-6" style="margin-top:2.2rem;">
+          <Card tilt="c" pin="left" halftone="sky">
+            <p class="hand" style="font-size:1.5rem;">
+              <span aria-hidden="true">✎</span> {voice.headings.education}
+            </p>
+            <p style="margin-top:0.6rem;font-size:1.08rem;">
+              <strong>{EDUCATION.school}</strong>
+            </p>
+            <p>{EDUCATION.degree} · {EDUCATION.program}</p>
+            <p class="typewriter" style="margin-top:0.35rem;color:var(--text-soft);">
+              {EDUCATION.dates} · GPA {EDUCATION.gpa}
+            </p>
+            <ul style="margin:0.9rem 0 0;padding-left:1.1rem;">
+              {EDUCATION.coursework.map((course) => <li>{course}</li>)}
+            </ul>
+          </Card>
+        </div>
+
+        <!-- Interests -->
+        <div class="col-6" style="margin-top:2.2rem;">
+          <Card tilt="b" pin="right" halftone="sage">
+            <p class="hand" style="font-size:1.5rem;">
+              <span aria-hidden="true">✎</span> {voice.headings.interests}
+            </p>
+            <p style="margin-top:0.7rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+              {INTERESTS.map((interest) => <span class="sticker">{interest}</span>)}
+            </p>
+            <p class="annotation" style="display:block;margin-top:1.2rem;">
+              (the squash and badminton are aspirational)
+            </p>
+          </Card>
+        </div>
+
+        <!-- Skills -->
+        <div class="col-12" style="margin-top:2.2rem;">
+          <p class="lettered" style="font-size:2rem;">
+            <span aria-hidden="true">✎</span> {voice.headings.skills}
+          </p>
+          <div class="grid" style="margin-top:1.2rem;">
+            {
+              SKILLS.map((group, i) => (
+                <div class="col-4">
+                  <Card tilt={(['a', 'b', 'c'] as const)[i % 3]} pin="left">
+                    <p class="hand" style="font-size:1.3rem;">{group.label}</p>
+                    <ul class="tags">
+                      {group.items.map((item) => <li class="tag">{item}</li>)}
+                    </ul>
+                  </Card>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</PaperLayout>

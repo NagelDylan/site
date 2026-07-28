@@ -83,7 +83,7 @@ const PAPER: Voice = {
     acronymize:
       'A word puzzle where the answers spell out an acronym. I wanted feedback that was kinder than right-or-wrong, so a sentence-transformer model grades how close your guess actually was.',
     flowsense:
-      'A reading tool for dense PDFs — hover a term, get a definition that knows what page it is on. Built at Hack the 6ix 2024 with a team of four.',
+      'A reading tool for dense PDFs — hover a term, get a definition that knows what page it is on. Four of us built it in a weekend.',
     tanks:
       'A from-scratch rebuild of Wii Play\u2019s "Tanks!" in C#. Every enemy has personality traits that change how it hunts you, which was the whole reason I wrote the pathfinding myself.',
   },

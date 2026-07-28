@@ -1,0 +1,87 @@
+---
+/**
+ * Paper theme layout: header, pinned-index-card nav, footer.
+ *
+ * Everything a recruiter needs in the first 20 seconds is in the static HTML
+ * here or on the page itself — never behind an interaction (§9 usability rule).
+ * The only island in the chrome is the control cluster.
+ */
+import '@fontsource-variable/newsreader';
+import '@fontsource/caveat/600.css';
+import '@fontsource/caveat/700.css';
+import '../../styles/theme-paper.css';
+
+import SiteShell from '../../layouts/SiteShell.astro';
+import PaperControls from './PaperControls.tsx';
+import { IDENTITY, SOCIALS } from '../../data/identity';
+
+type Props = {
+  title: string;
+  description?: string;
+  path?: string;
+  /** Adds the page-turn animation — project detail pages only (§9). */
+  pageTurn?: boolean;
+};
+
+const { pageTurn = false, ...head } = Astro.props;
+const here = Astro.url.pathname.replace(/\/$/, '') || '/';
+
+const NAV = [
+  { href: '/', label: 'Home' },
+  { href: '/experience', label: 'Experience' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+];
+
+const year = new Date().getFullYear();
+---
+
+<SiteShell {...head}>
+  <header class="paper-header">
+    <div class="wrap" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <a class="brand" href="/">
+        <span aria-hidden="true">✎</span> {IDENTITY.name}
+      </a>
+      <nav class="nav-cards" aria-label="Main">
+        {
+          NAV.map((item) => (
+            <a
+              class="nav-card"
+              href={item.href}
+              aria-current={
+                (item.href === '/' ? here === '/' : here.startsWith(item.href)) ? 'page' : undefined
+              }
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+      {/*
+        client:load rather than client:visible — the switcher is the escape hatch
+        from every theme (G8/G12) and must never be waiting on an intersection.
+      */}
+      <PaperControls initialMode="light" client:load />
+    </div>
+  </header>
+
+  <main id="main" class={pageTurn ? 'page-turn' : undefined}>
+    <slot />
+  </main>
+
+  <footer class="paper-footer">
+    <div class="wrap">
+      <hr class="stitch" data-decorative />
+      <div class="footer-row">
+        <span class="hand" style="font-size:1.25rem;">
+          <span class="highlight highlight--sage">{IDENTITY.availabilityShort}</span>
+        </span>
+        <a href={SOCIALS.linkedin} rel="me noopener">LinkedIn</a>
+        <a href={SOCIALS.github} rel="me noopener">GitHub</a>
+        <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a>
+        <span style="margin-left:auto;" class="typewriter">© {year} {IDENTITY.name}</span>
+      </div>
+    </div>
+  </footer>
+</SiteShell>

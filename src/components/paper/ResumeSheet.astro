@@ -1,0 +1,28 @@
+---
+/**
+ * Résumé as a printed sheet under a paperclip (§9).
+ *
+ * Config-driven per §13: renders only when public/resume.pdf exists. Dylan drops
+ * the file in and this appears everywhere at once, with no code change. When it's
+ * absent nothing is rendered — no dead button, no "coming soon". The page is
+ * designed to look complete without it, because right now it is absent.
+ */
+import { getResume } from '../../lib/resume';
+
+const resume = getResume();
+---
+
+{
+  resume.available && (
+    <div class="card card--tilt-c" style="max-width:22rem;" data-print-block>
+      <span class="clip" data-decorative aria-hidden="true" />
+      <p class="hand" style="font-size:1.35rem;margin-bottom:0.2rem;">résumé</p>
+      <p class="typewriter" style="color:var(--text-soft);">PDF · one page</p>
+      <p style="margin-top:0.9rem;">
+        <a class="btn btn--primary" href={resume.href} download={resume.filename}>
+          Download ↓
+        </a>
+      </p>
+    </div>
+  )
+}
