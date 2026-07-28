@@ -102,7 +102,7 @@ What the pipeline does:
 
 | Source | Was | Ships as |
 |---|---|---|
-| `favicon.png` | 1,551 KB | 16/32 px PNG (1.3 / 2.7 KB), 180 px apple-touch, 512 px, and a real multi-size `.ico` |
+| `favicon.png` | 1,536 KB | 16/32 px PNG (1.5 / 3.0 KB), 180 px apple-touch, 512 px, and a real multi-size `.ico` |
 | `tanks.gif` | 3,438 KB | 1,024 KB animated WebP + 12 KB poster |
 | `acronymize.gif` | 692 KB | 432 KB + 7 KB poster |
 | `flowsense.gif` | 428 KB | 170 KB + 24 KB poster |

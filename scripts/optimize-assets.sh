@@ -19,18 +19,19 @@ need() { command -v "$1" >/dev/null || { echo "missing tool: $1" >&2; exit 1; };
 need sips; need cwebp; need gif2webp; need webpmux; need node
 
 echo "==> favicon set"
-# The source is a 1024x1024 cartoon avatar. A face carries almost no signal at
-# 16px, so the small sizes get a tighter centre crop (more head, less
-# background) while the large sizes keep the full composition.
-sips -c 760 760 "$SRC/favicon.png" --out /tmp/favicon-crop.png >/dev/null
-for s in 16 32 48; do
-  sips -z $s $s /tmp/favicon-crop.png --out "$OUT/favicon-$s.png" >/dev/null
+# The source is a 1024x1024 transparent PNG already composed as an icon: one
+# centred circular badge, the three themes split across the face. There is no
+# per-size framing — the badge sits inside ~190px of empty glow margin, so it is
+# trimmed to 700x700 ONCE and every size is that same square scaled down. The
+# 16px tab icon and the 512px install icon therefore read identically.
+sips -c 700 700 "$SRC/favicon.png" --out /tmp/favicon-trim.png >/dev/null
+for s in 16 32 48 180 512; do
+  sips -z $s $s /tmp/favicon-trim.png --out "$OUT/favicon-$s.png" >/dev/null
 done
-sips -z 180 180 "$SRC/favicon.png" --out "$OUT/apple-touch-icon.png" >/dev/null
-sips -z 512 512 "$SRC/favicon.png" --out "$OUT/favicon-512.png" >/dev/null
+mv "$OUT/favicon-180.png" "$OUT/apple-touch-icon.png"
 node scripts/make-ico.mjs "$OUT/favicon.ico" \
   "$OUT/favicon-16.png" "$OUT/favicon-32.png" "$OUT/favicon-48.png"
-rm -f /tmp/favicon-crop.png "$OUT/favicon-48.png"
+rm -f /tmp/favicon-trim.png "$OUT/favicon-48.png"
 
 echo "==> project media (animated GIF -> animated WebP + static poster)"
 # -mixed lets the encoder pick lossy or lossless per frame, which is a big win
