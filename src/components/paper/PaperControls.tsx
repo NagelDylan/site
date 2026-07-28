@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
-import { persistMode, THEME_LABELS, type Mode } from '../../lib/theme';
+import { persistMode, returnToChooser, THEME_LABELS, type Mode } from '../../lib/theme';
 import type { ThemeId } from '../../data/voice';
 import { play, SOUND_STORAGE_KEY } from './sounds';
 
@@ -86,6 +86,18 @@ const PaperControls = ({ initialMode }: Props) => {
           </a>
         ))}
       </div>
+
+      <button
+        type="button"
+        className="ctrl"
+        onClick={() => {
+          chirp('rustle');
+          returnToChooser();
+        }}
+        title="Back to the theme chooser"
+      >
+        ⌂ chooser
+      </button>
 
       <button
         type="button"

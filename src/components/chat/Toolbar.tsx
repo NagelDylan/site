@@ -12,7 +12,7 @@
  * same link works whichever theme the visitor lands in (G7).
  */
 import { THEMES } from '../../config';
-import { THEME_LABELS, persistMode, type Mode } from '../../lib/theme';
+import { THEME_LABELS, persistMode, returnToChooser, type Mode } from '../../lib/theme';
 import type { ThemeId } from '../../data/voice';
 
 /** Shared by the offline panel, which nudges toward the other two themes. */
@@ -52,6 +52,17 @@ const Toolbar = ({ mode, onModeChange }: Props) => {
           );
         })}
       </div>
+
+      {/* Back to the splash, which is the only screen showing all three themes. */}
+      <button
+        className="c-iconbtn"
+        type="button"
+        onClick={returnToChooser}
+        title="Back to the theme chooser"
+      >
+        <span aria-hidden="true">⌂</span>
+        <span className="sr-only">Back to the theme chooser</span>
+      </button>
 
       <button
         className="c-iconbtn"

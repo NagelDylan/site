@@ -40,7 +40,8 @@
    * .sketch-date both carry real content (dates, and FlowSense's required
    * "Built at Hack the 6ix 2024" framing), so they need the darker one. G12 gives
    * paper no contrast exemption; only Y2K gets that.
-   * Verified: 6.05:1 on card, 5.52:1 on stock, 5.15:1 on the dark-mode cream card.
+   * Verified: 6.05:1 on card, 5.52:1 on stock. Dark mode overrides this with a
+   * LIGHTER cut, since there the same text sits on a near-black card.
    */
   --ink-red-text: #a83f2b;
 
@@ -70,30 +71,143 @@
 }
 
 /*
- * Dark mode — "night desk" (§9). A dark walnut desk with a warm lamp pool
- * falling across the board; the paper stays cream INSIDE the light. Deliberately
- * not a second art style — same artwork, different lighting.
+ * Dark mode — "night desk" (§9), reworked at Dylan's request.
+ *
+ * The first version only dimmed the light theme: cream cards on a brown desk,
+ * dark text throughout. Now it is a genuinely different lighting state — dark
+ * walnut desk, near-black cards, white text.
+ *
+ * That inversion breaks three effects that depend on `multiply`, because
+ * multiplying anything into black returns black. Each is re-specified below
+ * rather than left to degrade silently:
+ *   • .halftone   → screen blend, so dots read as faint light on black
+ *   • .highlight  → normal blend with dark text on the ink, like a marker
+ *   • .tag        → translucent ink fill instead of a multiplied wash
  */
 [data-theme='paper'][data-mode='dark'] {
-  --stock: #241a13;
-  --stock-card: #f3ead6;
-  --text: #1e1a15;
-  --text-soft: #4a4238;
-  --rule: #b8ab92;
-  --cork: #6b4f33;
-  --cork-dark: #4a3524;
-  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.45), 0 14px 34px rgba(0, 0, 0, 0.4);
-  /* Inks lose a little chroma under lamplight rather than glowing. */
-  --ink-sage: #8fae96;
-  --ink-blush: #d19ea3;
-  --ink-butter: #dcc086;
-  --ink-sky: #92aec2;
+  /* Darker wood for the desk surface. */
+  --stock: #150d07;
+  /* "Black squares" — the cards. */
+  --stock-card: #0f0f0f;
+  --text: #f4f1ea;
+  --text-soft: #aaa39a;
+  --rule: rgba(255, 255, 255, 0.2);
+  --cork: #2b1c0f;
+  --cork-dark: #170e06;
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.6), 0 14px 34px rgba(0, 0, 0, 0.5);
+  /* Inks stay saturated here: they now sit on black, not on cream. */
+  --ink-sage: #7fae8c;
+  --ink-blush: #d69aa0;
+  --ink-butter: #e8c982;
+  --ink-sky: #8db4cd;
+  /* Red as text needs to go lighter, not darker, against a black card. */
+  --ink-red-text: #ff9d84;
 }
 
-/* Text that sits directly on the desk (not on a card) must stay legible. */
+/* Text directly on the desk rather than on a card. */
 [data-theme='paper'][data-mode='dark'] .on-desk,
 [data-theme='paper'][data-mode='dark'] .paper-footer {
-  color: #efe4cf;
+  color: #f4f1ea;
+}
+
+/* The misregistered second plate reads as a thin light edge on black. */
+[data-theme='paper'][data-mode='dark'] .card {
+  outline-color: rgba(255, 157, 132, 0.34);
+}
+
+/* Multiply would erase these; screen makes them faint light dots instead. */
+[data-theme='paper'][data-mode='dark'] .halftone::before {
+  mix-blend-mode: screen;
+  opacity: 0.14;
+}
+
+/*
+ * The highlighter becomes a solid swipe of ink with dark text on it. Multiply
+ * would have turned it into an invisible black rectangle.
+ */
+[data-theme='paper'][data-mode='dark'] .highlight {
+  color: #18140f;
+}
+
+[data-theme='paper'][data-mode='dark'] .highlight::before {
+  mix-blend-mode: normal;
+  opacity: 0.95;
+}
+
+[data-theme='paper'][data-mode='dark'] .tag {
+  mix-blend-mode: normal;
+  background: color-mix(in srgb, var(--ink-sage) 22%, transparent);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: var(--text);
+}
+
+/* Photo mounts are paper stock in light mode; here they are dark card too. */
+[data-theme='paper'][data-mode='dark'] .polaroid,
+[data-theme='paper'][data-mode='dark'] .media-frame {
+  background: #151515;
+}
+
+[data-theme='paper'][data-mode='dark'] .polaroid figcaption {
+  color: #f4f1ea;
+}
+
+[data-theme='paper'][data-mode='dark'] .polaroid img,
+[data-theme='paper'][data-mode='dark'] .media-frame img {
+  background: #262626;
+}
+
+/* Buttons and form rules were drawn in ink-on-paper values. */
+[data-theme='paper'][data-mode='dark'] .btn {
+  background: #1b1b1b;
+  border-color: rgba(255, 255, 255, 0.55);
+  color: var(--text);
+}
+
+[data-theme='paper'][data-mode='dark'] .btn--primary {
+  background: var(--ink-butter);
+  color: #18140f;
+  border-color: #18140f;
+}
+
+[data-theme='paper'][data-mode='dark'] .field input,
+[data-theme='paper'][data-mode='dark'] .field textarea {
+  border-bottom-color: rgba(255, 255, 255, 0.45);
+  color: var(--text);
+}
+
+[data-theme='paper'][data-mode='dark'] .field textarea {
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 1.7rem,
+    rgba(255, 255, 255, 0.16) 1.7rem calc(1.7rem + 1px)
+  );
+}
+
+[data-theme='paper'][data-mode='dark'] .nav-card,
+[data-theme='paper'][data-mode='dark'] .ctrl {
+  background: #1b1b1b;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text);
+}
+
+[data-theme='paper'][data-mode='dark'] .nav-card[aria-current='page'],
+[data-theme='paper'][data-mode='dark'] .ctrl[aria-current='true'],
+[data-theme='paper'][data-mode='dark'] .ctrl[aria-pressed='true'] {
+  background: var(--ink-butter);
+  color: #18140f;
+}
+
+[data-theme='paper'][data-mode='dark'] .sticker {
+  color: #18140f;
+}
+
+/* Display type's ghost plate needs to lighten rather than darken. */
+[data-theme='paper'][data-mode='dark'] h1.display {
+  text-shadow: 1px 1px 0 rgba(127, 174, 140, 0.55);
+}
+
+[data-theme='paper'][data-mode='dark'] .lettered {
+  text-shadow: 1px 1px 0 rgba(255, 157, 132, 0.5);
 }
 
 /* ── The board ────────────────────────────────────────────────────────────── */
@@ -125,8 +239,10 @@ body[data-theme='paper'] {
 }
 
 /*
- * The lamp pool, dark mode only. A large off-centre radial that keeps the top of
- * the board bright and lets the edges fall into the walnut.
+ * The lamp pool, dark mode only — kept subtle. With black cards the room does not
+ * need much: a faint warm fall-off across the wood so the desk has depth, and
+ * darker corners. Any stronger and it just tints everything brown, which was the
+ * complaint about the first dark mode.
  */
 [data-theme='paper'][data-mode='dark'] body::after {
   content: '';
@@ -136,10 +252,10 @@ body[data-theme='paper'] {
   pointer-events: none;
   background: radial-gradient(
     120% 90% at 50% -10%,
-    rgba(255, 214, 148, 0.22) 0%,
-    rgba(255, 200, 130, 0.1) 32%,
-    rgba(0, 0, 0, 0.32) 72%,
-    rgba(0, 0, 0, 0.55) 100%
+    rgba(255, 208, 140, 0.1) 0%,
+    rgba(255, 196, 122, 0.04) 30%,
+    rgba(0, 0, 0, 0.4) 74%,
+    rgba(0, 0, 0, 0.62) 100%
   );
 }
 
@@ -253,6 +369,8 @@ body[data-theme='paper'] {
     0 3px 5px rgba(38, 36, 31, 0.4),
     inset 0 -1px 2px rgba(0, 0, 0, 0.3);
   z-index: 3;
+  /* Decoration is never a hit-test target. */
+  pointer-events: none;
 }
 
 [data-theme='paper'] .pin--sage {
@@ -332,6 +450,7 @@ body[data-theme='paper'] {
   border-bottom-color: transparent;
   z-index: 5;
   transform: rotate(-6deg);
+  pointer-events: none;
 }
 
 [data-theme='paper'] .clip::after {
@@ -851,28 +970,13 @@ body[data-theme='paper'] {
   outline-offset: 3px;
 }
 
-/* ── Pencil cursor (§9) ───────────────────────────────────────────────────── */
+/* ── Cursor ───────────────────────────────────────────────────────────────── */
 /*
- * Hotspot at the pencil tip, bottom-left. Browsers cap cursor bitmaps near
- * 32px, so this is drawn small. Safari's SVG-cursor support is patchy, hence the
- * `auto` fallback — a missing cursor is cosmetic, a broken one is not.
+ * The pencil cursor was removed at Dylan's request — the default pointer is back.
+ * A custom cursor costs legibility of intent (people rely on the arrow/hand/beam
+ * distinction to know what is clickable) and the craft is carried well enough by
+ * everything else on the board. Do not reinstate it.
  */
-[data-theme='paper'] body {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='rotate(-45 14 14)'%3E%3Crect x='11' y='3' width='6' height='15' fill='%23f0d59a' stroke='%2326241f' stroke-width='1'/%3E%3Cpath d='M11 18h6l-3 6z' fill='%23f7f2e8' stroke='%2326241f' stroke-width='1'/%3E%3Cpath d='M12.6 22.2h2.8l-1.4 2.8z' fill='%2326241f'/%3E%3Crect x='11' y='2' width='6' height='3' fill='%23e8b4b8' stroke='%2326241f' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E")
-      2 26,
-    auto;
-}
-
-[data-theme='paper'] a,
-[data-theme='paper'] button,
-[data-theme='paper'] .nav-card {
-  cursor: pointer;
-}
-
-[data-theme='paper'] input,
-[data-theme='paper'] textarea {
-  cursor: text;
-}
 
 /* ── Controls cluster (theme switcher, mode, sound) ───────────────────────── */
 [data-theme='paper'] .controls {
@@ -1000,10 +1104,6 @@ body[data-theme='paper'] {
   }
   [data-theme='paper'] .tape {
     width: 84px;
-  }
-  /* The pencil cursor is meaningless on touch. */
-  [data-theme='paper'] body {
-    cursor: auto;
   }
 }
 

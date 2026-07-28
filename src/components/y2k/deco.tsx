@@ -22,7 +22,7 @@ export const Marquee = ({ text, label }: { text: string; label?: string }) => (
   </div>
 );
 
-export const MARQUEE_TEXT = `★ WELCOME TO MY HOMEPAGE ★  ${IDENTITY.availability.toUpperCase()} ★  DRAG THE WINDOWS, THEY REALLY MOVE ★  THIS SITE IS BEST VIEWED WITH YOUR EYES ★  NO POP-UPS EXCEPT THE ONES I MADE ON PURPOSE ★`;
+export const MARQUEE_TEXT = `★ WELCOME TO MY HOMEPAGE ★  ${IDENTITY.availability.toUpperCase()} ★  DRAG THE WINDOWS, THEY REALLY MOVE ★  NO POP-UPS EXCEPT THE ONES I MADE ON PURPOSE ★`;
 
 /**
  * Decorative visitor counter. Wired to nothing — there is no analytics service

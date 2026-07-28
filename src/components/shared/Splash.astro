@@ -197,6 +197,16 @@ import { THEME_STORAGE_KEY } from '../../config';
 
   .panel {
     display: block;
+    /*
+     * REQUIRED, not cosmetic. The paper panel's grain overlay is absolutely
+     * positioned with inset:0; without a positioned ancestor here it resolved
+     * against #splash (position: fixed) and covered the whole viewport. Because
+     * the overlay is a child of .panel--paper, that made the paper panel hover
+     * whenever the pointer was anywhere on screen, and its hover transform then
+     * shifted the overlay — so the panel oscillated and the cursor flickered
+     * between pointer and default. Containing the overlay fixes both.
+     */
+    position: relative;
     padding: 0;
     border: 1.5px solid currentColor;
     background: #fff;
@@ -212,21 +222,34 @@ import { THEME_STORAGE_KEY } from '../../config';
     box-shadow: 4px 6px 0 #c2543f;
   }
 
+  /*
+   * The caption sits in its own band rather than directly on the preview.
+   * Previously the label and note inherited dark ink straight onto whatever the
+   * panel's background was — which is teal for Y2K and mid-blue in its dark
+   * variant, so the grey sub-title was close to unreadable. A band keeps all
+   * three captions on the same legible stock regardless of the art above them.
+   */
+  .panel-label,
+  .panel-note {
+    background: #fffdf7;
+  }
+
   .panel-label {
     display: block;
-    padding: 0.55rem 0.5rem 0.1rem;
+    padding: 0.55rem 0.6rem 0.1rem;
     font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: #26241f;
+    border-top: 1.5px solid #26241f;
   }
 
   .panel-note {
     display: block;
     padding: 0 0.6rem 0.7rem;
     font-size: 0.82rem;
-    color: #5c574f;
+    color: #4a463f;
   }
 
   /* ── Paper panel ─────────────────────────────────────────────────────── */
@@ -237,6 +260,8 @@ import { THEME_STORAGE_KEY } from '../../config';
   .panel--paper .p-grain {
     position: absolute;
     inset: 0;
+    /* Decoration must never intercept the pointer. */
+    pointer-events: none;
     opacity: 0.4;
     mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23g)' opacity='0.4'/%3E%3C/svg%3E");

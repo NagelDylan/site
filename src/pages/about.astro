@@ -25,8 +25,14 @@ const voice = VOICES.paper;
       <p class="lettered"><span aria-hidden="true">✎</span> about</p>
 
       <div class="grid" style="margin-top:1.6rem;">
-        <div class="col-4">
-          <figure class="polaroid" style="--tilt:-2.4deg;" data-print-block>
+        <!--
+          Photo and bio are stacked rather than side by side. In a 4/8 split the
+          bio column was narrow enough that the opening paragraph set as an
+          almost vertical ribbon of text; a full-width measure below the photo
+          reads properly.
+        -->
+        <div class="col-12" style="display:flex;flex-wrap:wrap;gap:2rem;align-items:flex-start;">
+          <figure class="polaroid" style="--tilt:-2.4deg;flex:0 0 auto;max-width:17rem;" data-print-block>
             <span class="pin" data-decorative aria-hidden="true"></span>
             <img
               src={PHOTO.src}
@@ -39,16 +45,18 @@ const voice = VOICES.paper;
             <figcaption>somewhere between a compiler and a coffee</figcaption>
           </figure>
 
-          <div style="margin-top:2rem;">
+          <div style="flex:1 1 20rem;min-width:0;">
             <ResumeSheet />
           </div>
         </div>
 
-        <div class="col-8">
+        <div class="col-12">
           <Card tilt="a" pin="left" tape={['tr']} tapeColor="blush">
             <p class="lede">{voice.bioShort}</p>
             <hr class="stitch" style="margin:1.2rem 0;" data-decorative />
-            {voice.bioLong.map((para) => <p style="margin-bottom:0.9rem;">{para}</p>)}
+            <div style="columns:2 22rem;column-gap:2.4rem;">
+              {voice.bioLong.map((para) => <p style="margin-bottom:0.9rem;">{para}</p>)}
+            </div>
           </Card>
         </div>
 

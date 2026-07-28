@@ -26,7 +26,7 @@ import {
 } from '../../data';
 import type { ThemeId } from '../../data/voice';
 import { VOICES } from '../../data/voice';
-import { HitCounter, MARQUEE_TEXT, Marquee, NetscapeBadge, RainbowRule, UnderConstruction } from './deco';
+import { MARQUEE_TEXT, Marquee, RainbowRule, UnderConstruction } from './deco';
 
 const voice = VOICES.y2k;
 
@@ -253,8 +253,6 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
       </p>
       <RainbowRule />
       <p style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <HitCounter />
-        <NetscapeBadge />
       </p>
     </section>
 

@@ -81,8 +81,13 @@ const tapes = ['butter', 'sage', 'blush'] as const;
           ))
         }
 
-        <!-- Condensed timeline -->
-        <div class="col-12" style="margin-top:3rem;">
+        <!--
+          Condensed timeline, with the contact card beside it rather than below.
+          "Get in touch" is one of the two things a recruiter is actually looking
+          for, so it sits in the same eyeline as the work history instead of at
+          the bottom of the board.
+        -->
+        <div class="col-8" style="margin-top:3rem;">
           <p class="lettered"><span aria-hidden="true">✎</span> where I've been</p>
           <Card tilt="flat" pin="none" class="on-desk" style="margin-top:1.2rem;background:transparent;box-shadow:none;outline:none;padding-left:0;">
             <ol class="sketch-timeline">
@@ -106,11 +111,12 @@ const tapes = ['butter', 'sage', 'blush'] as const;
           </Card>
         </div>
 
-        <!-- Résumé + contact -->
-        <div class="col-6" style="margin-top:2rem;">
-          <ResumeSheet />
-        </div>
-        <div class="col-6" style="margin-top:2rem;">
+        <!--
+          Contact sits in the 4-column slot alongside the timeline, level with the
+          top of the work history rather than stranded at the bottom of the board.
+          The résumé sheet follows it in the same column.
+        -->
+        <div class="col-4" style="margin-top:3rem;">
           <Card tilt="b" pin="right" halftone="blush">
             <p class="hand" style="font-size:1.5rem;">
               <span aria-hidden="true">✉</span> get in touch
@@ -122,6 +128,10 @@ const tapes = ['butter', 'sage', 'blush'] as const;
               <a class="btn" href="/contact">Contact me →</a>
             </p>
           </Card>
+
+          <div style="margin-top:2rem;">
+            <ResumeSheet />
+          </div>
         </div>
       </div>
     </div>

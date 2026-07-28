@@ -56,41 +56,47 @@ const Clippy = ({ onOpen, onDismiss }: Props) => {
           </p>
         ) : null}
 
-        <div className="y2k-clippy-actions">
-          {says !== 'work' ? (
+        {/*
+          Once he's said goodbye, the options go with him. Leaving them under the
+          farewell for the 1.4s before he leaves read as a half-dismissed widget.
+        */}
+        {says === 'bye' ? null : (
+          <div className="y2k-clippy-actions">
+            {says !== 'work' ? (
+              <button
+                type="button"
+                className="y2k-btn"
+                onClick={() => {
+                  setSays('work');
+                  onOpen('projects');
+                }}
+              >
+                Show me his work!!
+              </button>
+            ) : null}
+            {says !== 'available' ? (
+              <button type="button" className="y2k-btn" onClick={() => setSays('available')}>
+                Is he available?
+              </button>
+            ) : null}
+            <button type="button" className="y2k-btn" onClick={() => onOpen('contact')}>
+              How do I reach him?
+            </button>
+            <button type="button" className="y2k-btn" onClick={() => onOpen('help')}>
+              How does this desktop work?
+            </button>
             <button
               type="button"
               className="y2k-btn"
               onClick={() => {
-                setSays('work');
-                onOpen('projects');
+                setSays('bye');
+                window.setTimeout(onDismiss, 1400);
               }}
             >
-              Show me his work!!
+              Go away, paperclip
             </button>
-          ) : null}
-          {says !== 'available' ? (
-            <button type="button" className="y2k-btn" onClick={() => setSays('available')}>
-              Is he available?
-            </button>
-          ) : null}
-          <button type="button" className="y2k-btn" onClick={() => onOpen('contact')}>
-            How do I reach him?
-          </button>
-          <button type="button" className="y2k-btn" onClick={() => onOpen('help')}>
-            How does this desktop work?
-          </button>
-          <button
-            type="button"
-            className="y2k-btn"
-            onClick={() => {
-              setSays('bye');
-              window.setTimeout(onDismiss, 1400);
-            }}
-          >
-            Go away, paperclip
-          </button>
-        </div>
+          </div>
+        )}
       </div>
       <span className="y2k-clippy-guy" aria-hidden="true">
         <ClippyFigure />

@@ -14,8 +14,9 @@
  *   • narrow viewports, which get the simplified page instead (§10 mobile)
  *
  * ─── THE HARD RULES, AS THEY APPLY TO THIS THEME ─────────────────────────────
- * R1  No performance metrics anywhere, including in microcopy. The hit counter
- *     counts nothing and says so.
+ * R1  No performance metrics anywhere, including in microcopy. (The decorative
+ *     visitor counter and the "best viewed in" badge were removed at Dylan's
+ *     request — do not reinstate them.)
  * R2  FlowSense won nothing. There is no award slot, badge, trophy or placement
  *     anywhere in this tree, and a blinking false claim is still a false claim.
  *     Enthusiasm goes on the engineering.
@@ -29,7 +30,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ThemeAppProps } from '../../lib/theme-mount';
 import type { ThemeId } from '../../data/voice';
-import { persistMode, type Mode } from '../../lib/theme';
+import { persistMode, returnToChooser, type Mode } from '../../lib/theme';
 import { IDENTITY } from '../../data';
 import '../../styles/theme-y2k.css';
 
@@ -41,7 +42,7 @@ import Boot, { hasBootedThisSession } from './Boot';
 import { Bsod, Dialog, type DialogSpec } from './Dialog';
 import { Screensaver, SparkleTrail } from './effects';
 import MobileY2k from './Mobile';
-import { HitCounter, MARQUEE_TEXT, Marquee, NetscapeBadge } from './deco';
+import { MARQUEE_TEXT, Marquee } from './deco';
 import { useIdle, useNarrow, useReducedMotion } from './hooks';
 import { useWindowManager, windowsForRoute, type OpenRequest, type WindowKind, type WindowState } from './wm';
 
@@ -231,10 +232,6 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
             <span className="y2k-banner-head">{IDENTITY.headline}</span>
           </h1>
           <span className="y2k-avail">{IDENTITY.availability.toUpperCase()}</span>
-          <div className="y2k-banner-row">
-            <HitCounter />
-            <NetscapeBadge />
-          </div>
           <Marquee text={MARQUEE_TEXT} label="Site announcements" />
         </div>
 
@@ -289,8 +286,19 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
         <Bsod
           onReboot={() => {
             setCrashed(false);
-            setBooting(true);
             wm.closeAll();
+            /**
+             * A reboot returns to the theme chooser, not to this desktop.
+             *
+             * Shutting the machine down and being dropped straight back into the
+             * same desktop makes the gag a no-op. Forgetting the persisted choice
+             * and re-showing the splash is what "restart" should mean — and the
+             * splash is the one screen that offers all three themes.
+             */
+            returnToChooser();
+            // So picking Y2K again gives a genuine cold boot rather than the
+            // desktop as it was left.
+            setBooting(true);
           }}
         />
       ) : null}

@@ -878,6 +878,12 @@ html[data-mode='dark'] .y2k-avail {
 .y2k-marquee {
   overflow: hidden;
   white-space: nowrap;
+  /*
+   * The marquee lives inside .y2k-banner, which is navy in light mode and near
+   * black in dark. Without an explicit colour it inherited the desktop's black
+   * body text and was invisible against both.
+   */
+  color: var(--y2k-banner-text);
 }
 
 .y2k-marquee > span {

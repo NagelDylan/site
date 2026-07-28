@@ -103,6 +103,32 @@ export const THEME_LABELS: Record<ThemeId, string> = {
 };
 
 /**
+ * Forgets the persisted theme and re-opens the chooser splash (§12).
+ *
+ * Every theme needs a route back to the splash, not just a route to the other
+ * two: the splash is the only screen that shows all three side by side, and it is
+ * a portfolio piece in its own right. Y2K reaches it through Start → Shut Down →
+ * reboot; paper and chat use this directly.
+ *
+ * Only the theme choice is cleared. Light/dark and the Y2K once-per-session boot
+ * flag are separate keys and deliberately survive.
+ */
+export function returnToChooser(): void {
+  try {
+    localStorage.removeItem(THEME_STORAGE_KEY);
+  } catch {
+    /* private mode — the splash still opens for this page view */
+  }
+  const root = document.documentElement;
+  delete root.dataset.themeChosen;
+  root.dataset.splash = 'show';
+  // The splash's own focus handling runs at page load, so move focus in here too
+  // for anyone arriving by keyboard after the first paint.
+  const first = document.querySelector<HTMLElement>('#splash [data-theme-choice]');
+  first?.focus();
+}
+
+/**
  * Runs before first paint to prevent a flash of the wrong theme. Inlined into
  * <head> by BaseHead.astro — it must stay dependency-free and synchronous, so
  * the logic above is duplicated here in miniature on purpose. Keep the two in

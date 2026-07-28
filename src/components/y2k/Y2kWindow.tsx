@@ -63,6 +63,21 @@ const Y2kWindow = ({
   const beginDrag = useCallback(
     (event: React.PointerEvent, mode: 'move' | 'size') => {
       if (event.button !== 0 || win.maximized) return;
+      /**
+       * Never start a drag from a control inside the title bar.
+       *
+       * This handler sits on the whole header, and beginDrag calls
+       * setPointerCapture on it. Capture retargets every later pointer event —
+       * including pointerup — to the header, so a button under the cursor never
+       * receives its pointerup and therefore never fires a click. That made
+       * minimise/maximise/close dead: the only way to reach them was to maximise
+       * first (via double-click), because beginDrag bails early when maximised and
+       * so never captured. Bailing on button targets fixes all three states.
+       *
+       * Move-drags only: the resize grip IS a button and must still be able to
+       * start a drag.
+       */
+      if ((event.target as HTMLElement).closest('button') && mode === 'move') return;
       const node = ref.current;
       if (!node) return;
       onFocus(win.id);
