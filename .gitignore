@@ -3,6 +3,11 @@ dist/
 .astro/
 
 # deps
+# Both patterns matter: the trailing-slash form only matches directories, so a
+# `node_modules` SYMLINK (which is what a git worktree needs to reach the real
+# install) would otherwise be committed — and a self-referential symlink then
+# destroys the real directory on checkout. This happened twice.
+node_modules
 node_modules/
 
 # env / credentials — Phase B (§18.4). Never commit real keys.

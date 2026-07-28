@@ -65,12 +65,6 @@ for (const rel of [
   'src/data/education.ts',
   'src/data/voice.ts',
   'src/lib/fact-pack.ts',
-  // The chatbot's scripted stub replies are user-facing copy that ships inside a
-  // JS bundle rather than in any HTML page, so scanning src/data and dist/ alone
-  // would miss them entirely. R6 makes every stub reply subject to R1-R5 exactly
-  // as if a model had produced it.
-  'src/lib/chat/stub-transport.ts',
-  'src/lib/chat/tools.ts',
 ]) {
   const p = join(root, rel);
   if (existsSync(p)) {
@@ -82,13 +76,64 @@ for (const rel of [
   }
 }
 
-// Chat components carry visible copy too: the demo-mode notice, the offline
-// states, button labels. Same reasoning as the stub transport above.
-for (const p of walk(join(root, 'src/components/chat'), ['.tsx'])) {
+/**
+ * Every theme's component tree.
+ *
+ * This net has to be wide. Only paper is server-rendered, so Y2K's and chat's
+ * copy — window text, Clippy dialogue, guestbook entries, the chatbot's scripted
+ * stub replies — never appears in any dist/*.html file. It ships inside a JS
+ * chunk, which means scanning src/data and built HTML alone would leave two of
+ * the three themes completely unchecked. R6 makes the bot's replies subject to
+ * R1–R5 exactly as if a model had produced them, and R1–R4 apply to microcopy in
+ * all three trees.
+ *
+ * Only PROSE literals are considered, because these files are full of inline
+ * style values and `width: '100%'` is not a performance metric. A literal counts
+ * as prose if it has at least two spaces and no CSS-value shape.
+ */
+const CSS_VALUE = /^[\s\d.,%#()a-fA-F-]*$/;
+const CSS_UNIT = /\d\s?(?:px|rem|em|vh|vw|dvh|ms|s|deg|fr)\b/;
+
+function proseLiterals(src) {
+  return stringLiterals(src).filter((s) => {
+    if ((s.match(/ /g) ?? []).length < 2) return false;
+    if (CSS_VALUE.test(s)) return false;
+    if (CSS_UNIT.test(s)) return false;
+    return /[A-Za-z]{3}/.test(s);
+  });
+}
+
+for (const p of walk(join(root, 'src/components'), ['.tsx', '.ts']).concat(
+  walk(join(root, 'src/lib'), ['.ts']),
+)) {
   const src = readFileSync(p, 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .replace(/^\s*\/\/.*$/gm, ' ');
-  copySources.push({ file: relative(root, p), text: stringLiterals(src).join('\n') });
+  copySources.push({ file: relative(root, p), text: proseLiterals(src).join('\n') });
+}
+
+/**
+ * JSX text nodes — copy written between tags rather than in a quoted literal,
+ * which is how most of the visible strings in these trees are actually authored.
+ *
+ * Crude by necessity (this is a regex, not a parser), so lines that still look
+ * like code after tag-stripping are dropped. Without that, a statement like
+ * `node.style.borderRadius = '50%'` reads as a percentage in visible copy.
+ */
+const LOOKS_LIKE_CODE = /[;={}]|=>|\.\w+\(|^\s*(?:const|let|var|return|import|export)\b/;
+
+for (const p of walk(join(root, 'src/components'), ['.tsx'])) {
+  const src = readFileSync(p, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/^\s*\/\/.*$/gm, ' ');
+  const text = src
+    .replace(/<[A-Za-z][^>]*>/g, '\n')
+    .replace(/<\/[A-Za-z][^>]*>/g, '\n')
+    .replace(/\{[^{}]*\}/g, ' ')
+    .split('\n')
+    .filter((line) => line.trim() && !LOOKS_LIKE_CODE.test(line))
+    .join('\n');
+  copySources.push({ file: `${relative(root, p)} (jsx text)`, text });
 }
 
 const distFiles = walk(join(root, 'dist'), ['.html']);
@@ -122,13 +167,23 @@ const SCOPE_ALLOWLIST = [
   /\bGPA 3\.9\b/i,
   /\b3\.9\b/,
   /\b60 (?:email )?(?:destination )?categories\b/i,
+  /**
+   * "100% hand-coded windows" — a GeoCities-era joke in the Y2K theme, about the
+   * website itself rather than about Dylan's work. R1 exists to keep performance
+   * claims off the site; this asserts nothing about outcomes, impact, or
+   * anything a recruiter would weigh. Allowed deliberately, and narrowly.
+   */
+  /\b100% hand-coded\b/i,
 ];
 
 for (const { file, text } of copySources) {
   for (const { re, why } of METRIC_PATTERNS) {
     for (const m of text.matchAll(re)) {
       const snippet = text.slice(Math.max(0, m.index - 60), m.index + m[0].length + 60).trim();
-      if (SCOPE_ALLOWLIST.some((a) => a.test(m[0]))) continue;
+      // Test the match AND its surrounding context: several allowlist entries are
+      // phrases ("roughly 60 destination categories"), not bare tokens, so testing
+      // the match alone would never let them through.
+      if (SCOPE_ALLOWLIST.some((a) => a.test(m[0]) || a.test(snippet))) continue;
       flag('R1', file, `${why}: "${m[0].trim()}" — …${snippet}…`);
     }
   }
@@ -141,11 +196,19 @@ const AWARD_WORDS =
 for (const { file, text } of copySources) {
   for (const m of text.matchAll(AWARD_WORDS)) {
     const window = text.slice(Math.max(0, m.index - 300), m.index + 300);
-    // Only a violation when it sits near hackathon/project context. The prompt's
-    // own corrective instructions ("never say it won") legitimately use the word.
+    // Only a violation when it sits near hackathon/project context.
     const nearProject = /flowsense|hack the|hackathon/i.test(window);
+    /**
+     * The corrective exemption has to be NARROW. The chatbot legitimately needs to
+     * say "it won nothing" and the fact layer's comments explain the rule, so bare
+     * award words can't be banned outright — but an earlier, looser version of this
+     * matched any "not"/"never" within 300 characters, which meant an unrelated
+     * aside ("*not really — it's Astro and React") silently excused a genuine false
+     * award claim sitting right next to it. Verified with a negative control.
+     * Only placement-specific corrective phrasing counts.
+     */
     const isCorrective =
-      /never|not|no placement|did not|didn't|placed nowhere|correct them|wrongly|do not/i.test(
+      /won nothing|win nothing|did ?n[o']?t place|placed nowhere|no placement|no award|never (?:won|claim|say|add)|wrongly claim|not an award|did ?n[o']?t win|placed no/i.test(
         window,
       );
     if (nearProject && !isCorrective) {
@@ -155,8 +218,14 @@ for (const { file, text } of copySources) {
 }
 // Hack the North must never appear as a FlowSense venue (the real event is Hack the 6ix).
 for (const { file, text } of copySources) {
-  if (/hack the north/i.test(text) && !/wrongly|never|correct|not\b/i.test(text)) {
-    flag('R2', file, 'mentions "Hack the North" — FlowSense was Hack the 6ix 2024');
+  for (const m of text.matchAll(/hack the north/gi)) {
+    const window = text.slice(Math.max(0, m.index - 300), m.index + 300);
+    const isCorrective = /wrongly|never|correct(?:ed|ion)?|incorrect|mistaken|was not|is not/i.test(
+      window,
+    );
+    if (!isCorrective) {
+      flag('R2', file, 'mentions "Hack the North" — FlowSense was Hack the 6ix 2024');
+    }
   }
 }
 
