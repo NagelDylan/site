@@ -95,7 +95,7 @@ const ContactForm = () => {
         style={{
           margin: '0 0 1.1rem',
           padding: '0.6rem 0.8rem',
-          border: '1.5px dashed rgba(38,36,31,0.4)',
+          border: '1.5px dashed var(--rule-strong)',
           fontSize: '0.85rem',
           fontFamily: 'var(--font-type)',
         }}

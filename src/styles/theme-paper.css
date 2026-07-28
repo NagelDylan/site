@@ -19,43 +19,179 @@
  *
  * THE USABILITY RULE (§9), which outranks every decorative decision here:
  * anything a recruiter needs in the first 20 seconds is never behind an
- * interaction. Name, headline, "Seeking Summer 2027 co-op", résumé, and contact
+ * interaction. Name, headline, 'Seeking Summer 2027 co-op', résumé, and contact
  * are always visible without dragging, peeling, or discovering. The craft is
  * decoration around a legible page, not a puzzle in front of one.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-/* ── Ink palette ──────────────────────────────────────────────────────────── */
-[data-theme='paper'] {
+/* ── Colour layer ─────────────────────────────────────────────────────────────
+ *
+ * SCOPED TO <html> ON PURPOSE — do not relax this to [data-theme='paper'].
+ * BaseDocument.astro puts data-theme on BOTH <html> and <body>, but data-mode only
+ * on <html>. So a bare [data-theme='paper'] token block matches <body> too, and
+ * <body> then re-declares every LIGHT token inside a dark <html>, shadowing the
+ * dark values for everything it contains. That is what "dark mode is completely
+ * broken" was: the old per-element dark rules still fired, so buttons and inputs
+ * went dark while every token-coloured surface stayed cream.
+ *
+ * ALL of this theme's colour lives in the two token blocks below and nowhere
+ * else. Every rule further down references a token and never a literal, which is
+ * what makes light and dark one theme lit two ways rather than two stylesheets
+ * that drift apart. The previous version had thirty-odd per-element dark
+ * overrides and the two modes had already come apart; this has none.
+ *
+ * FOUR SURFACES, back to front. Every box in the theme is exactly one of them:
+ *
+ *   --desk     the page behind everything — the header and footer strips
+ *   --board    the corkboard panel each page pins its content to
+ *   --card     the boxes: cards, project tiles, the résumé sheet
+ *   --raised   a box on another surface: buttons, nav cards, control chips
+ *              (usually on a card, but the home page puts a .btn on the board)
+ *
+ * Light mode: cream desk, tan board, near-white cards, warm near-black ink.
+ * Dark mode: the same warm hue family unlit — a dark walnut desk, a browner
+ * board still recognisable as the same wood (hue 33° against light's 36°), cards
+ * gone to near-black, and all ink to near-white.
+ *
+ * BLEND MODES ARE TOKENS, not constants — understand this before editing. Riso
+ * overprinting is `multiply`, and multiply is not mode-neutral: multiplying
+ * anything into a near-black card returns the card, so on a dark board the washi
+ * tape, the halftone wash and the highlighter all mathematically vanish. Instead
+ * of bolting on overrides, the blend itself is a token, and dark mode swaps
+ * `multiply` for `screen` (faint light dots, pale tape on black) or `normal` (a
+ * solid marker swipe with dark text on it).
+ *
+ * CONTRAST, and the model used. Floor is WCAG AA — 4.5:1 for body text, 3:1 for
+ * large text and for UI boundaries. G12 exempts only Y2K, never paper.
+ *
+ * Every text token was computed against every surface it can actually land on, in
+ * both modes, INCLUDING both ends of the board's gradient — the board is the
+ * darkest thing light-mode text sits on, because the home page's timeline and the
+ * section headings sit straight on the wood rather than on a card. Tightest text
+ * pair as shipped is --ink-red-text on the flecked dark end of the light board at
+ * 4.79:1.
+ *
+ * Two deliberate modelling choices, so the numbers can be reproduced:
+ *   • The fleck layers are measured by COVERAGE-weighted average (ring thickness
+ *     over period: 1.5/7 and 1.2/5, giving effective alphas of 0.034 and 0.031),
+ *     not worst pixel. They are 1.2–1.5px rings and a glyph stroke spans many
+ *     periods, so the average is what the eye integrates. Worst-single-pixel would
+ *     put --ink-red-text at 3.6:1 on the board.
+ *   • The full-page grain is greyscale 1px noise and is excluded for the same
+ *     reason.
+ * Sub-3:1 pairs that remain are --ink-red used as pure decoration — pin bodies,
+ * misregistration plates — which WCAG 1.4.11 exempts as decorative.
+ */
+html[data-theme='paper'] {
+  /* Surfaces, back to front. */
+  --desk: #f7f2e8;
+  --board: #dcc49f;
+  --board-edge: #d0b58e;
+  --card: #fffdf7;
+  --raised: #fffdf7;
+  /* Photo mounts — a shade whiter than card stock, like real photo paper. */
+  --mount: #fffefa;
+  /* Sits behind an image until it decodes, so the card never flashes through. */
+  --media-bg: #e7dfcd;
+
+  /* Ink. */
+  --text: #26241f;
+  --text-soft: #38342e;
+  /* For text placed ON a saturated ink: highlighter, primary button, sticker. */
+  --text-on-ink: #26241f;
+
+  /* Hairlines. */
+  --rule: #cfc7b6;
+  /*
+   * --rule-strong is load-bearing, not decorative: form inputs here are ruled
+   * lines rather than boxes, so this hairline is the ONLY thing identifying the
+   * field, which puts it under the 3:1 floor of WCAG 1.4.11. At the old 0.45 it
+   * resolved to 2.73:1 on card stock and failed; 0.55 clears both card (3.58:1)
+   * and the board (3.08:1).
+   */
+  --rule-strong: rgba(38, 36, 31, 0.55);
+  --rule-faint: rgba(38, 36, 31, 0.16);
+
   /* Riso spot inks. Dusty pastels, per §9. */
   --ink-sage: #a8c3ae;
   --ink-blush: #e8b4b8;
   --ink-butter: #f0d59a;
   --ink-sky: #a9c4d6;
-  /* The one saturated ink, used for pins, misregistration and accents. */
+  /* The one saturated ink: pins, misregistration, accents. */
   --ink-red: #c2543f;
   /*
-   * Darker cut of the same ink, for red used as TEXT rather than decoration.
-   * #c2543f reads at 4.46:1 on card stock — just under AA — and .annotation and
-   * .sketch-date both carry real content (dates, and FlowSense's required
-   * "Built at Hack the 6ix 2024" framing), so they need the darker one. G12 gives
-   * paper no contrast exemption; only Y2K gets that.
-   * Verified: 6.05:1 on card, 5.52:1 on stock. Dark mode overrides this with a
-   * LIGHTER cut, since there the same text sits on a near-black card.
+   * A separate, darker cut of the red for red used as TEXT rather than as
+   * decoration. .annotation and .sketch-date carry real content — dates, and
+   * FlowSense's required 'Built at Hack the 6ix 2024' framing — and some of them
+   * sit directly on the board rather than on a card. The decorative red reads at
+   * only 2.5:1 there, so the two uses cannot share one value. Dark mode takes
+   * this token LIGHTER rather than darker, since the same text then sits on
+   * near-black.
    */
-  --ink-red-text: #a83f2b;
+  --ink-red-text: #7a2211;
 
-  /* Stock and text. */
-  --stock: #f7f2e8;
-  --stock-card: #fffdf7;
-  --text: #26241f;
-  --text-soft: #5c574f;
-  --rule: #cfc7b6;
+  /* Misregistered second plates — the ghost copy 1px off in another ink. */
+  --plate-sage: rgba(111, 145, 121, 0.5);
+  --plate-red: rgba(194, 84, 63, 0.42);
+  --plate-edge: rgba(194, 84, 63, 0.28);
 
-  --cork: #c8a878;
-  --cork-dark: #a9855a;
+  /* Board texture and lighting. */
+  --board-fleck-a: rgba(120, 80, 40, 0.16);
+  --board-fleck-b: rgba(80, 50, 20, 0.13);
+  --board-vignette: inset 0 0 70px rgba(70, 44, 20, 0.3);
+  /*
+   * Dark mode hangs a desk lamp here. In light, the room is already lit.
+   * This has to be `none`, not `transparent`: the token is consumed as one layer
+   * of .cork's background-image, which takes `none | <image>` per layer.
+   * `transparent` is a <color>, so it would make the whole background-image
+   * declaration invalid — dropping the flecks and the gradient along with it.
+   */
+  --board-lamp: none;
 
-  --shadow-card: 0 1px 2px rgba(38, 36, 31, 0.14), 0 6px 18px rgba(38, 36, 31, 0.1);
+  /* Depth. */
+  --shadow-card:
+    0 1px 2px rgba(38, 36, 31, 0.14), 0 6px 18px rgba(38, 36, 31, 0.1);
+  /* Lifted card: shadow travels with it, so it reads as height off the board. */
+  --shadow-card-lift:
+    0 3px 5px rgba(38, 36, 31, 0.16), 0 16px 30px rgba(38, 36, 31, 0.16);
+  --shadow-lift: 1px 2px 3px rgba(38, 36, 31, 0.18);
+  --shadow-lift-hover: 1px 4px 6px rgba(38, 36, 31, 0.22);
+  --shadow-press: 1px 2px 0 rgba(38, 36, 31, 0.22);
+  --shadow-drag: 0 8px 10px rgba(38, 36, 31, 0.35);
+  /* A pin is a bead of plastic: cast shadow below, self-shading inside. */
+  --shadow-pin:
+    0 3px 5px rgba(38, 36, 31, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+
+  /* Hardware: pins and the paperclip are objects, not ink. */
+  --pin-gloss: rgba(255, 255, 255, 0.85);
+  --pin-shade: #8e3526;
+  --pin-sage: #6f9179;
+  --pin-sky: #6f93ab;
+  --clip-outer: #9aa0a6;
+  --clip-inner: #b6bcc2;
+
+  /* Blend modes, and the opacities tuned to each. See the note above. */
+  --blend-grain: multiply;
+  --grain-opacity: 0.32;
+  --blend-wash: multiply;
+  --wash-opacity: 0.5;
+  --blend-tape: multiply;
+  --tape-opacity: 0.78;
+  --tape-stripe: rgba(255, 255, 255, 0.28);
+  --blend-hl: multiply;
+  --hl-opacity: 1;
+  /* Light: the swipe is translucent ink, so text keeps the normal ink colour. */
+  --hl-text: var(--text);
+  --blend-tag: multiply;
+  --tag-fill: 26%;
+  --tag-border: rgba(38, 36, 31, 0.35);
+
+  /*
+   * Paper doesn't snap. A gentle ease-out settles a card the way a hand does —
+   * quick to move, slow to come to rest.
+   */
+  --ease-paper: cubic-bezier(0.22, 0.68, 0.24, 1);
 
   --font-hand: 'Caveat', 'Bradley Hand', 'Segoe Print', cursive;
   --font-body: 'Newsreader Variable', 'Newsreader', Georgia, 'Iowan Old Style', serif;
@@ -66,154 +202,120 @@
   --tilt-c: -0.8deg;
 
   color: var(--text);
-  background: var(--stock);
+  background: var(--desk);
   font-family: var(--font-body);
 }
 
 /*
- * Dark mode — "night desk" (§9), reworked at Dylan's request.
+ * Dark mode — 'night desk' (§9).
  *
- * The first version only dimmed the light theme: cream cards on a brown desk,
- * dark text throughout. Now it is a genuinely different lighting state — dark
- * walnut desk, near-black cards, white text.
+ * Same board, lamp off. The desk and board keep the light theme's warm hue and
+ * only lose their lightness, so the wood still reads as wood; the cards go to
+ * near-black and every ink goes near-white. Because the whole theme is
+ * token-driven, this block is the entire dark mode: no rule below is overridden.
  *
- * That inversion breaks three effects that depend on `multiply`, because
- * multiplying anything into black returns black. Each is re-specified below
- * rather than left to degrade silently:
- *   • .halftone   → screen blend, so dots read as faint light on black
- *   • .highlight  → normal blend with dark text on the ink, like a marker
- *   • .tag        → translucent ink fill instead of a multiplied wash
+ * Two things needed real thought rather than a value swap, and both are handled
+ * as tokens here:
+ *
+ *   1. The blends. multiply → screen for the grain, the halftone wash and the
+ *      tape; multiply → normal for the highlighter and the tag fill, with
+ *      --hl-text flipping the swiped text to dark so it reads on the ink.
+ *   2. Card/board separation, which is the thing that made the old dark mode read
+ *      as a flat void. Near-black on dark brown has very little contrast to give,
+ *      so it is bought from several places at once: the board keeps enough
+ *      lightness (--card against --board is 1.53:1, and still 1.33:1 at the far
+ *      end of the gradient), --raised lifts off --card by 1.32:1 for buttons and
+ *      nav chips, the shadows go much deeper than in light, and every card and
+ *      photo mount carries a --plate-edge outline so there is a hard boundary
+ *      that does not depend on surface contrast at all.
+ *
+ * The desk lamp is a gradient inside the BOARD, not a fixed overlay on the page.
+ * The old dark mode used body::after for it, which — being the last child of body
+ * with z-index 0 — painted on top of the content and dimmed the corners of every
+ * card by up to 62% black. Lighting belongs under the cards, not over them.
  */
-[data-theme='paper'][data-mode='dark'] {
-  /* Darker wood for the desk surface. */
-  --stock: #150d07;
-  /* "Black squares" — the cards. */
-  --stock-card: #0f0f0f;
-  --text: #f4f1ea;
-  --text-soft: #aaa39a;
+html[data-theme='paper'][data-mode='dark'] {
+  --desk: #17110b;
+  --board: #40301c;
+  --board-edge: #332619;
+  --card: #0d0d0d;
+  --raised: #282828;
+  --mount: #141414;
+  --media-bg: #262626;
+
+  --text: #f5f2ec;
+  --text-soft: #b0a89c;
+  /* Unchanged in spirit: still the dark ink, for text sitting on a bright ink. */
+  --text-on-ink: #18140f;
+
   --rule: rgba(255, 255, 255, 0.2);
-  --cork: #2b1c0f;
-  --cork-dark: #170e06;
-  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.6), 0 14px 34px rgba(0, 0, 0, 0.5);
-  /* Inks stay saturated here: they now sit on black, not on cream. */
+  --rule-strong: rgba(255, 255, 255, 0.5);
+  --rule-faint: rgba(255, 255, 255, 0.16);
+
+  /* Inks stay dusty but lift, since they now sit on black rather than cream. */
   --ink-sage: #7fae8c;
   --ink-blush: #d69aa0;
   --ink-butter: #e8c982;
   --ink-sky: #8db4cd;
-  /* Red as text needs to go lighter, not darker, against a black card. */
+  --ink-red: #e0674f;
   --ink-red-text: #ff9d84;
-}
 
-/* Text directly on the desk rather than on a card. */
-[data-theme='paper'][data-mode='dark'] .on-desk,
-[data-theme='paper'][data-mode='dark'] .paper-footer {
-  color: #f4f1ea;
-}
+  /* Plates lighten instead of darkening, or they'd be invisible on black. */
+  --plate-sage: rgba(127, 174, 140, 0.55);
+  --plate-red: rgba(255, 157, 132, 0.5);
+  --plate-edge: rgba(255, 157, 132, 0.34);
 
-/* The misregistered second plate reads as a thin light edge on black. */
-[data-theme='paper'][data-mode='dark'] .card {
-  outline-color: rgba(255, 157, 132, 0.34);
-}
-
-/* Multiply would erase these; screen makes them faint light dots instead. */
-[data-theme='paper'][data-mode='dark'] .halftone::before {
-  mix-blend-mode: screen;
-  opacity: 0.14;
-}
-
-/*
- * The highlighter becomes a solid swipe of ink with dark text on it. Multiply
- * would have turned it into an invisible black rectangle.
- */
-[data-theme='paper'][data-mode='dark'] .highlight {
-  color: #18140f;
-}
-
-[data-theme='paper'][data-mode='dark'] .highlight::before {
-  mix-blend-mode: normal;
-  opacity: 0.95;
-}
-
-[data-theme='paper'][data-mode='dark'] .tag {
-  mix-blend-mode: normal;
-  background: color-mix(in srgb, var(--ink-sage) 22%, transparent);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: var(--text);
-}
-
-/* Photo mounts are paper stock in light mode; here they are dark card too. */
-[data-theme='paper'][data-mode='dark'] .polaroid,
-[data-theme='paper'][data-mode='dark'] .media-frame {
-  background: #151515;
-}
-
-[data-theme='paper'][data-mode='dark'] .polaroid figcaption {
-  color: #f4f1ea;
-}
-
-[data-theme='paper'][data-mode='dark'] .polaroid img,
-[data-theme='paper'][data-mode='dark'] .media-frame img {
-  background: #262626;
-}
-
-/* Buttons and form rules were drawn in ink-on-paper values. */
-[data-theme='paper'][data-mode='dark'] .btn {
-  background: #1b1b1b;
-  border-color: rgba(255, 255, 255, 0.55);
-  color: var(--text);
-}
-
-[data-theme='paper'][data-mode='dark'] .btn--primary {
-  background: var(--ink-butter);
-  color: #18140f;
-  border-color: #18140f;
-}
-
-[data-theme='paper'][data-mode='dark'] .field input,
-[data-theme='paper'][data-mode='dark'] .field textarea {
-  border-bottom-color: rgba(255, 255, 255, 0.45);
-  color: var(--text);
-}
-
-[data-theme='paper'][data-mode='dark'] .field textarea {
-  background-image: repeating-linear-gradient(
-    180deg,
-    transparent 0 1.7rem,
-    rgba(255, 255, 255, 0.16) 1.7rem calc(1.7rem + 1px)
+  /* Wood grain reads as light fleck on dark, and the lamp comes on. */
+  --board-fleck-a: rgba(255, 214, 160, 0.05);
+  --board-fleck-b: rgba(255, 196, 122, 0.04);
+  --board-vignette: inset 0 0 90px rgba(0, 0, 0, 0.3);
+  --board-lamp: radial-gradient(
+    120% 80% at 50% -20%,
+    rgba(255, 208, 140, 0.13) 0%,
+    rgba(255, 196, 122, 0.05) 38%,
+    transparent 72%
   );
-}
 
-[data-theme='paper'][data-mode='dark'] .nav-card,
-[data-theme='paper'][data-mode='dark'] .ctrl {
-  background: #1b1b1b;
-  border-color: rgba(255, 255, 255, 0.3);
-  color: var(--text);
-}
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.6), 0 14px 34px rgba(0, 0, 0, 0.5);
+  --shadow-card-lift:
+    0 5px 8px rgba(0, 0, 0, 0.65), 0 26px 48px rgba(0, 0, 0, 0.55);
+  --shadow-lift: 1px 2px 4px rgba(0, 0, 0, 0.55);
+  --shadow-lift-hover: 1px 4px 8px rgba(0, 0, 0, 0.6);
+  --shadow-press: 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-drag: 0 8px 14px rgba(0, 0, 0, 0.7);
+  --shadow-pin:
+    0 3px 6px rgba(0, 0, 0, 0.7), inset 0 -1px 2px rgba(0, 0, 0, 0.45);
 
-[data-theme='paper'][data-mode='dark'] .nav-card[aria-current='page'],
-[data-theme='paper'][data-mode='dark'] .ctrl[aria-current='true'],
-[data-theme='paper'][data-mode='dark'] .ctrl[aria-pressed='true'] {
-  background: var(--ink-butter);
-  color: #18140f;
-}
+  /* Brighter metal and gloss, so hardware still catches light on black. */
+  --pin-gloss: rgba(255, 255, 255, 0.7);
+  --pin-shade: #7d2a1c;
+  --pin-sage: #8fbf9b;
+  --pin-sky: #8fb3cb;
+  --clip-outer: #b9bfc5;
+  --clip-inner: #8e949a;
 
-[data-theme='paper'][data-mode='dark'] .sticker {
-  color: #18140f;
-}
-
-/* Display type's ghost plate needs to lighten rather than darken. */
-[data-theme='paper'][data-mode='dark'] h1.display {
-  text-shadow: 1px 1px 0 rgba(127, 174, 140, 0.55);
-}
-
-[data-theme='paper'][data-mode='dark'] .lettered {
-  text-shadow: 1px 1px 0 rgba(255, 157, 132, 0.5);
+  /* multiply returns black on a black card; screen and normal do not. */
+  --blend-grain: screen;
+  --grain-opacity: 0.1;
+  --blend-wash: screen;
+  --wash-opacity: 0.14;
+  --blend-tape: screen;
+  --tape-opacity: 0.5;
+  /* Screened, a white stripe would blow the tape out; darken the gaps instead. */
+  --tape-stripe: rgba(0, 0, 0, 0.35);
+  --blend-hl: normal;
+  --hl-opacity: 0.95;
+  /* Dark: the swipe is opaque ink, so the text on it must go dark. */
+  --hl-text: var(--text-on-ink);
+  --blend-tag: normal;
+  --tag-fill: 22%;
+  --tag-border: rgba(255, 255, 255, 0.28);
 }
 
 /* ── The board ────────────────────────────────────────────────────────────── */
 [data-theme='paper'] body,
 body[data-theme='paper'] {
-  background-color: var(--stock);
+  background-color: var(--desk);
   min-height: 100dvh;
   position: relative;
 }
@@ -221,6 +323,12 @@ body[data-theme='paper'] {
 /*
  * Grain. One feTurbulence tile at low opacity over everything. `fractalNoise`
  * with a high baseFrequency reads as paper fibre rather than TV static.
+ *
+ * This is the one overlay that is deliberately ON TOP of the content (z-index
+ * 9998): paper fibre sits above the ink on a real print. It is safe there only
+ * because it is greyscale noise at a low opacity under a blend mode — dark mode
+ * screens it at 0.1 rather than multiplying at 0.32, since multiply over a
+ * near-black card does nothing but mud.
  */
 [data-theme='paper'] body::before {
   content: '';
@@ -228,54 +336,46 @@ body[data-theme='paper'] {
   inset: 0;
   z-index: 9998;
   pointer-events: none;
-  opacity: 0.32;
-  mix-blend-mode: multiply;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--blend-grain);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.42'/%3E%3C/svg%3E");
 }
 
-[data-theme='paper'][data-mode='dark'] body::before {
-  opacity: 0.22;
-  mix-blend-mode: soft-light;
-}
-
 /*
- * The lamp pool, dark mode only — kept subtle. With black cards the room does not
- * need much: a faint warm fall-off across the wood so the desk has depth, and
- * darker corners. Any stronger and it just tints everything brown, which was the
- * complaint about the first dark mode.
+ * Cork surface behind the pinned area — the board.
+ *
+ * Four layers, back to front: the flat board colour, two fleck textures, the
+ * desk lamp (transparent in light mode), and a linear gradient across the wood.
+ * The lamp lives HERE rather than in a fixed overlay on body, so it lights the
+ * board from underneath the cards. A previous version put it in body::after,
+ * which — as the last child of body at z-index 0 — painted over the content and
+ * dimmed the corners of every card by up to 62% black.
+ *
+ * The gradient is deliberately shallow, and the light board sits a step lighter
+ * than a true cork tan. Both are the same trade: text sits DIRECTLY on this
+ * surface (.on-desk, .lettered, the home page's timeline), so every point of the
+ * gradient has to hold AA for --text-soft and --ink-red-text. Depth is carried by
+ * the flecks and the edge vignette instead of by a steep ramp.
+ *
+ * --board-lamp is `none` in light mode, not `transparent` — see the token.
  */
-[data-theme='paper'][data-mode='dark'] body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    120% 90% at 50% -10%,
-    rgba(255, 208, 140, 0.1) 0%,
-    rgba(255, 196, 122, 0.04) 30%,
-    rgba(0, 0, 0, 0.4) 74%,
-    rgba(0, 0, 0, 0.62) 100%
-  );
-}
-
-/* Cork surface behind the pinned area. */
 [data-theme='paper'] .cork {
   position: relative;
-  background-color: var(--cork);
+  background-color: var(--board);
   background-image:
     repeating-radial-gradient(
       circle at 30% 20%,
-      rgba(120, 80, 40, 0.16) 0 1.5px,
+      var(--board-fleck-a) 0 1.5px,
       transparent 1.5px 7px
     ),
     repeating-radial-gradient(
       circle at 70% 65%,
-      rgba(80, 50, 20, 0.13) 0 1.2px,
+      var(--board-fleck-b) 0 1.2px,
       transparent 1.2px 5px
     ),
-    linear-gradient(160deg, var(--cork) 0%, var(--cork-dark) 100%);
-  box-shadow: inset 0 0 60px rgba(70, 44, 20, 0.35);
+    var(--board-lamp),
+    linear-gradient(160deg, var(--board) 0%, var(--board-edge) 100%);
+  box-shadow: var(--board-vignette);
 }
 
 /* ── Cards: the primitive everything is built from ────────────────────────── */
@@ -286,13 +386,21 @@ body[data-theme='paper'] {
  */
 [data-theme='paper'] .card {
   position: relative;
-  background: var(--stock-card);
+  background: var(--card);
   color: var(--text);
   padding: 1.6rem 1.8rem;
   box-shadow: var(--shadow-card);
-  transform: rotate(var(--tilt, var(--tilt-a)));
+  /*
+   * translateY(0) is spelled out so the hover state's function list matches this
+   * one exactly — a `rotate()` interpolating into `rotate() translateY()` is what
+   * makes the card jump instead of easing.
+   */
+  transform: rotate(var(--tilt, var(--tilt-a))) translateY(0);
+  transition:
+    transform 420ms var(--ease-paper),
+    box-shadow 420ms var(--ease-paper);
   /* Riso plates never line up perfectly. This is the misregistered second plate. */
-  outline: 1px solid rgba(194, 84, 63, 0.28);
+  outline: 1px solid var(--plate-edge);
   outline-offset: 1px;
 }
 
@@ -306,14 +414,18 @@ body[data-theme='paper'] {
   --tilt: 0deg;
 }
 
-/* Halftone wash, applied to cards that want a tinted plate behind the text. */
+/*
+ * Halftone wash, applied to cards that want a tinted plate behind the text.
+ * Light: multiplied dots darken the card. Dark: screened, so the same dots read
+ * as faint light on black rather than disappearing into it.
+ */
 [data-theme='paper'] .halftone::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  mix-blend-mode: multiply;
-  opacity: 0.5;
+  mix-blend-mode: var(--blend-wash);
+  opacity: var(--wash-opacity);
   background-image: repeating-radial-gradient(
     circle at 0 0,
     var(--halftone-ink, var(--ink-sage)) 0 1.4px,
@@ -363,21 +475,23 @@ body[data-theme='paper'] {
   transform: translateX(-50%);
   border-radius: 50%;
   background:
-    radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.85) 0 18%, transparent 42%),
-    radial-gradient(circle at 50% 50%, var(--pin-ink, var(--ink-red)) 0 60%, #8e3526 100%);
-  box-shadow:
-    0 3px 5px rgba(38, 36, 31, 0.4),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+    radial-gradient(circle at 34% 30%, var(--pin-gloss) 0 18%, transparent 42%),
+    radial-gradient(
+      circle at 50% 50%,
+      var(--pin-ink, var(--ink-red)) 0 60%,
+      var(--pin-shade) 100%
+    );
+  box-shadow: var(--shadow-pin);
   z-index: 3;
   /* Decoration is never a hit-test target. */
   pointer-events: none;
 }
 
 [data-theme='paper'] .pin--sage {
-  --pin-ink: #6f9179;
+  --pin-ink: var(--pin-sage);
 }
 [data-theme='paper'] .pin--sky {
-  --pin-ink: #6f93ab;
+  --pin-ink: var(--pin-sky);
 }
 [data-theme='paper'] .pin--left {
   left: 22px;
@@ -389,7 +503,11 @@ body[data-theme='paper'] {
   transform: none;
 }
 
-/* Washi tape. Translucent and multiplied, so what's underneath shows through. */
+/*
+ * Washi tape. Light: translucent and multiplied, so what's underneath shows
+ * through. Dark: screened onto near-black, which reads the same way round — a
+ * pale strip of tape lying over the card — where multiply would have erased it.
+ */
 [data-theme='paper'] .tape {
   position: absolute;
   width: 108px;
@@ -397,11 +515,11 @@ body[data-theme='paper'] {
   background-color: var(--tape-ink, var(--ink-sage));
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.28) 0 3px,
+    var(--tape-stripe) 0 3px,
     transparent 3px 7px
   );
-  opacity: 0.78;
-  mix-blend-mode: multiply;
+  opacity: var(--tape-opacity);
+  mix-blend-mode: var(--blend-tape);
   /* Torn ends. */
   clip-path: polygon(4% 0, 96% 2%, 100% 96%, 2% 100%);
   z-index: 4;
@@ -445,7 +563,7 @@ body[data-theme='paper'] {
   left: 28px;
   width: 22px;
   height: 46px;
-  border: 2.5px solid #9aa0a6;
+  border: 2.5px solid var(--clip-outer);
   border-radius: 11px 11px 8px 8px;
   border-bottom-color: transparent;
   z-index: 5;
@@ -460,17 +578,30 @@ body[data-theme='paper'] {
   left: 5px;
   width: 10px;
   height: 30px;
-  border: 2.5px solid #b6bcc2;
+  border: 2.5px solid var(--clip-inner);
   border-radius: 6px 6px 5px 5px;
   border-bottom-color: transparent;
 }
 
-/* Highlighter swipe. Multiply keeps the text readable through the ink. */
+/*
+ * Highlighter swipe.
+ *
+ * NOTE, because the tokens read as if more were happening than is: `isolation:
+ * isolate` is required here to stop the z-index:-1 pseudo-element falling behind
+ * the card's own background — but it also cuts ::before off from the card as a
+ * blending backdrop, so --blend-hl is inert and the swipe renders as opaque ink in
+ * BOTH modes. That is fine, and both modes were measured that way: light puts
+ * --text on butter at 10.7:1, dark puts --text-on-ink on it at 10.4:1. The token
+ * that is actually load-bearing is --hl-text, which flips the swiped text dark in
+ * dark mode so it reads against the ink. Don't remove `isolation` to "fix" the
+ * blend without checking the swipe still paints in front of the card.
+ */
 [data-theme='paper'] .highlight {
   position: relative;
   display: inline-block;
   padding: 0.1em 0.35em;
   isolation: isolate;
+  color: var(--hl-text);
 }
 
 [data-theme='paper'] .highlight::before {
@@ -479,7 +610,8 @@ body[data-theme='paper'] {
   inset: 0.12em -0.1em 0.05em;
   z-index: -1;
   background: var(--hl-ink, var(--ink-butter));
-  mix-blend-mode: multiply;
+  mix-blend-mode: var(--blend-hl);
+  opacity: var(--hl-opacity);
   /* Hand-drawn: uneven ends, slight skew. */
   clip-path: polygon(1% 8%, 99% 0, 100% 88%, 2% 100%);
   transform: rotate(-0.5deg);
@@ -513,10 +645,10 @@ body[data-theme='paper'] {
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
   background: var(--sticker-ink, var(--ink-sky));
-  color: var(--text);
+  color: var(--text-on-ink);
   font-family: var(--font-hand);
   font-size: 1.05rem;
-  box-shadow: 0 2px 4px rgba(38, 36, 31, 0.25);
+  box-shadow: var(--shadow-lift);
   transform: rotate(-3deg);
 }
 
@@ -548,7 +680,7 @@ body[data-theme='paper'] {
 
 /*
  * Section headings are hand-lettered and letterspaced, as in the wireframes
- * ("✎ E X P E R I E N C E"). The misregistered ghost copy is what makes them
+ * ('✎ E X P E R I E N C E'). The misregistered ghost copy is what makes them
  * read as printed rather than typed.
  */
 [data-theme='paper'] .lettered {
@@ -559,7 +691,7 @@ body[data-theme='paper'] {
   line-height: 1.1;
   text-transform: lowercase;
   color: var(--text);
-  text-shadow: 1px 1px 0 rgba(194, 84, 63, 0.42);
+  text-shadow: 1px 1px 0 var(--plate-red);
 }
 
 [data-theme='paper'] h1.display {
@@ -569,7 +701,7 @@ body[data-theme='paper'] {
   line-height: 1.05;
   letter-spacing: -0.02em;
   /* Misregistration: a second plate 1px off in sage. */
-  text-shadow: 1px 1px 0 rgba(111, 145, 121, 0.5);
+  text-shadow: 1px 1px 0 var(--plate-sage);
 }
 
 [data-theme='paper'] .lede {
@@ -607,9 +739,9 @@ body[data-theme='paper'] {
   font-family: var(--font-type);
   font-size: 0.76rem;
   padding: 0.16rem 0.5rem;
-  border: 1px solid rgba(38, 36, 31, 0.35);
-  background: color-mix(in srgb, var(--ink-sage) 26%, transparent);
-  mix-blend-mode: multiply;
+  border: 1px solid var(--tag-border);
+  background: color-mix(in srgb, var(--ink-sage) var(--tag-fill), transparent);
+  mix-blend-mode: var(--blend-tag);
   white-space: nowrap;
 }
 
@@ -623,11 +755,13 @@ body[data-theme='paper'] {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text);
-  background: var(--stock-card);
+  background: var(--raised);
   border: 1.5px solid var(--text);
   box-shadow: 3px 3px 0 var(--ink-red);
   text-decoration: none;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
 }
 
 [data-theme='paper'] .btn:hover {
@@ -640,8 +774,11 @@ body[data-theme='paper'] {
   box-shadow: 1px 1px 0 var(--ink-red);
 }
 
+/* The primary button is a slab of ink, so its label flips to the dark cut. */
 [data-theme='paper'] .btn--primary {
   background: var(--ink-butter);
+  color: var(--text-on-ink);
+  border-color: var(--text-on-ink);
 }
 
 /* ── Layout scaffolding ───────────────────────────────────────────────────── */
@@ -718,13 +855,9 @@ body[data-theme='paper'] {
   align-items: center;
   gap: 1rem;
   padding: 0.7rem 0;
-  background: color-mix(in srgb, var(--stock) 88%, transparent);
+  background: color-mix(in srgb, var(--desk) 88%, transparent);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--rule);
-}
-
-[data-theme='paper'][data-mode='dark'] .paper-header {
-  border-bottom-color: rgba(255, 240, 214, 0.18);
 }
 
 [data-theme='paper'] .brand {
@@ -733,10 +866,6 @@ body[data-theme='paper'] {
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
-}
-
-[data-theme='paper'][data-mode='dark'] .brand {
-  color: #f3e8d2;
 }
 
 /*
@@ -753,13 +882,16 @@ body[data-theme='paper'] {
 [data-theme='paper'] .nav-card {
   position: relative;
   padding: 0.35rem 0.85rem;
-  background: var(--stock-card);
-  border: 1px solid rgba(38, 36, 31, 0.3);
-  box-shadow: 1px 2px 3px rgba(38, 36, 31, 0.18);
+  background: var(--raised);
+  border: 1px solid var(--rule-strong);
+  box-shadow: var(--shadow-lift);
   font-family: var(--font-hand);
   font-size: 1.12rem;
   text-decoration: none;
-  transform: rotate(var(--nav-tilt, -1deg));
+  transform: rotate(var(--nav-tilt, -1deg)) translateY(0);
+  transition:
+    transform 260ms var(--ease-paper),
+    box-shadow 260ms var(--ease-paper);
 }
 
 [data-theme='paper'] .nav-card:nth-child(even) {
@@ -768,10 +900,12 @@ body[data-theme='paper'] {
 
 [data-theme='paper'] .nav-card:hover {
   transform: rotate(0deg) translateY(-2px);
+  box-shadow: var(--shadow-lift-hover);
 }
 
 [data-theme='paper'] .nav-card[aria-current='page'] {
   background: var(--ink-butter);
+  color: var(--text-on-ink);
   box-shadow: 2px 3px 0 var(--ink-red);
 }
 
@@ -795,15 +929,22 @@ body[data-theme='paper'] {
   position: relative;
   display: inline-block;
   padding: 0.85rem 0.85rem 3.2rem;
-  background: #fffefa;
+  background: var(--mount);
   box-shadow: var(--shadow-card);
+  /*
+   * Same misregistered plate the cards carry. On the night desk this is doing
+   * real work rather than decoration: --shadow-card is a dark shadow and simply
+   * disappears against dark wood, so without an edge the mount has no boundary.
+   */
+  outline: 1px solid var(--plate-edge);
+  outline-offset: 1px;
   transform: rotate(var(--tilt, 1.8deg));
 }
 
 [data-theme='paper'] .polaroid img {
   display: block;
   width: 100%;
-  background: #ded7c6;
+  background: var(--media-bg);
 }
 
 [data-theme='paper'] .polaroid figcaption {
@@ -814,7 +955,7 @@ body[data-theme='paper'] {
   text-align: center;
   font-family: var(--font-hand);
   font-size: 1.2rem;
-  color: #2f2b24;
+  color: var(--text);
 }
 
 /* ── Hand-drawn arrow ─────────────────────────────────────────────────────── */
@@ -843,7 +984,11 @@ body[data-theme='paper'] {
   width: 2px;
   background: var(--text-soft);
   opacity: 0.55;
-  /* A pencil line is never perfectly straight. */
+  /*
+   * A pencil line is never perfectly straight. These are mask ALPHAS, not
+   * colours — the visible ink is --text-soft above — so they are the one place
+   * in this file that correctly holds literals rather than tokens.
+   */
   mask-image: repeating-linear-gradient(
     180deg,
     #000 0 22px,
@@ -866,7 +1011,7 @@ body[data-theme='paper'] {
   margin-left: 3px;
   border: 2px solid var(--ink-red);
   border-radius: 50%;
-  background: var(--stock-card);
+  background: var(--card);
 }
 
 [data-theme='paper'] .sketch-date {
@@ -883,13 +1028,16 @@ body[data-theme='paper'] {
 [data-theme='paper'] .media-frame {
   position: relative;
   padding: 0.7rem 0.7rem 0.9rem;
-  background: #fffefa;
+  background: var(--mount);
   box-shadow: var(--shadow-card);
+  /* As .polaroid: the edge is what separates the mount from a dark board. */
+  outline: 1px solid var(--plate-edge);
+  outline-offset: 1px;
 }
 
 [data-theme='paper'] .media-frame img {
   width: 100%;
-  background: #e6dfce;
+  background: var(--media-bg);
 }
 
 [data-theme='paper'] .media-frame [data-motion-control] {
@@ -898,7 +1046,7 @@ body[data-theme='paper'] {
   bottom: 1.2rem;
   padding: 0.25rem 0.7rem;
   border: 1.5px solid var(--text);
-  background: var(--stock-card);
+  background: var(--raised);
   font-family: var(--font-hand);
   font-size: 1rem;
   box-shadow: 2px 2px 0 var(--ink-red);
@@ -915,10 +1063,35 @@ body[data-theme='paper'] {
 [data-theme='paper'] .project-card .card {
   height: 100%;
   padding: 1rem 1rem 1.3rem;
+  /* Swings from the pin (pin--left sits at 22px, 22px wide) rather than the
+   * middle, so straightening looks like the card pivoting on the tack. */
+  transform-origin: 33px 0;
 }
 
-[data-theme='paper'] .project-card:hover .card {
-  transform: rotate(0deg) translateY(-3px);
+/*
+ * Hover straightens the card and lifts it off the board. The rotation eases from
+ * whatever tilt the card was dealt (--tilt) to square, so it swings rather than
+ * snapping; the base rule above owns the transition and the matching function
+ * list. Focus gets the same treatment so keyboard users see the same affordance.
+ */
+[data-theme='paper'] .project-card:hover .card,
+[data-theme='paper'] .project-card:focus-visible .card {
+  transform: rotate(0deg) translateY(-4px);
+  box-shadow: var(--shadow-card-lift);
+}
+
+/*
+ * The ring moves to the inner card so it rotates with the paper instead of
+ * boxing the un-transformed link (base.css: themes may restyle it, not drop it).
+ */
+[data-theme='paper'] .project-card:focus-visible {
+  outline: none;
+}
+
+[data-theme='paper'] .project-card:focus-visible .card {
+  /* --ink-red-text is the variant that stays legible on a night-desk card. */
+  outline: 3px solid var(--ink-red-text);
+  outline-offset: 3px;
 }
 
 [data-theme='paper'] .project-title {
@@ -956,7 +1129,7 @@ body[data-theme='paper'] {
   color: var(--text);
   background: transparent;
   border: 0;
-  border-bottom: 1.5px solid rgba(38, 36, 31, 0.45);
+  border-bottom: 1.5px solid var(--rule-strong);
   border-radius: 0;
 }
 
@@ -966,7 +1139,7 @@ body[data-theme='paper'] {
   background-image: repeating-linear-gradient(
     180deg,
     transparent 0 1.7rem,
-    rgba(38, 36, 31, 0.16) 1.7rem calc(1.7rem + 1px)
+    var(--rule-faint) 1.7rem calc(1.7rem + 1px)
   );
   border-bottom: 0;
   line-height: 1.7rem;
@@ -1005,14 +1178,16 @@ body[data-theme='paper'] {
   padding: 0.28rem 0.6rem;
   font-family: var(--font-hand);
   font-size: 1.02rem;
-  background: var(--stock-card);
-  border: 1px solid rgba(38, 36, 31, 0.4);
-  box-shadow: 1px 2px 0 rgba(38, 36, 31, 0.22);
+  background: var(--raised);
+  border: 1px solid var(--rule-strong);
+  box-shadow: var(--shadow-press);
 }
 
+/* The active chip is filled with ink, so its label takes the dark cut. */
 [data-theme='paper'] .ctrl[aria-current='true'],
 [data-theme='paper'] .ctrl[aria-pressed='true'] {
   background: var(--ink-sage);
+  color: var(--text-on-ink);
   box-shadow: 1px 2px 0 var(--ink-red);
 }
 
@@ -1020,11 +1195,7 @@ body[data-theme='paper'] {
   display: flex;
   gap: 0.25rem;
   padding: 0.2rem;
-  border: 1px dashed rgba(38, 36, 31, 0.35);
-}
-
-[data-theme='paper'][data-mode='dark'] .ctrl-group {
-  border-color: rgba(255, 240, 214, 0.32);
+  border: 1px dashed var(--rule-strong);
 }
 
 /* ── Page-turn: project detail pages only (§9) ────────────────────────────── */
@@ -1059,11 +1230,13 @@ body[data-theme='paper'] {
 [data-theme='paper'] .draggable[data-dragging='true'] {
   cursor: grabbing;
   z-index: 50;
-  filter: drop-shadow(0 8px 10px rgba(38, 36, 31, 0.35));
+  filter: drop-shadow(var(--shadow-drag));
 }
 
 [data-theme='paper'] .peelable {
-  transition: transform 260ms ease, opacity 260ms ease;
+  transition:
+    transform 260ms ease,
+    opacity 260ms ease;
   transform-origin: top left;
 }
 
@@ -1120,7 +1293,7 @@ body[data-theme='paper'] {
     padding: 1.2rem 1.25rem;
   }
   /* Tighter tilt so long lines don't wrap awkwardly inside a rotated box. */
-  [data-theme='paper'] {
+  html[data-theme='paper'] {
     --tilt-a: -0.8deg;
     --tilt-b: 0.7deg;
     --tilt-c: -0.5deg;
@@ -1145,5 +1318,49 @@ body[data-theme='paper'] {
     text-align: center;
     font-size: 1rem;
     padding: 0.3rem 0.5rem;
+  }
+}
+
+/* ── Print (G15) ──────────────────────────────────────────────────────────── */
+/*
+ * print.css collapses all three themes to black-on-white, but it can only force
+ * html and body. It cannot reach the card surfaces, which take their background
+ * and colour from the tokens above — so in dark mode a printed page came out as
+ * near-white text on cards whose background the browser drops (print-color-adjust
+ * defaults to `economy`), i.e. white on white.
+ *
+ * Re-pointing the colour layer at ink-on-white is the whole fix, and because the
+ * theme is token-driven it takes one block instead of an !important per element.
+ * Both modes are listed: printing from dark mode has to produce the same sheet as
+ * printing from light.
+ */
+@media print {
+  html[data-theme='paper'],
+  html[data-theme='paper'][data-mode='dark'] {
+    --desk: #fff;
+    --board: #fff;
+    --board-edge: #fff;
+    --card: #fff;
+    --raised: #fff;
+    --mount: #fff;
+    --media-bg: #fff;
+
+    --text: #111;
+    --text-soft: #333;
+    --text-on-ink: #111;
+    --ink-red-text: #111;
+
+    --rule: #999;
+    --rule-strong: #666;
+    --rule-faint: #ccc;
+
+    /* No wood, no lamp, no plates — print.css strips the rest of the craft. */
+    --board-lamp: none;
+    --board-vignette: none;
+    --board-fleck-a: transparent;
+    --board-fleck-b: transparent;
+    --plate-edge: transparent;
+    --plate-red: transparent;
+    --plate-sage: transparent;
   }
 }

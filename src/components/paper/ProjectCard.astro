@@ -29,7 +29,7 @@ const { project, blurb, tilt = 'a', tapeColor = 'butter' } = Astro.props;
           height={project.media.height}
           loading="lazy"
           decoding="async"
-          style="width:100%;background:#e6dfce;"
+          style="width:100%;background:var(--media-bg);"
         />
       )
     }
