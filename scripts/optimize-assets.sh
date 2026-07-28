@@ -59,13 +59,53 @@ for name in tanks acronymize flowsense; do
 done
 
 echo "==> photo + logos"
-sips -Z 800 --setProperty formatOptions 72 "$SRC/me.jpeg" --out /tmp/me-800.jpeg >/dev/null
-cwebp -q 80 /tmp/me-800.jpeg -o "$OUT/media/me.webp" 2>/dev/null
-sips -Z 400 --setProperty formatOptions 72 "$SRC/me.jpeg" --out /tmp/me-400.jpeg >/dev/null
-cwebp -q 78 /tmp/me-400.jpeg -o "$OUT/media/me-small.webp" 2>/dev/null
-# JPEG fallback for the print stylesheet (G15) and any no-WebP context.
-cp /tmp/me-800.jpeg "$OUT/media/me.jpeg"
-rm -f /tmp/me-800.jpeg /tmp/me-400.jpeg
+#
+# One portrait per theme (§8/G9: the themes share facts, not presentation — and
+# that now extends to the artwork). Sources are 1254px PNGs at 1.2–3.3 MB, which
+# is absurd for an avatar, so each is emitted at two sizes as WebP.
+#
+#   me-paper  risograph halftone portrait   → paper theme, and the canonical
+#                                             image for OG / structured data
+#   me-y2k    pixel-art portrait            → Y2K theme
+#   me-chat   flat vector portrait          → chat theme avatar
+#
+# -z on the *large* size only: 800px is more than any layout asks for, and the
+# small cut is what the home polaroid and the Y2K windows actually render.
+for theme in paper y2k chat; do
+  src="$SRC/me-$theme.png"
+  [ -f "$src" ] || { echo "missing $src" >&2; exit 1; }
+  if [ "$theme" = 'y2k' ]; then
+    #
+    # Pixel art is a special case twice over.
+    #
+    # It must not be resampled smoothly or encoded lossily — either one blurs the
+    # deliberate hard pixel edges into mush. But lossless WebP of a 1254px
+    # dithered halftone is 450 KB, which is absurd for an avatar.
+    #
+    # The resolution is fake: the source is a small pixel grid blown up, so
+    # nothing is lost by storing it small and letting CSS scale it back up with
+    # `image-rendering: pixelated` (see .y2k-portrait). 256px lossless is 66 KB
+    # and renders identically to the 1254px original once upscaled.
+    #
+    sips -Z 256 "$src" --out /tmp/me-y2k-lg.png >/dev/null
+    sips -Z 160 "$src" --out /tmp/me-y2k-sm.png >/dev/null
+    cwebp -lossless -q 90 /tmp/me-y2k-lg.png -o "$OUT/media/me-y2k.webp" 2>/dev/null
+    cwebp -lossless -q 90 /tmp/me-y2k-sm.png -o "$OUT/media/me-y2k-small.webp" 2>/dev/null
+    rm -f /tmp/me-y2k-lg.png /tmp/me-y2k-sm.png
+  else
+    sips -Z 800 "$src" --out /tmp/me-$theme-800.png >/dev/null
+    sips -Z 400 "$src" --out /tmp/me-$theme-400.png >/dev/null
+    cwebp -q 82 /tmp/me-$theme-800.png -o "$OUT/media/me-$theme.webp" 2>/dev/null
+    cwebp -q 80 /tmp/me-$theme-400.png -o "$OUT/media/me-$theme-small.webp" 2>/dev/null
+    rm -f /tmp/me-$theme-800.png /tmp/me-$theme-400.png
+  fi
+done
+
+# JPEG fallback for the print stylesheet (G15) and any no-WebP context. Taken
+# from the paper portrait, which is the canonical one. The riso halftone is very
+# noisy, so it needs a lower quality and a smaller box than a photograph would to
+# stay a sane size.
+sips -Z 700 -s format jpeg --setProperty formatOptions 45 "$SRC/me-paper.png" --out "$OUT/media/me.jpeg" >/dev/null
 
 sips -Z 240 "$SRC/whitby-medical-logo.png" --out /tmp/whitby.png >/dev/null
 cwebp -q 85 /tmp/whitby.png -o "$OUT/media/whitby-medical-logo.webp" 2>/dev/null

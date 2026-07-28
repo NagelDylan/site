@@ -4,7 +4,7 @@
  * bioShort, bioLong and the headings are the Y2K voice layer's, unedited.
  * Interests and the photo come from the fact layer.
  */
-import { IDENTITY, INTERESTS, PHOTO, SOCIALS } from '../../../data';
+import { IDENTITY, INTERESTS, PHOTO, PHOTOS, SOCIALS } from '../../../data';
 import { VOICES } from '../../../data/voice';
 import { RainbowRule, UnderConstruction } from '../deco';
 
@@ -15,7 +15,14 @@ const AboutWindow = ({ onContact }: { onContact: () => void }) => (
     <h2>{voice.headings.about}</h2>
 
     <div className="y2k-media" style={{ float: 'left', margin: '0 12px 8px 0' }}>
-      <img src={PHOTO.small} alt={PHOTO.alt} width={120} height={120} style={{ width: 120, height: 'auto' }} />
+      <img
+        className="y2k-portrait"
+        src={PHOTOS.y2k.small}
+        alt={PHOTO.alt}
+        width={120}
+        height={120}
+        style={{ width: 120, height: 'auto' }}
+      />
     </div>
 
     <p>{voice.bioShort}</p>

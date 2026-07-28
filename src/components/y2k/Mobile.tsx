@@ -18,6 +18,7 @@ import {
   IDENTITY,
   INTERESTS,
   PHOTO,
+  PHOTOS,
   RECYCLE_BIN,
   ROLES,
   SECONDARY,
@@ -56,7 +57,8 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
       </p>
       <p style={{ marginTop: 10 }}>
         <img
-          src={PHOTO.small}
+          className="y2k-portrait"
+          src={PHOTOS.y2k.small}
           alt={PHOTO.alt}
           width={110}
           height={110}

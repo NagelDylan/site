@@ -23,7 +23,7 @@
  *   ChatUnavailable  honest offline / cap-reached state   (§11.4)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { IDENTITY } from '../../data';
+import { IDENTITY, PHOTOS } from '../../data';
 import { VOICES } from '../../data/voice';
 import type { ThemeAppProps } from '../../lib/theme-mount';
 import type { Mode } from '../../lib/theme';
@@ -122,8 +122,25 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
       <div className="c-app">
         <header className="c-header">
           <div className="c-header__id">
-            <p className="c-header__name">{IDENTITY.name}</p>
-            <p className="c-header__role">{IDENTITY.availabilityShort}</p>
+            {/*
+              The portrait is this theme's own artwork — a flat vector cut, where
+              paper gets a risograph print and Y2K gets pixel art (G9). Decorative
+              only: the name beside it already carries the information, so it is
+              alt="" rather than repeating "Dylan Nagel" to a screen reader.
+            */}
+            <img
+              className="c-avatar"
+              src={PHOTOS.chat.small}
+              alt=""
+              width={44}
+              height={44}
+              loading="eager"
+              decoding="async"
+            />
+            <div>
+              <p className="c-header__name">{IDENTITY.name}</p>
+              <p className="c-header__role">{IDENTITY.availabilityShort}</p>
+            </div>
           </div>
           <Toolbar mode={mode} onModeChange={setMode} />
         </header>

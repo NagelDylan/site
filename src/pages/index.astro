@@ -112,11 +112,12 @@ const tapes = ['butter', 'sage', 'blush'] as const;
         </div>
 
         <!--
-          Contact sits in the 4-column slot alongside the timeline, level with the
-          top of the work history rather than stranded at the bottom of the board.
-          The résumé sheet follows it in the same column.
+          Contact sits in the 4-column slot alongside the timeline, hanging a
+          little lower than the top of the work history rather than stranded at
+          the bottom of the board. The résumé sheet follows it in the same
+          column. Offsets live in .aside-contact so mobile can drop them.
         -->
-        <div class="col-4" style="margin-top:3rem;">
+        <div class="col-4 aside-contact">
           <Card tilt="b" pin="right" halftone="blush">
             <p class="hand" style="font-size:1.5rem;">
               <span aria-hidden="true">✉</span> get in touch

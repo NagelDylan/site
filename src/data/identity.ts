@@ -32,9 +32,33 @@ export const SOCIALS = {
 /** Interests, for /about (spec §2 long bio closer). */
 export const INTERESTS = ['reading', 'travel planning', 'squash', 'badminton'] as const;
 
+/**
+ * The portrait, one per theme (§8/G9 — the themes share facts, not artwork).
+ * `scripts/optimize-assets.sh` emits a large and a small WebP for each from
+ * `assets-src/me-<theme>.png`.
+ *
+ * PHOTO is the paper/canonical portrait, and is what OG tags, structured data
+ * and the print stylesheet use. Theme components should reach for the matching
+ * entry in PHOTOS instead.
+ */
+export const PHOTOS = {
+  paper: {
+    src: '/media/me-paper.webp',
+    small: '/media/me-paper-small.webp',
+  },
+  y2k: {
+    src: '/media/me-y2k.webp',
+    small: '/media/me-y2k-small.webp',
+  },
+  chat: {
+    src: '/media/me-chat.webp',
+    small: '/media/me-chat-small.webp',
+  },
+} as const;
+
 export const PHOTO = {
-  src: '/media/me.webp',
-  small: '/media/me-small.webp',
+  src: PHOTOS.paper.src,
+  small: PHOTOS.paper.small,
   /** For print (G15) and any context without WebP. */
   fallback: '/media/me.jpeg',
   alt: 'Dylan Nagel',

@@ -1619,3 +1619,17 @@ html[data-mode='light'] .y2k-m :focus-visible {
     display: none !important;
   }
 }
+
+/* ── Portrait ─────────────────────────────────────────────────────────────── */
+/*
+ * The Y2K portrait is pixel art stored at its true 256px grid rather than the
+ * 1254px the source arrived at (see scripts/optimize-assets.sh for why). Scaling
+ * it back up must be nearest-neighbour, or the browser smooths exactly the hard
+ * pixel edges the artwork is made of.
+ */
+.y2k-portrait {
+  image-rendering: pixelated;
+  /* Safari still wants the older keyword. */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+}

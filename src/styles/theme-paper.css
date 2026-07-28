@@ -678,6 +678,9 @@ body[data-theme='paper'] {
 [data-theme='paper'] .col-4 {
   grid-column: span 4;
 }
+[data-theme='paper'] .col-8 {
+  grid-column: span 8;
+}
 [data-theme='paper'] .col-12 {
   grid-column: span 12;
 }
@@ -686,6 +689,19 @@ body[data-theme='paper'] {
 [data-theme='paper'] .overlap-left {
   margin-right: -2.5rem;
   z-index: 2;
+}
+
+/*
+ * The contact column beside the timeline. It hangs lower than the work history
+ * and is nudged left of the board's right edge — equal margins would read as a
+ * two-column web layout, and this is supposed to read as a note dropped on a
+ * corkboard. The right margin repays the left offset so the card keeps its
+ * column width instead of growing into the gutter.
+ */
+[data-theme='paper'] .aside-contact {
+  margin-top: 5.5rem;
+  margin-left: -1.5rem;
+  margin-right: 1.5rem;
 }
 
 [data-theme='paper'] .overlap-up {
@@ -1084,10 +1100,17 @@ body[data-theme='paper'] {
   [data-theme='paper'] .col-5,
   [data-theme='paper'] .col-6,
   [data-theme='paper'] .col-4,
+  [data-theme='paper'] .col-8,
   [data-theme='paper'] .col-12 {
     grid-column: 1 / -1;
   }
   [data-theme='paper'] .overlap-left {
+    margin-right: 0;
+  }
+  /* Stacked, the offsets that framed it beside the timeline just misalign it. */
+  [data-theme='paper'] .aside-contact {
+    margin-top: 0;
+    margin-left: 0;
     margin-right: 0;
   }
   [data-theme='paper'] .overlap-up {

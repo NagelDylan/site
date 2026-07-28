@@ -706,3 +706,22 @@ html[data-theme='chat'] body {
     animation: none;
   }
 }
+
+/*
+ * Header avatar. This theme's portrait is a flat vector cut; the other two themes
+ * use their own artwork (G9 — the themes share facts, not presentation).
+ */
+[data-theme='chat'] .c-header__id {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+[data-theme='chat'] .c-avatar {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--c-surface-2, #e6eaf0);
+}

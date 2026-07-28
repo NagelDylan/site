@@ -28,7 +28,7 @@
  */
 export type * from './types';
 
-export { IDENTITY, SOCIALS, INTERESTS, PHOTO } from './identity';
+export { IDENTITY, SOCIALS, INTERESTS, PHOTO, PHOTOS } from './identity';
 export { ROLES, APPLE_DESCRIPTION, COOP_TERMS, EXPERIENCE_EXCLUSIONS } from './experience';
 export { FEATURED, SECONDARY, RECYCLE_BIN } from './projects';
 export { EDUCATION, SKILLS } from './education';

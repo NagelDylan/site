@@ -12,7 +12,7 @@
  */
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ThemeId } from '../../data/voice';
-import { THEME_LABELS } from '../../lib/theme';
+import { THEME_LABELS, returnToChooser } from '../../lib/theme';
 import { FEATURED } from '../../data';
 import Icon, { StartFlag } from './Icon';
 import { useClock } from './hooks';
@@ -202,6 +202,20 @@ const Taskbar = ({
               ))}
               <li className="y2k-mi-sep" />
               <li>
+                {/* Back to the splash, which is the only screen showing all three. */}
+                <button
+                  type="button"
+                  className="y2k-mi"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    returnToChooser();
+                  }}
+                >
+                  <Icon name="globe" /> Back to chooser…
+                </button>
+              </li>
+              <li className="y2k-mi-sep" />
+              <li>
                 <button
                   type="button"
                   className="y2k-mi"
@@ -300,6 +314,21 @@ const Taskbar = ({
             onClick={() => onTheme('chat')}
           >
             💬
+          </button>
+          {/*
+            Back to the theme chooser, sitting with the theme buttons because that
+            is where someone looking for "how do I get out of here" will look.
+            Start → Shut Down reaches the same screen the long way round, as a gag;
+            this is the direct route.
+          */}
+          <button
+            type="button"
+            className="y2k-tray-btn"
+            title="Back to the theme chooser"
+            aria-label="Back to the theme chooser"
+            onClick={returnToChooser}
+          >
+            ⌂
           </button>
           <button
             type="button"

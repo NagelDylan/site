@@ -106,6 +106,21 @@ What the pipeline does:
 | `tanks.gif` | 3,438 KB | 1,024 KB animated WebP + 12 KB poster |
 | `acronymize.gif` | 692 KB | 432 KB + 7 KB poster |
 | `flowsense.gif` | 428 KB | 170 KB + 24 KB poster |
+| `me-paper.png` | 3,314 KB | 194 KB + 34 KB WebP |
+| `me-y2k.png` | 1,220 KB | 66 KB + 29 KB lossless WebP at 256 px |
+| `me-chat.png` | 1,221 KB | 22 KB + 8 KB WebP |
+
+**One portrait per theme.** G9 keeps the three themes structurally independent, and
+that now extends to the artwork: a risograph print for paper, pixel art for Y2K, a
+flat vector cut for chat. `PHOTOS` in `src/data/identity.ts` is keyed by theme;
+`PHOTO` is the paper/canonical one and is what OG tags, structured data, and the
+print stylesheet use.
+
+The Y2K portrait is stored at 256 px **lossless** and scaled back up with
+`image-rendering: pixelated`. Its resolution is fake — it is a small pixel grid
+blown up — so lossless-at-256 is byte-identical in appearance to the 1254 px source
+once upscaled, at 66 KB instead of 450 KB. Do not switch it to lossy or let the
+browser smooth it; either one destroys the hard pixel edges the art is made of.
 
 The animations are still large. Frame-count reduction isn't safely possible with the
 available tooling — animated WebP frames are partial rects with blend/dispose flags,
