@@ -34,6 +34,15 @@
   --ink-sky: #a9c4d6;
   /* The one saturated ink, used for pins, misregistration and accents. */
   --ink-red: #c2543f;
+  /*
+   * Darker cut of the same ink, for red used as TEXT rather than decoration.
+   * #c2543f reads at 4.46:1 on card stock — just under AA — and .annotation and
+   * .sketch-date both carry real content (dates, and FlowSense's required
+   * "Built at Hack the 6ix 2024" framing), so they need the darker one. G12 gives
+   * paper no contrast exemption; only Y2K gets that.
+   * Verified: 6.05:1 on card, 5.52:1 on stock, 5.15:1 on the dark-mode cream card.
+   */
+  --ink-red-text: #a83f2b;
 
   /* Stock and text. */
   --stock: #f7f2e8;
@@ -407,7 +416,7 @@ body[data-theme='paper'] {
 [data-theme='paper'] .annotation {
   font-family: var(--font-hand);
   font-size: 1.15rem;
-  color: var(--ink-red);
+  color: var(--ink-red-text);
   transform: rotate(-2deg);
   display: inline-block;
 }
@@ -728,7 +737,7 @@ body[data-theme='paper'] {
 [data-theme='paper'] .sketch-date {
   font-family: var(--font-hand);
   font-size: 1.2rem;
-  color: var(--ink-red);
+  color: var(--ink-red-text);
 }
 
 /* ── Media (wraps the shared MotionMedia primitive) ───────────────────────── */
