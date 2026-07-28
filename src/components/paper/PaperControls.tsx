@@ -9,6 +9,7 @@
  * untouched (G7) and the swap is instant. ThemeBoot.astro listens for it.
  */
 import { useCallback, useEffect, useState } from 'react';
+import type { MouseEvent } from 'react';
 import { persistMode, THEME_LABELS, type Mode } from '../../lib/theme';
 import type { ThemeId } from '../../data/voice';
 import { play, SOUND_STORAGE_KEY } from './sounds';
@@ -40,7 +41,10 @@ const PaperControls = ({ initialMode }: Props) => {
     [soundOn],
   );
 
-  const switchTheme = (theme: ThemeId) => {
+  const switchTheme = (theme: ThemeId) => (event: MouseEvent<HTMLAnchorElement>) => {
+    // The anchor's ?theme= href is the no-JS path; with JS we switch in place so
+    // the URL stays clean (G7) and nothing reloads.
+    event.preventDefault();
     chirp('rustle');
     window.dispatchEvent(new CustomEvent('nagel:theme-change', { detail: { theme } }));
   };
@@ -71,15 +75,15 @@ const PaperControls = ({ initialMode }: Props) => {
     <div className="controls">
       <div className="ctrl-group" role="group" aria-label="Choose a theme">
         {THEMES.map((theme) => (
-          <button
+          <a
             key={theme}
-            type="button"
             className="ctrl"
-            aria-pressed={theme === 'paper'}
-            onClick={() => switchTheme(theme)}
+            href={`?theme=${theme}`}
+            aria-current={theme === 'paper' ? 'true' : undefined}
+            onClick={switchTheme(theme)}
           >
             {THEME_LABELS[theme]}
-          </button>
+          </a>
         ))}
       </div>
 
