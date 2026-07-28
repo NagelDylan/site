@@ -537,12 +537,14 @@ export class StubTransport implements ChatTransport {
 
     const parts = scriptFor(question);
     let usedTool = false;
+    let previousWasText = false;
 
     for (const [index, part] of parts.entries()) {
       if (index > 0) await sleep(pace(360), signal);
 
       if ('tool' in part) {
         usedTool = true;
+        previousWasText = false;
         yield {
           type: 'tool_use',
           id: `stub_${part.tool}_${index}`,
@@ -552,7 +554,12 @@ export class StubTransport implements ChatTransport {
         continue;
       }
 
-      for (const piece of chunk(part.text, 3)) {
+      // A real model emits its own paragraph breaks inside the text stream, so
+      // the stub does too rather than inventing a "new paragraph" event type.
+      const text = previousWasText ? `\n\n${part.text}` : part.text;
+      previousWasText = true;
+
+      for (const piece of chunk(text, 3)) {
         await sleep(pace(26 + Math.random() * 34), signal);
         yield { type: 'text_delta', text: piece };
       }
