@@ -230,7 +230,11 @@ const SCRIPTS: Script[] = [
       (has(q, 'hire') && !has(q, "shouldn't", 'not')),
     parts: [
       {
-        text: 'Because four co-op terms in, every one of them ended with something shipped and handed off rather than something demoed. That is a boringly rare property in a student, and it is the one I would actually bet on.',
+        // Scoped to the three COMPLETED terms on purpose. The Apple term is still
+        // in progress, and claiming a shipped-and-handed-off outcome there would
+        // both be untrue and assert something about Apple work beyond the one
+        // approved sentence (R3, R5).
+        text: 'Because each of his three completed co-op terms ended with something shipped and handed off rather than something demoed. That is a boringly rare property in a student, and it is the one I would actually bet on.',
       },
       {
         text: 'Three specifics. He designed and built the AI email routing service at Carta independently, production-ready behind a feature flag, across roughly 60 destination categories. He owned Empathia.ai\'s website end to end — design, development, deployment — then came back the next term and built their RAG system. And he writes the unglamorous half: evaluation harnesses, a database-driven rules design replacing a 3,000-plus-line file, a CLI so non-engineers could use it.',

@@ -65,6 +65,12 @@ for (const rel of [
   'src/data/education.ts',
   'src/data/voice.ts',
   'src/lib/fact-pack.ts',
+  // The chatbot's scripted stub replies are user-facing copy that ships inside a
+  // JS bundle rather than in any HTML page, so scanning src/data and dist/ alone
+  // would miss them entirely. R6 makes every stub reply subject to R1-R5 exactly
+  // as if a model had produced it.
+  'src/lib/chat/stub-transport.ts',
+  'src/lib/chat/tools.ts',
 ]) {
   const p = join(root, rel);
   if (existsSync(p)) {
@@ -74,6 +80,15 @@ for (const rel of [
       .replace(/^\s*\/\/.*$/gm, ' ');
     copySources.push({ file: rel, text: stringLiterals(src).join('\n') });
   }
+}
+
+// Chat components carry visible copy too: the demo-mode notice, the offline
+// states, button labels. Same reasoning as the stub transport above.
+for (const p of walk(join(root, 'src/components/chat'), ['.tsx'])) {
+  const src = readFileSync(p, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/^\s*\/\/.*$/gm, ' ');
+  copySources.push({ file: relative(root, p), text: stringLiterals(src).join('\n') });
 }
 
 const distFiles = walk(join(root, 'dist'), ['.html']);
