@@ -44,6 +44,24 @@ const resume = getResume();
     return null;
   }
 
+  /**
+   * Drops the splash once the chosen theme is actually on screen.
+   *
+   * The splash stays up while a client theme's chunk downloads and mounts, so the
+   * visitor never sees an intermediate state between choosing and arriving. The
+   * rAF pair waits for the frame after React has committed; the timeout is a
+   * backstop so a failed chunk fetch can never leave the splash stuck forever.
+   */
+  function dismissSplash() {
+    const root = document.documentElement;
+    delete root.dataset.splash;
+    delete root.dataset.splashPending;
+  }
+
+  function dismissSplashAfterPaint() {
+    requestAnimationFrame(() => requestAnimationFrame(dismissSplash));
+  }
+
   async function activate(theme: ThemeId | null) {
     if (mounted && mounted.theme === theme) return;
 
@@ -53,31 +71,47 @@ const resume = getResume();
     }
 
     if (!isClientTheme(theme) || !appRoot) {
-      // Paper: the server-rendered tree is the page.
+      // Paper: the server-rendered tree is the page, so there is nothing to wait for.
       if (paperRoot) paperRoot.hidden = false;
       if (appRoot) appRoot.hidden = true;
       return;
     }
 
-    const [{ createRoot }, App] = await Promise.all([
-      import('react-dom/client'),
-      loadApp(theme as ThemeId),
-    ]);
-    if (!App) return;
+    // Never let a broken import trap someone behind the splash.
+    const failsafe = window.setTimeout(dismissSplash, 6000);
 
-    const { createElement } = await import('react');
-    if (paperRoot) paperRoot.hidden = true;
-    appRoot.hidden = false;
+    try {
+      const [{ createRoot }, App] = await Promise.all([
+        import('react-dom/client'),
+        loadApp(theme as ThemeId),
+      ]);
+      if (!App) {
+        dismissSplash();
+        return;
+      }
 
-    const root = createRoot(appRoot);
-    root.render(
-      createElement(App, {
-        route: location.pathname,
-        resume: readResume(),
-        mode: (document.documentElement.dataset.mode as Mode) ?? 'light',
-      }),
-    );
-    mounted = { theme: theme as ThemeId, unmount: () => root.unmount() };
+      const { createElement } = await import('react');
+      if (paperRoot) paperRoot.hidden = true;
+      appRoot.hidden = false;
+
+      const root = createRoot(appRoot);
+      root.render(
+        createElement(App, {
+          route: location.pathname,
+          resume: readResume(),
+          mode: (document.documentElement.dataset.mode as Mode) ?? 'light',
+        }),
+      );
+      mounted = { theme: theme as ThemeId, unmount: () => root.unmount() };
+      dismissSplashAfterPaint();
+    } catch {
+      // Chunk failed to load: fall back to the paper tree, which is already here.
+      if (paperRoot) paperRoot.hidden = false;
+      if (appRoot) appRoot.hidden = true;
+      dismissSplash();
+    } finally {
+      window.clearTimeout(failsafe);
+    }
   }
 
   const current = () => {

@@ -90,6 +90,9 @@ import { THEME_STORAGE_KEY } from '../../config';
         skip — just show me the site
       </button>
     </p>
+
+    {/* Shown only while a client theme's chunk is loading. See choose(). */}
+    <p class="splash-loading" role="status">starting…</p>
   </div>
 </div>
 
@@ -106,7 +109,18 @@ import { THEME_STORAGE_KEY } from '../../config';
       }
       var root = document.documentElement;
       root.dataset.themeChosen = 'true';
-      delete root.dataset.splash;
+      /*
+       * Paper is already in the HTML, so it can be revealed instantly. Y2K and
+       * chat have to download and mount a chunk first — so the splash STAYS UP
+       * until they are on screen, and ThemeBoot removes it once the theme has
+       * painted. Dismissing here instead would expose the paper tree underneath
+       * for as long as the chunk takes to arrive.
+       */
+      if (theme === 'paper') {
+        delete root.dataset.splash;
+      } else {
+        root.dataset.splashPending = 'true';
+      }
       // Let ThemeBoot mount the client themes; paper is already in the HTML.
       window.dispatchEvent(new CustomEvent('nagel:theme-change', { detail: { theme: theme } }));
     }
@@ -486,6 +500,30 @@ import { THEME_STORAGE_KEY } from '../../config';
   /* ── Skip ────────────────────────────────────────────────────────────── */
   .splash-skip {
     margin-top: 1.6rem;
+  }
+
+  /*
+   * Pending state: the splash stays up while a client theme's chunk downloads, so
+   * it needs to look like it is doing something rather than like a dead click.
+   * The panels dim and stop accepting input; ThemeBoot clears the flag once the
+   * theme has painted.
+   */
+  .splash-loading {
+    display: none;
+    margin-top: 0.9rem;
+    font-size: 0.95rem;
+    opacity: 0.75;
+  }
+
+  :global(html[data-splash-pending='true']) .splash-loading {
+    display: block;
+  }
+
+  :global(html[data-splash-pending='true']) .splash-panels,
+  :global(html[data-splash-pending='true']) .splash-skip {
+    pointer-events: none;
+    opacity: 0.5;
+    transition: opacity 160ms ease;
   }
 
   .splash-link {

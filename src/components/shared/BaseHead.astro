@@ -122,6 +122,46 @@ const personSchema = {
 {/* Applies the persisted theme/mode before first paint so there is no flash. */}
 <script is:inline set:html={NO_FLASH_SCRIPT} />
 
+{/*
+  Suppresses the flash of paper before a client theme mounts.
+
+  Paper is server-rendered, so it is in the HTML and paints immediately. Y2K and
+  chat mount from a module script, which by definition runs AFTER first paint — so
+  a visitor with Y2K persisted saw a frame or two of the corkboard before the
+  desktop replaced it.
+
+  This has to be CSS rather than more JS: the pre-paint script above has already
+  written data-theme onto <html> by this point, so the rule below matches during
+  the very first style resolution and paper never paints at all. Doing it in JS
+  would just move the race, not win it.
+
+  It is `is:inline` so it cannot depend on stylesheet ordering or on the dev
+  server's injection timing.
+
+  The background colours matter for the same reason: without them the gap between
+  paint and mount is a white flash, which against the black CRT desktop is worse
+  than the paper flash being removed here.
+*/}
+<style is:inline>
+  html[data-theme='y2k'] #paper-root,
+  html[data-theme='chat'] #paper-root {
+    display: none;
+  }
+
+  html[data-theme='y2k'] {
+    background: #008080;
+  }
+  html[data-theme='y2k'][data-mode='dark'] {
+    background: #000;
+  }
+  html[data-theme='chat'] {
+    background: #fff;
+  }
+  html[data-theme='chat'][data-mode='dark'] {
+    background: #101418;
+  }
+</style>
+
 {
   /*
    * ANALYTICS INSERTION POINT (§18.4).
