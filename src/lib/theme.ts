@@ -123,7 +123,15 @@ export const NO_FLASH_SCRIPT = `
     r.dataset.theme = t || '${DEFAULT_THEME}';
     r.dataset.mode = m;
     r.style.colorScheme = m;
-    if (t) r.dataset.themeChosen = 'true';
+    if (t) {
+      r.dataset.themeChosen = 'true';
+    } else {
+      // No stored or requested theme: this is a first visit, so show the splash
+      // (G5). Set from script rather than in the markup so that a visitor
+      // without JS — and any crawler — gets the full paper site immediately
+      // instead of being held behind a gate they cannot dismiss.
+      r.dataset.splash = 'show';
+    }
   } catch (e) {}
 })();
 `.trim();

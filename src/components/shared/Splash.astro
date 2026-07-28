@@ -1,0 +1,488 @@
+---
+/**
+ * Theme chooser splash (spec §12, wireframe §19.1).
+ *
+ * Three preview panels, EACH RENDERED IN ITS OWN THEME'S STYLE, so the splash
+ * demonstrates the range and doubles as a portfolio piece. Paints instantly —
+ * there is no animation gate in front of it.
+ *
+ * It is never a dead gate: it carries Dylan's name, headline, and the Summer 2027
+ * availability line, so a visitor who never clicks has still seen the important
+ * part. `?theme=paper` bypasses it entirely for links sent to recruiters.
+ *
+ * Two deliberate properties:
+ *   1. It only appears when JS is running (the pre-paint script sets
+ *      data-splash="show"). Without JS — and for crawlers — the paper site is
+ *      simply there, with no overlay to dismiss.
+ *   2. The three choices are real anchors with ?theme=, so they work without JS
+ *      too. The click handler upgrades them to an instant in-place switch.
+ *
+ * The panel styles are entirely self-contained. They must not depend on
+ * theme-paper.css or the client-mounted theme bundles, since none of those are
+ * guaranteed to be present when the splash paints.
+ */
+import { IDENTITY } from '../../data/identity';
+import { THEME_STORAGE_KEY } from '../../config';
+---
+
+<div id="splash" role="dialog" aria-modal="true" aria-labelledby="splash-name" data-decorative>
+  <div class="splash-inner">
+    <header class="splash-head">
+      <p id="splash-name" class="splash-title">{IDENTITY.name}</p>
+      <p class="splash-sub">{IDENTITY.headline}</p>
+      <p class="splash-avail"><span aria-hidden="true">▸</span> {IDENTITY.availability}</p>
+    </header>
+
+    <p class="splash-prompt">Pick how you'd like to read this:</p>
+
+    <div class="splash-panels">
+      {/* ── Paper preview: grain, tilted card, tape, pin ───────────────── */}
+      <a class="panel panel--paper" href="?theme=paper" data-theme-choice="paper">
+        <span class="p-grain" aria-hidden="true"></span>
+        <span class="p-card" aria-hidden="true">
+          <span class="p-pin"></span>
+          <span class="p-tape"></span>
+          <span class="p-line p-line--wide"></span>
+          <span class="p-line"></span>
+          <span class="p-hl"></span>
+        </span>
+        <span class="panel-label">Paper</span>
+        <span class="panel-note">quiet, printed, easiest to read</span>
+      </a>
+
+      {/* ── Y2K preview: Win98 window + taskbar ────────────────────────── */}
+      <a class="panel panel--y2k" href="?theme=y2k" data-theme-choice="y2k">
+        <span class="y-desktop" aria-hidden="true">
+          <span class="y-win">
+            <span class="y-title">My Computer</span>
+            <span class="y-body">
+              <span class="y-icon"></span>
+              <span class="y-text"></span>
+            </span>
+          </span>
+          <span class="y-taskbar"><span class="y-start">Start</span><span class="y-clock">10:04</span></span>
+        </span>
+        <span class="panel-label">Y2K</span>
+        <span class="panel-note">a whole desktop, circa 1999</span>
+      </a>
+
+      {/* ── Chat preview: bubbles ──────────────────────────────────────── */}
+      <a class="panel panel--chat" href="?theme=chat" data-theme-choice="chat">
+        <span class="c-window" aria-hidden="true">
+          <span class="c-bubble c-bubble--bot">Ask me about him</span>
+          <span class="c-bubble c-bubble--user">Is he available?</span>
+          <span class="c-composer"><span class="c-send"></span></span>
+        </span>
+        <span class="panel-label">Ask the bot</span>
+        <span class="panel-note">demo mode — not a live model</span>
+      </a>
+    </div>
+
+    <p class="splash-skip">
+      <button type="button" data-theme-choice="paper" class="splash-link">
+        skip — just show me the site
+      </button>
+    </p>
+  </div>
+</div>
+
+<script is:inline define:vars={{ storageKey: THEME_STORAGE_KEY }}>
+  (function () {
+    var splash = document.getElementById('splash');
+    if (!splash) return;
+
+    function choose(theme) {
+      try {
+        localStorage.setItem(storageKey, theme);
+      } catch (e) {
+        /* private mode: the choice still applies to this page view */
+      }
+      var root = document.documentElement;
+      root.dataset.themeChosen = 'true';
+      delete root.dataset.splash;
+      // Let ThemeBoot mount the client themes; paper is already in the HTML.
+      window.dispatchEvent(new CustomEvent('nagel:theme-change', { detail: { theme: theme } }));
+    }
+
+    splash.addEventListener('click', function (event) {
+      var target = event.target.closest('[data-theme-choice]');
+      if (!target) return;
+      // The anchors carry ?theme= so they work without JS; with JS we switch in
+      // place and keep the URL clean.
+      event.preventDefault();
+      choose(target.dataset.themeChoice);
+    });
+
+    // Escape picks the safest option rather than trapping anyone.
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.documentElement.dataset.splash === 'show') {
+        choose('paper');
+      }
+    });
+
+    // Move focus in so keyboard and screen-reader users start inside the dialog.
+    var first = splash.querySelector('[data-theme-choice]');
+    if (first) first.focus();
+  })();
+</script>
+
+<style>
+  /* Hidden unless the pre-paint script asked for it. */
+  #splash {
+    display: none;
+  }
+
+  :global(html[data-splash='show']) #splash {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    overflow-y: auto;
+    background: #f7f2e8;
+    color: #26241f;
+    font-family: Georgia, 'Iowan Old Style', serif;
+  }
+
+  /* While the splash is up, the page behind it must not scroll. */
+  :global(html[data-splash='show']),
+  :global(html[data-splash='show'] body) {
+    overflow: hidden;
+  }
+
+  :global(html[data-splash='show'][data-mode='dark']) #splash {
+    background: #241a13;
+    color: #f3e8d2;
+  }
+
+  .splash-inner {
+    width: min(1000px, 100%);
+    text-align: center;
+  }
+
+  .splash-title {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-shadow: 1px 1px 0 rgba(168, 195, 174, 0.75);
+  }
+
+  .splash-sub {
+    font-size: clamp(1rem, 2.4vw, 1.3rem);
+    margin-top: 0.2rem;
+  }
+
+  .splash-avail {
+    display: inline-block;
+    margin-top: 0.8rem;
+    padding: 0.2rem 0.7rem;
+    font-weight: 700;
+    background: #f0d59a;
+    color: #26241f;
+    transform: rotate(-0.6deg);
+  }
+
+  .splash-prompt {
+    margin: 2rem 0 1rem;
+    font-size: 1.05rem;
+    opacity: 0.85;
+  }
+
+  .splash-panels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+
+  .panel {
+    display: block;
+    padding: 0;
+    border: 1.5px solid currentColor;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform 140ms ease, box-shadow 140ms ease;
+  }
+
+  .panel:hover,
+  .panel:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 4px 6px 0 #c2543f;
+  }
+
+  .panel-label {
+    display: block;
+    padding: 0.55rem 0.5rem 0.1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #26241f;
+  }
+
+  .panel-note {
+    display: block;
+    padding: 0 0.6rem 0.7rem;
+    font-size: 0.82rem;
+    color: #5c574f;
+  }
+
+  /* ── Paper panel ─────────────────────────────────────────────────────── */
+  .panel--paper {
+    background: #f7f2e8;
+  }
+
+  .panel--paper .p-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23g)' opacity='0.4'/%3E%3C/svg%3E");
+  }
+
+  .panel--paper .p-card {
+    position: relative;
+    display: block;
+    height: 118px;
+    margin: 1.1rem 1.1rem 0.2rem;
+    background: #fffdf7;
+    box-shadow: 0 2px 6px rgba(38, 36, 31, 0.2);
+    transform: rotate(-1.5deg);
+    outline: 1px solid rgba(194, 84, 63, 0.3);
+    outline-offset: 1px;
+  }
+
+  .p-pin {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #e8867a 0 30%, #c2543f 100%);
+  }
+
+  .p-tape {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    width: 52px;
+    height: 18px;
+    background: #a8c3ae;
+    opacity: 0.8;
+    transform: rotate(22deg);
+  }
+
+  .p-line {
+    position: absolute;
+    left: 14px;
+    top: 46px;
+    width: 60%;
+    height: 6px;
+    background: #d8d1c0;
+  }
+
+  .p-line--wide {
+    top: 28px;
+    width: 76%;
+    height: 9px;
+    background: #26241f;
+    opacity: 0.75;
+  }
+
+  .p-hl {
+    position: absolute;
+    left: 14px;
+    bottom: 20px;
+    width: 52%;
+    height: 14px;
+    background: #f0d59a;
+    mix-blend-mode: multiply;
+  }
+
+  /* ── Y2K panel ───────────────────────────────────────────────────────── */
+  .panel--y2k {
+    background: #008080;
+  }
+
+  .y-desktop {
+    position: relative;
+    display: block;
+    height: 148px;
+    padding: 0.7rem;
+    font-family: Tahoma, 'MS Sans Serif', Geneva, Verdana, sans-serif;
+  }
+
+  .y-win {
+    display: block;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  .y-title {
+    display: block;
+    padding: 2px 4px;
+    background: linear-gradient(90deg, #000080, #1084d0);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .y-body {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 8px 6px 14px;
+  }
+
+  .y-icon {
+    width: 22px;
+    height: 20px;
+    background: #ffd94a;
+    border: 1px solid #7a5c00;
+    flex: none;
+  }
+
+  .y-text {
+    flex: 1;
+    height: 8px;
+    background: repeating-linear-gradient(
+      180deg,
+      #7a7a7a 0 3px,
+      transparent 3px 7px
+    );
+  }
+
+  .y-taskbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 4px;
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    font-size: 0.62rem;
+  }
+
+  .y-start {
+    padding: 1px 6px;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    font-weight: 700;
+    color: #000;
+  }
+
+  .y-clock {
+    padding: 1px 4px;
+    border: 1px solid #808080;
+    color: #000;
+  }
+
+  /* ── Chat panel ──────────────────────────────────────────────────────── */
+  .panel--chat {
+    background: #f4f6f8;
+  }
+
+  .c-window {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    height: 148px;
+    padding: 0.8rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .c-bubble {
+    max-width: 82%;
+    padding: 0.4rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.74rem;
+    text-align: left;
+  }
+
+  .c-bubble--bot {
+    align-self: flex-start;
+    background: #e6eaf0;
+    color: #1c2430;
+    border-bottom-left-radius: 3px;
+  }
+
+  .c-bubble--user {
+    align-self: flex-end;
+    background: #2f6df6;
+    color: #fff;
+    border-bottom-right-radius: 3px;
+  }
+
+  .c-composer {
+    position: relative;
+    margin-top: auto;
+    height: 26px;
+    border: 1px solid #c6ced8;
+    border-radius: 13px;
+    background: #fff;
+  }
+
+  .c-send {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #2f6df6;
+  }
+
+  /* ── Skip ────────────────────────────────────────────────────────────── */
+  .splash-skip {
+    margin-top: 1.6rem;
+  }
+
+  .splash-link {
+    background: none;
+    border: 0;
+    padding: 0.3rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: #c2543f;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 720px) {
+    .splash-panels {
+      grid-template-columns: 1fr;
+    }
+    .y-desktop,
+    .c-window {
+      height: 120px;
+    }
+    .panel--paper .p-card {
+      height: 92px;
+    }
+  }
+
+  /* §12: paints instantly, no animation gate. Motion here is hover-only. */
+  @media (prefers-reduced-motion: reduce) {
+    .panel {
+      transition: none;
+    }
+  }
+
+  @media print {
+    #splash {
+      display: none !important;
+    }
+  }
+</style>

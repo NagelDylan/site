@@ -9,6 +9,7 @@
  */
 import BaseDocument from './BaseDocument.astro';
 import ThemeBoot from '../components/shared/ThemeBoot.astro';
+import Splash from '../components/shared/Splash.astro';
 import { PAPER_ROOT_ID } from '../lib/theme-mount';
 
 type Props = {
@@ -27,4 +28,5 @@ const props = Astro.props;
     <slot />
   </div>
   <ThemeBoot />
+  <Splash />
 </BaseDocument>
