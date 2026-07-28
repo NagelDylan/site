@@ -482,9 +482,13 @@ const sleep = (ms: number, signal?: AbortSignal) =>
     );
   });
 
-/** Splits on whitespace but keeps it, so deltas reassemble to the exact string. */
+/**
+ * Splits into word-ish deltas. The leading-whitespace group matters: without it
+ * the paragraph breaks between script parts are swallowed and every reply
+ * renders as one welded-together block.
+ */
 function chunk(text: string, size: number): string[] {
-  const words = text.match(/\S+\s*/g) ?? [text];
+  const words = text.match(/\s*\S+\s*/g) ?? [text];
   const out: string[] = [];
   for (let i = 0; i < words.length; i += size) out.push(words.slice(i, i + size).join(''));
   return out;
@@ -575,6 +579,14 @@ export class StubTransport implements ChatTransport {
   }
 }
 
-/** Exposed for the dev-only script-coverage assertion in App.tsx. */
+/**
+ * Exported for local verification rather than for the UI.
+ *
+ * SCRIPT_IDS lets a throwaway script assert that every path still matches
+ * something after a copy edit. STUB_TRIGGERS documents the two composer inputs
+ * that force the awkward states — type `/refusal` to exercise the empty-content
+ * refusal path and `/offline` to exercise the honest offline panel. They are not
+ * advertised in the interface because they are for whoever is editing this file.
+ */
 export const SCRIPT_IDS = SCRIPTS.map((s) => s.id);
 export const STUB_TRIGGERS = { refusal: REFUSAL_TRIGGER, offline: OFFLINE_TRIGGER };

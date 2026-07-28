@@ -109,7 +109,12 @@ export class WorkerTransport implements ChatTransport {
     // ─────────────────────────────────────────────────────────────────────────
     void messages;
     void signal;
+    // Referenced so the pieces Phase B needs are not pruned as dead code, and so
+    // a type error in either shows up in `astro check` today rather than on the
+    // day someone is trying to ship the Worker.
     void failureFromStatus;
+    void this.endpoint;
+    void this.parse;
     yield {
       type: 'failed',
       kind: 'unavailable',

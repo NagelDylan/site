@@ -12,14 +12,11 @@ import type { ChatTransport } from '../../lib/chat';
 export type ChatContextValue = {
   resume: { available: boolean; href: string; filename: string };
   transportKind: ChatTransport['kind'];
-  /** Injects a message into the composer flow, for in-card follow-up buttons. */
-  ask: (question: string) => void;
 };
 
 export const ChatContext = createContext<ChatContextValue>({
   resume: { available: false, href: '/resume.pdf', filename: 'resume.pdf' },
   transportKind: 'stub',
-  ask: () => {},
 });
 
 export const useChatContext = () => useContext(ChatContext);

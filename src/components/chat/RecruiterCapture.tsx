@@ -49,8 +49,7 @@ const RecruiterCapture = ({ email = '', name = '', company = '', message = '' }:
     )}&body=${encodeURIComponent(body)}`;
   };
 
-  const onSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const onSubmit = () => {
     if (FEATURES.formSubmission) {
       // TODO(phase-b): POST to ENDPOINTS.contact with a Turnstile token, then
       // render the real confirmation. Deliberately not called while the flag is
@@ -98,7 +97,13 @@ const RecruiterCapture = ({ email = '', name = '', company = '', message = '' }:
         than sending anything.
       </p>
 
-      <form className="c-form" onSubmit={onSubmit}>
+      <form
+        className="c-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+      >
         <div className="c-field">
           <label htmlFor={`${id}-name`}>Your name</label>
           <input type="text" autoComplete="name" {...field('name')} />

@@ -111,7 +111,7 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
   };
 
   const context = useMemo(
-    () => ({ resume, transportKind: chat.transportKind, ask: submit }),
+    () => ({ resume, transportKind: chat.transportKind }),
     [resume, chat.transportKind],
   );
 

@@ -40,12 +40,30 @@ export type UseChatOptions = {
 };
 
 export function useChat({ greeting, reducedMotion }: UseChatOptions) {
-  const [messages, setMessages] = useState<UiMessage[]>(() => [
-    { id: 'greeting', role: 'assistant', blocks: greeting },
-  ]);
+  const initial = useMemo<UiMessage[]>(
+    () => [{ id: 'greeting', role: 'assistant', blocks: greeting }],
+    [greeting],
+  );
+  const [messages, setMessages] = useState<UiMessage[]>(initial);
   const [status, setStatus] = useState<ChatStatus>('idle');
   const [failure, setFailure] = useState<ChatFailureKind | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  /**
+   * A mirror of `messages` that is correct SYNCHRONOUSLY.
+   *
+   * This is not premature optimisation, it is a correctness fix. React invokes
+   * `setState` updater functions during the render pass, not at the call site —
+   * so reading the appended history out of an updater and then using it on the
+   * next line hands the transport a stale (empty) array. Every mutation goes
+   * through `commit`, which updates the ref first and then the state, so the
+   * history sent upstream always includes the turn the visitor just typed.
+   */
+  const ref = useRef<UiMessage[]>(initial);
+  const commit = useCallback((updater: (prev: UiMessage[]) => UiMessage[]) => {
+    ref.current = updater(ref.current);
+    setMessages(ref.current);
+  }, []);
 
   const transport = useMemo(
     () => createTransport({ instant: reducedMotion }),
@@ -68,25 +86,24 @@ export function useChat({ greeting, reducedMotion }: UseChatOptions) {
       };
       const assistantId = nextId('a');
 
-      // Read history off the state we are about to commit rather than off
-      // `messages`, which is a render-scoped snapshot.
-      let history: ChatTurn[] = [];
-      setMessages((prev) => {
-        const next = [...prev, userMessage];
-        history = next
-          .filter((m) => m.id !== 'greeting')
-          .slice(-HISTORY_WINDOW)
-          .map((m) => ({ role: m.role, text: messageText(m) }))
-          .filter((t) => t.text.length > 0);
-        return [...next, { id: assistantId, role: 'assistant', blocks: [], streaming: true }];
-      });
+      commit((prev) => [
+        ...prev,
+        userMessage,
+        { id: assistantId, role: 'assistant', blocks: [], streaming: true },
+      ]);
+
+      const history: ChatTurn[] = ref.current
+        .filter((m) => m.id !== 'greeting' && m.id !== assistantId)
+        .slice(-HISTORY_WINDOW)
+        .map((m) => ({ role: m.role, text: messageText(m) }))
+        .filter((t) => t.text.length > 0);
 
       setStatus('waiting');
       const controller = new AbortController();
       abortRef.current = controller;
 
       const patch = (fn: (m: UiMessage) => UiMessage) =>
-        setMessages((prev) => prev.map((m) => (m.id === assistantId ? fn(m) : m)));
+        commit((prev) => prev.map((m) => (m.id === assistantId ? fn(m) : m)));
 
       try {
         for await (const event of transport.send(history, controller.signal)) {
@@ -125,7 +142,7 @@ export function useChat({ greeting, reducedMotion }: UseChatOptions) {
               break;
             case 'failed':
               // Drop the empty assistant bubble; the offline panel replaces it.
-              setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+              commit((prev) => prev.filter((m) => m.id !== assistantId));
               setFailure(event.kind);
               break;
           }
@@ -134,7 +151,7 @@ export function useChat({ greeting, reducedMotion }: UseChatOptions) {
         if ((error as Error)?.name === 'AbortError') {
           patch((m) => ({ ...m, streaming: false, refused: m.blocks.length === 0 }));
         } else {
-          setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+          commit((prev) => prev.filter((m) => m.id !== assistantId));
           setFailure('unavailable');
         }
       } finally {
@@ -142,7 +159,7 @@ export function useChat({ greeting, reducedMotion }: UseChatOptions) {
         setStatus('idle');
       }
     },
-    [busy, failure, transport],
+    [busy, commit, failure, transport],
   );
 
   const stop = useCallback(() => {
@@ -154,8 +171,8 @@ export function useChat({ greeting, reducedMotion }: UseChatOptions) {
     abortRef.current?.abort();
     setFailure(null);
     setStatus('idle');
-    setMessages([{ id: 'greeting', role: 'assistant', blocks: greeting }]);
-  }, [greeting]);
+    commit(() => initial);
+  }, [commit, initial]);
 
   return {
     messages,
