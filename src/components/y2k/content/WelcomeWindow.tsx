@@ -7,7 +7,7 @@
  */
 import { IDENTITY, SOCIALS } from '../../../data';
 import { VOICES } from '../../../data/voice';
-import { Blink, HitCounter, NetscapeBadge, RainbowRule, UnderConstruction, WebRing } from '../deco';
+import { Blink, RainbowRule, UnderConstruction, WebRing } from '../deco';
 
 const voice = VOICES.y2k;
 
@@ -81,8 +81,6 @@ const WelcomeWindow = ({ onOpen, onTheme, resume }: Props) => (
     </p>
 
     <p style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-      <HitCounter />
-      <NetscapeBadge />
       <UnderConstruction label="THIS PAGE IS ETERNALLY UNDER CONSTRUCTION" />
     </p>
 
