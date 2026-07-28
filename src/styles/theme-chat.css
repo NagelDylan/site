@@ -1,0 +1,708 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CHAT THEME (spec §11, G9, G12)
+ *
+ * A clean modern chat client, light and dark. Every rule is scoped under
+ * html[data-theme='chat'] — this file loads with the chat JS chunk, and scoping
+ * means it cannot bleed into the paper tree if a bundler ever decides to hoist
+ * it into a shared stylesheet.
+ *
+ * FONTS: system stack only. Two reasons, and they agree for once — font CDNs are
+ * blocked in this environment, and the native UI font IS the right typeface for
+ * a chat interface. A chat client in a webfont looks like a website pretending
+ * to be an app.
+ *
+ * CONTRAST: WCAG AA throughout, both modes. G12 lets the Y2K theme break AA;
+ * this theme has no such licence, and a recruiter reading a wall of assistant
+ * prose is exactly the case where body-text contrast matters most.
+ *
+ * MOTION: G17. The typing dots and the message-entry transition are the only two
+ * animations, and both are switched off under prefers-reduced-motion — along
+ * with the stub's artificial typing delay, which is handled in JS because a
+ * media query cannot reach into an async generator.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+html[data-theme='chat'] {
+  /* Light — the default. */
+  --c-bg: #f4f5f7;
+  --c-surface: #ffffff;
+  --c-surface-2: #eceef2;
+  --c-border: #d3d7de;
+  --c-border-strong: #a8aeb9;
+  --c-text: #15171c;
+  --c-muted: #565c68;
+  --c-accent: #1f4fd8;
+  --c-accent-text: #ffffff;
+  --c-accent-soft: #e7ecfd;
+  --c-user-bg: #1f4fd8;
+  --c-user-text: #ffffff;
+  --c-warn-bg: #fdf3d8;
+  --c-warn-border: #9a5b00;
+  --c-warn-text: #4a2d00;
+  --c-radius: 14px;
+  --c-radius-sm: 9px;
+  --c-shadow: 0 1px 2px rgb(16 18 22 / 6%), 0 8px 24px rgb(16 18 22 / 5%);
+  --c-font:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+html[data-theme='chat'][data-mode='dark'] {
+  --c-bg: #0e1013;
+  --c-surface: #191c21;
+  --c-surface-2: #22262d;
+  --c-border: #333942;
+  --c-border-strong: #4d545f;
+  --c-text: #e9ebef;
+  --c-muted: #a5abb6;
+  --c-accent: #9dbaff;
+  --c-accent-text: #0e1013;
+  --c-accent-soft: #1c2436;
+  --c-user-bg: #29354f;
+  --c-user-text: #eef1f6;
+  --c-warn-bg: #2c2410;
+  --c-warn-border: #d8a45c;
+  --c-warn-text: #f6e7cb;
+  --c-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 30%);
+}
+
+html[data-theme='chat'],
+html[data-theme='chat'] body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--c-font);
+}
+
+html[data-theme='chat'] body {
+  /* The chat owns the viewport; the page itself never scrolls. */
+  overflow: hidden;
+}
+
+/* ── Shell ───────────────────────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-app {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  height: 100vh;
+  height: 100dvh;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+[data-theme='chat'] .c-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem clamp(0.85rem, 3vw, 1.5rem);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+
+[data-theme='chat'] .c-header__name {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+[data-theme='chat'] .c-header__role {
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+
+[data-theme='chat'] .c-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+[data-theme='chat'] .c-switcher {
+  display: flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+}
+
+[data-theme='chat'] .c-switcher__btn {
+  padding: 0.34rem 0.72rem;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: var(--c-muted);
+  background: none;
+  border: 0;
+  border-radius: 999px;
+}
+
+[data-theme='chat'] .c-switcher__btn[aria-current='true'] {
+  color: var(--c-text);
+  background: var(--c-surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+}
+
+[data-theme='chat'] .c-switcher__btn:hover:not([aria-current='true']) {
+  color: var(--c-text);
+}
+
+[data-theme='chat'] .c-iconbtn {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1rem;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+}
+
+/* ── Demo-mode notice (§18.5) ─────────────────────────────────────────────
+ * Deliberately conspicuous and deliberately undismissable. See DemoNotice.tsx
+ * for why. Do not soften the colours to "match the design" — being slightly at
+ * odds with the design is the point.
+ */
+
+[data-theme='chat'] .c-demo {
+  padding: 0.6rem clamp(0.85rem, 3vw, 1.5rem);
+  color: var(--c-warn-text);
+  background: var(--c-warn-bg);
+  border-bottom: 2px solid var(--c-warn-border);
+}
+
+[data-theme='chat'] .c-demo__line {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: 0.005em;
+}
+
+[data-theme='chat'] .c-demo__phase {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+[data-theme='chat'] .c-demo__detail {
+  max-width: 68ch;
+  margin-top: 0.2rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* ── Transcript ──────────────────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-main {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-theme='chat'] .c-thread {
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.25rem clamp(0.85rem, 3vw, 1.5rem) 1.5rem;
+}
+
+[data-theme='chat'] .c-msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+[data-theme='chat'] .c-msg {
+  animation: c-rise 220ms ease-out both;
+}
+
+@keyframes c-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+[data-theme='chat'] .c-msg__who {
+  margin-bottom: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--c-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+[data-theme='chat'] .c-msg[data-role='user'] {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+[data-theme='chat'] .c-msg[data-role='user'] .c-msg__body {
+  max-width: min(90%, 34rem);
+  padding: 0.6rem 0.9rem;
+  color: var(--c-user-text);
+  background: var(--c-user-bg);
+  border-radius: var(--c-radius) var(--c-radius) 4px var(--c-radius);
+}
+
+[data-theme='chat'] .c-prose > p + p {
+  margin-top: 0.7rem;
+}
+
+[data-theme='chat'] .c-prose {
+  /* Plain text only — no markdown is parsed anywhere in this theme. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+[data-theme='chat'] .c-prose--quiet {
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.6rem;
+  font-size: 0.9375rem;
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+  border-left: 3px solid var(--c-border-strong);
+  border-radius: var(--c-radius-sm);
+}
+
+/* Streaming caret: only on the assistant turn currently receiving deltas. */
+[data-theme='chat'] .c-msg[data-streaming] .c-prose:last-of-type p:last-child::after {
+  content: '';
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 0.15em;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: c-blink 1s steps(2, start) infinite;
+}
+
+@keyframes c-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ── Typing indicator ────────────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-typing {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 0.85rem 0 0.35rem;
+}
+
+[data-theme='chat'] .c-typing__dot {
+  width: 7px;
+  height: 7px;
+  background: var(--c-border-strong);
+  border-radius: 50%;
+  animation: c-bounce 1.1s ease-in-out infinite;
+}
+
+[data-theme='chat'] .c-typing__dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+[data-theme='chat'] .c-typing__dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes c-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+/* ── Cards (tool-rendered) ───────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-msg__widget {
+  margin-top: 0.85rem;
+}
+
+[data-theme='chat'] .c-card {
+  overflow: hidden;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--c-radius);
+  box-shadow: var(--c-shadow);
+}
+
+[data-theme='chat'] .c-card--project {
+  display: grid;
+  grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+}
+
+@media (max-width: 40rem) {
+  [data-theme='chat'] .c-card--project {
+    grid-template-columns: 1fr;
+  }
+}
+
+[data-theme='chat'] .c-card__media {
+  position: relative;
+  background: var(--c-surface-2);
+  border-right: 1px solid var(--c-border);
+}
+
+[data-theme='chat'] .c-card__media img {
+  width: 100%;
+  height: 100%;
+  max-height: 14rem;
+  object-fit: cover;
+}
+
+[data-theme='chat'] .c-card__media [data-motion-control] {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.28rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgb(12 14 18 / 82%);
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 999px;
+}
+
+[data-theme='chat'] .c-card__body {
+  padding: 0.9rem 1rem 1rem;
+}
+
+[data-theme='chat'] .c-card--inline,
+[data-theme='chat'] .c-card--contact,
+[data-theme='chat'] .c-card--form {
+  padding: 0.9rem 1rem 1rem;
+}
+
+[data-theme='chat'] .c-card__title {
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+[data-theme='chat'] .c-card__meta {
+  margin-top: 0.1rem;
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+
+[data-theme='chat'] .c-card__text {
+  margin-top: 0.55rem;
+  font-size: 0.9375rem;
+}
+
+[data-theme='chat'] .c-card__note,
+[data-theme='chat'] .c-card__framing {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+
+[data-theme='chat'] .c-card__framing {
+  font-weight: 550;
+}
+
+[data-theme='chat'] .c-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.7rem;
+  list-style: none;
+  padding: 0;
+}
+
+[data-theme='chat'] .c-chip {
+  padding: 0.12rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+}
+
+[data-theme='chat'] .c-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+
+[data-theme='chat'] .c-link {
+  color: var(--c-accent);
+  font-weight: 550;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+[data-theme='chat'] .c-contact {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+[data-theme='chat'] .c-contact__row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+[data-theme='chat'] .c-contact__row dt {
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+  padding-top: 0.1rem;
+}
+
+[data-theme='chat'] .c-contact__row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ── Buttons and actions ─────────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+[data-theme='chat'] .c-button {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text);
+  text-decoration: none;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--c-radius-sm);
+}
+
+[data-theme='chat'] .c-button--primary {
+  color: var(--c-accent-text);
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+}
+
+[data-theme='chat'] .c-button__hint {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+[data-theme='chat'] .c-button:hover {
+  filter: brightness(0.96);
+}
+
+/* ── Starter prompts ─────────────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-starters {
+  margin-top: 1.6rem;
+}
+
+[data-theme='chat'] .c-starters__label {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--c-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+[data-theme='chat'] .c-starters__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  list-style: none;
+}
+
+[data-theme='chat'] .c-starter {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 550;
+  text-align: left;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-strong);
+  border-radius: 999px;
+}
+
+[data-theme='chat'] .c-starter:hover {
+  background: var(--c-accent-soft);
+  border-color: var(--c-accent);
+}
+
+[data-theme='chat'] .c-starter--probe {
+  color: var(--c-muted);
+  background: transparent;
+  border-style: dashed;
+}
+
+/* ── Offline / cap-reached ───────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-offline {
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.15rem 1.2rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-strong);
+  border-left: 4px solid var(--c-accent);
+  border-radius: var(--c-radius);
+}
+
+[data-theme='chat'] .c-offline__title {
+  font-size: 1.0625rem;
+  font-weight: 650;
+}
+
+[data-theme='chat'] .c-offline__text {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+/* ── Form ────────────────────────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-form {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+}
+
+[data-theme='chat'] .c-field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+[data-theme='chat'] .c-field label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+[data-theme='chat'] .c-field__req {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+}
+
+[data-theme='chat'] .c-field input,
+[data-theme='chat'] .c-field textarea {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  font-size: 1rem;
+  color: var(--c-text);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--c-radius-sm);
+  resize: vertical;
+}
+
+/* ── Composer ────────────────────────────────────────────────────────────── */
+
+[data-theme='chat'] .c-footer {
+  background: var(--c-surface);
+  border-top: 1px solid var(--c-border);
+}
+
+[data-theme='chat'] .c-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0.7rem clamp(0.85rem, 3vw, 1.5rem);
+  /* Keeps the input clear of the iOS home indicator. */
+  padding-bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
+}
+
+[data-theme='chat'] .c-composer__input {
+  max-height: 10rem;
+  padding: 0.6rem 0.8rem;
+  /* 16px minimum, or iOS Safari zooms the viewport on focus. */
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--c-text);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--c-radius);
+  resize: none;
+  overflow-y: auto;
+}
+
+[data-theme='chat'] .c-composer__input:disabled {
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+}
+
+[data-theme='chat'] .c-composer__send {
+  display: grid;
+  place-items: center;
+  /* 44px: the smallest comfortable touch target. */
+  width: 2.75rem;
+  height: 2.75rem;
+  align-self: end;
+  font-size: 1.05rem;
+  color: var(--c-accent-text);
+  background: var(--c-accent);
+  border: 1px solid var(--c-accent);
+  border-radius: 999px;
+}
+
+[data-theme='chat'] .c-composer__send:disabled {
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+  border-color: var(--c-border);
+  cursor: not-allowed;
+}
+
+[data-theme='chat'] .c-composer__privacy {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--c-muted);
+}
+
+[data-theme='chat'] .c-composer__count {
+  font-weight: 600;
+}
+
+/* ── Focus ring ──────────────────────────────────────────────────────────── */
+
+[data-theme='chat'] :focus-visible {
+  outline: 3px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+/* ── Reduced motion (G17) ────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='chat'] .c-msg {
+    animation: none;
+  }
+
+  [data-theme='chat'] .c-typing__dot {
+    animation: none;
+    opacity: 0.7;
+  }
+
+  [data-theme='chat'] .c-msg[data-streaming] .c-prose:last-of-type p:last-child::after {
+    animation: none;
+  }
+}
