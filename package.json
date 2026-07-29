@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Dylan Nagel's personal site — three themes (paper, Y2K, chatbot), one fact layer.",
+  "description": "Dylan Nagel's personal site — three themes (paper, Y2K, Classic Mac), one fact layer.",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20"

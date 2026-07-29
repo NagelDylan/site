@@ -273,7 +273,7 @@ const SCRIPTS: Script[] = [
       },
       { tool: 'render_contact_card', input: {} },
       {
-        text: 'If you would rather he came to you, leave your details and I will show you exactly what would happen to them.',
+        text: 'If you would rather he came to you, leave your details below — that form does reach his inbox, and it will tell you plainly whether it got there.',
       },
       { tool: 'capture_recruiter_email', input: {} },
     ],

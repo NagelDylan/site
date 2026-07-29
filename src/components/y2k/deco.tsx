@@ -60,15 +60,20 @@ export const NetscapeBadge = () => (
 /**
  * The webring goes nowhere except back into this same site, which is the joke:
  * one homepage, three completely different homepages.
+ *
+ * NEXT used to point at the chatbot. With that theme hidden the ring is paper and
+ * the Macintosh, which keeps both directions pointing at somewhere a visitor can
+ * actually go — a webring link to a theme that cannot be reached would be the one
+ * kind of broken this joke cannot survive.
  */
-export const WebRing = ({ onTheme }: { onTheme: (theme: 'paper' | 'chat') => void }) => (
+export const WebRing = ({ onTheme }: { onTheme: (theme: 'paper' | 'mac') => void }) => (
   <div className="y2k-webring" data-decorative>
     <span>◄ THE &ldquo;ONE GUY, THREE WEBSITES&rdquo; RING ►</span>
     <button type="button" className="y2k-btn" onClick={() => onTheme('paper')}>
       ◄ PREV (paper)
     </button>
-    <button type="button" className="y2k-btn" onClick={() => onTheme('chat')}>
-      NEXT (the bot) ►
+    <button type="button" className="y2k-btn" onClick={() => onTheme('mac')}>
+      NEXT (macintosh) ►
     </button>
   </div>
 );

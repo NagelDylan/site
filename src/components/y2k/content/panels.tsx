@@ -1,11 +1,12 @@
 /**
- * Help, the webring, and the résumé window.
+ * Help and the webring.
  *
- * Grouped in one file because each is a short panel and they are all about the
- * desktop itself rather than about Dylan.
+ * Grouped in one file because each is a short panel and they are both about the
+ * desktop itself rather than about Dylan. The résumé window used to live here too
+ * and moved to content/ResumeWindow.tsx when it stopped being short — it now
+ * carries a three-state machine and a timer, which is nobody's idea of a panel.
  */
 import type { ThemeId } from '../../../data/voice';
-import { IDENTITY } from '../../../data';
 import { HitCounter, NetscapeBadge, RainbowRule, UnderConstruction, WebRing } from '../deco';
 
 export const HelpWindow = ({ onTheme }: { onTheme: (theme: ThemeId) => void }) => (
@@ -47,14 +48,14 @@ export const HelpWindow = ({ onTheme }: { onTheme: (theme: ThemeId) => void }) =
       <button type="button" className="y2k-btn" onClick={() => onTheme('paper')}>
         Switch to the Paper theme
       </button>
-      <button type="button" className="y2k-btn" onClick={() => onTheme('chat')}>
-        Switch to the chatbot
+      <button type="button" className="y2k-btn" onClick={() => onTheme('mac')}>
+        Switch to the Macintosh
       </button>
     </p>
   </div>
 );
 
-export const WebringWindow = ({ onTheme }: { onTheme: (theme: 'paper' | 'chat') => void }) => (
+export const WebringWindow = ({ onTheme }: { onTheme: (theme: 'paper' | 'mac') => void }) => (
   <div className="y2k-client">
     <h2>THE WEB RING</h2>
     <p>
@@ -74,31 +75,5 @@ export const WebringWindow = ({ onTheme }: { onTheme: (theme: 'paper' | 'chat') 
       of pointer events.
     </p>
     <HitCounter />
-  </div>
-);
-
-export const ResumeWindow = ({
-  resume,
-}: {
-  resume: { available: boolean; href: string; filename: string };
-}) => (
-  <div className="y2k-client y2k-client--face">
-    <h2>RÉSUMÉ.PDF</h2>
-    {resume.available ? (
-      <>
-        <p>One file. Two pages. No animated flames.</p>
-        <p>
-          <a className="y2k-btn y2k-btn-lg" href={resume.href} download={resume.filename}>
-            💾 Save to A:\
-          </a>
-        </p>
-      </>
-    ) : (
-      <p>
-        There is no PDF on the server yet, so there is nothing to download. Everything it would
-        say is already in these windows — {IDENTITY.availability.toLowerCase()}, and{' '}
-        <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> reaches him directly.
-      </p>
-    )}
   </div>
 );

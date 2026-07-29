@@ -4,10 +4,11 @@
  * PaperLayout, DesktopShell, ChatLayout — and own everything inside <body>
  * except the skip link (G9, G12).
  *
- * Keep this file boring. Anything visual that lands here will leak across all
- * three themes and quietly erode the point of having three of them.
+ * Keep this file boring. Anything visual that lands here will leak across every
+ * theme and quietly erode the point of having four of them.
  */
 import BaseHead from '../components/shared/BaseHead.astro';
+import type { ThemeId } from '../data/voice';
 import '../styles/base.css';
 import '../styles/print.css';
 
@@ -17,8 +18,15 @@ type Props = {
   path?: string;
   ogImage?: string;
   noIndex?: boolean;
-  /** Rendered into data-theme so CSS and the switcher agree on the current theme. */
-  theme: 'paper' | 'y2k' | 'chat';
+  /**
+   * Rendered into data-theme so CSS and the switcher agree on the current theme.
+   *
+   * Typed as ThemeId rather than a literal union written out here: this was a
+   * hand-maintained 'paper' | 'y2k' | 'chat', which means adding a theme fails
+   * `astro check` in this file instead of anywhere useful, or — worse — passes
+   * because the caller happened to widen to string. One source of truth.
+   */
+  theme: ThemeId;
   /** Extra classes for <body>, so a theme can hook its own root styles. */
   bodyClass?: string;
 };

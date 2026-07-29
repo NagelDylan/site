@@ -6,6 +6,11 @@
  * demonstrates the range and doubles as a portfolio piece. Paints instantly —
  * there is no animation gate in front of it.
  *
+ * There was a fourth, for the chat theme. It was removed when that theme was
+ * hidden (THEMES in src/config.ts is the switch); its markup is quoted in place
+ * below and its CSS is untouched, so putting it back is a paste. Nothing else
+ * here assumes a panel count — the grid does, and its comment says so.
+ *
  * It is never a dead gate: it carries Dylan's name, headline, and the Summer 2027
  * availability line, so a visitor who never clicks has still seen the important
  * part. `?theme=paper` bypasses it entirely for links sent to recruiters.
@@ -14,12 +19,19 @@
  *   1. It only appears when JS is running (the pre-paint script sets
  *      data-splash="show"). Without JS — and for crawlers — the paper site is
  *      simply there, with no overlay to dismiss.
- *   2. The three choices are real anchors with ?theme=, so they work without JS
+ *   2. The choices are real anchors with ?theme=, so they work without JS
  *      too. The click handler upgrades them to an instant in-place switch.
+ *
+ * Panel order follows THEMES in src/config.ts. The two retro-OS panels sit next
+ * to each other on purpose: side by side, the Y2K gradient title bar and the
+ * Mac's pinstriped one are the fastest possible explanation of what the pair is
+ * doing.
  *
  * The panel styles are entirely self-contained. They must not depend on
  * theme-paper.css or the client-mounted theme bundles, since none of those are
- * guaranteed to be present when the splash paints.
+ * guaranteed to be present when the splash paints. That is why the Mac panel's
+ * Platinum window, dither and rainbow mark are all hand-drawn here in CSS
+ * instead of reusing a single token from the mac theme's own stylesheets.
  */
 import { IDENTITY } from '../../data/identity';
 import { THEME_STORAGE_KEY } from '../../config';
@@ -69,20 +81,79 @@ import { THEME_STORAGE_KEY } from '../../config';
           </span>
           <span class="y-taskbar"><span class="y-start">Start</span><span class="y-clock">10:04</span></span>
         </span>
-        <span class="panel-label">Y2K</span>
+        <span class="panel-label">Windows Y2K</span>
         <span class="panel-note">a whole desktop, circa 1999</span>
       </a>
 
-      {/* ── Chat preview: bubbles ──────────────────────────────────────── */}
-      <a class="panel panel--chat" href="?theme=chat" data-theme-choice="chat">
-        <span class="c-window" aria-hidden="true">
-          <span class="c-bubble c-bubble--bot">Ask me about him</span>
-          <span class="c-bubble c-bubble--user">Is he available?</span>
-          <span class="c-composer"><span class="c-send"></span></span>
+      {/*
+        ── Classic Mac preview: menu bar + Platinum window ────────────────
+        Three things here exist to make this panel unmistakable next to the Y2K
+        one, because the two are the same era and would otherwise both read as
+        "grey desktop": the title bar is PINSTRIPED rather than a blue gradient,
+        the close box is on the LEFT, and the system chrome is a menu bar at the
+        top rather than a taskbar at the bottom. Icons sit on the right, as they
+        did on a Mac.
+      */}
+      <a class="panel panel--mac" href="?theme=mac" data-theme-choice="mac">
+        <span class="m-desktop" aria-hidden="true">
+          <span class="m-menubar">
+            <span class="m-mark"></span>
+            <span class="m-menu">File</span>
+            <span class="m-menu">Edit</span>
+            <span class="m-menu">View</span>
+            <span class="m-clock">10:04 AM</span>
+          </span>
+          <span class="m-hd">
+            <span class="m-hd-box"><span class="m-hd-slot"></span></span>
+            <span class="m-hd-name"></span>
+          </span>
+          <span class="m-win">
+            <span class="m-title">
+              <span class="m-close"></span>
+              <span class="m-titletext">Projects</span>
+              <span class="m-boxes"><span class="m-zoom"></span><span class="m-collapse"></span></span>
+            </span>
+            <span class="m-body">
+              <span class="m-well">
+                <span class="m-folder"></span>
+                <span class="m-lines"></span>
+              </span>
+              <span class="m-scroll">
+                <span class="m-arrow"></span>
+                <span class="m-thumb"></span>
+                <span class="m-arrow m-arrow--end"></span>
+              </span>
+            </span>
+          </span>
+          <span class="m-trash"><span class="m-trash-lid"></span></span>
         </span>
-        <span class="panel-label">Ask the bot</span>
-        <span class="panel-note">demo mode — not a live model</span>
+        <span class="panel-label">Classic Mac</span>
+        <span class="panel-note">a Macintosh desktop, circa 1999</span>
       </a>
+
+      {/*
+        ── The chat panel used to sit here ─────────────────────────────────
+        Removed when the chat theme was hidden (see THEMES in src/config.ts).
+        This markup is the ONLY piece of the chat tree that was deleted rather
+        than left in place, because an anchor to `?theme=chat` is exactly the
+        visibility being removed — and that URL no longer resolves anyway.
+
+        Its styles are still below, under `.panel--chat`, so restoring it is this
+        much markup and nothing else:
+
+          <a class="panel panel--chat" href="?theme=chat" data-theme-choice="chat">
+            <span class="c-window" aria-hidden="true">
+              <span class="c-bubble c-bubble--bot">Ask me about him</span>
+              <span class="c-bubble c-bubble--user">Is he available?</span>
+              <span class="c-composer"><span class="c-send"></span></span>
+            </span>
+            <span class="panel-label">Ask the bot</span>
+            <span class="panel-note">demo mode — not a live model</span>
+          </a>
+
+        Put the four-across grid back at the same time — .splash-panels is now
+        capped and centred for three.
+      */}
     </div>
 
     <p class="splash-skip">
@@ -110,11 +181,11 @@ import { THEME_STORAGE_KEY } from '../../config';
       var root = document.documentElement;
       root.dataset.themeChosen = 'true';
       /*
-       * Paper is already in the HTML, so it can be revealed instantly. Y2K and
-       * chat have to download and mount a chunk first — so the splash STAYS UP
-       * until they are on screen, and ThemeBoot removes it once the theme has
-       * painted. Dismissing here instead would expose the paper tree underneath
-       * for as long as the chunk takes to arrive.
+       * Paper is already in the HTML, so it can be revealed instantly. Every
+       * other theme has to download and mount a chunk first — so the splash
+       * STAYS UP until they are on screen, and ThemeBoot removes it once the
+       * theme has painted. Dismissing here instead would expose the paper tree
+       * underneath for as long as the chunk takes to arrive.
        */
       if (theme === 'paper') {
         delete root.dataset.splash;
@@ -186,7 +257,13 @@ import { THEME_STORAGE_KEY } from '../../config';
   }
 
   .splash-inner {
-    width: min(1000px, 100%);
+    /*
+     * Wider than it was for three panels. At four across, min(1000px, …) left
+     * each preview around 220px — narrow enough that the Mac menu bar's
+     * "File Edit View" and the Y2K taskbar started colliding with their own
+     * clocks. This gives each panel ~260px at desktop widths.
+     */
+    width: min(1120px, 100%);
     text-align: center;
   }
 
@@ -222,6 +299,18 @@ import { THEME_STORAGE_KEY } from '../../config';
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.2rem;
+    /*
+     * Capped and centred rather than stretched to the shell.
+     *
+     * .splash-inner is 1120px so that FOUR panels landed at ~260px each, which is
+     * the width every preview is drawn for — below ~220px the Mac menu bar's
+     * "File Edit View" collides with its own clock. Three panels in that same
+     * shell would be ~360px each, stretching art that has fixed pixel heights.
+     * 52rem keeps them at ~264px and puts the spare width in the margins, so
+     * removing a panel changed the row's position and not its proportions.
+     */
+    max-width: 52rem;
+    margin-inline: auto;
   }
 
   .panel {
@@ -254,9 +343,10 @@ import { THEME_STORAGE_KEY } from '../../config';
   /*
    * The caption sits in its own band rather than directly on the preview.
    * Previously the label and note inherited dark ink straight onto whatever the
-   * panel's background was — which is teal for Y2K and mid-blue in its dark
-   * variant, so the grey sub-title was close to unreadable. A band keeps all
-   * three captions on the same legible stock regardless of the art above them.
+   * panel's background was — which is teal for Y2K, Platinum blue for the Mac,
+   * and mid-blue in the Y2K dark variant, so the grey sub-title was close to
+   * unreadable. A band keeps every caption on the same legible stock regardless
+   * of the art above it, in both light and dark mode.
    */
   .panel-label,
   .panel-note {
@@ -442,7 +532,307 @@ import { THEME_STORAGE_KEY } from '../../config';
     color: #000;
   }
 
-  /* ── Chat panel ──────────────────────────────────────────────────────── */
+  /* ── Classic Mac panel ───────────────────────────────────────────────── */
+  /*
+   * All of this is hand-rolled rather than borrowed from the mac stylesheets: the
+   * splash can paint before any theme stylesheet exists, so a token or a class
+   * from that file would render this panel as an unstyled stack of empty spans.
+   * The colours below are the Platinum palette copied by value on purpose.
+   */
+  .panel--mac {
+    background: #6f8bab;
+  }
+
+  .m-desktop {
+    position: relative;
+    display: block;
+    height: 148px;
+    /*
+     * The 2px 50% dither. Without it this panel is a flat blue rectangle and
+     * reads as a worse version of the Y2K teal; the checkerboard is the texture
+     * that says "Mac desktop" before any of the chrome is legible.
+     */
+    background-image:
+      linear-gradient(45deg, rgba(255, 255, 255, 0.16) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.16) 75%),
+      linear-gradient(45deg, rgba(255, 255, 255, 0.16) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.16) 75%);
+    background-position: 0 0, 2px 2px;
+    background-size: 4px 4px;
+    font-family: Geneva, Verdana, Tahoma, sans-serif;
+  }
+
+  /* Menu bar, not a taskbar, and at the top rather than the bottom. */
+  .m-menubar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 15px;
+    padding: 0 5px;
+    background: #fff;
+    border-bottom: 1px solid #000;
+    font-size: 0.55rem;
+    color: #000;
+    white-space: nowrap;
+  }
+
+  /*
+   * The system-menu mark: six flat stripes in a rounded lozenge.
+   *
+   * It is deliberately a LOZENGE and never a fruit silhouette. The theme it
+   * previews is a Classic Mac OS pastiche, not an Apple product, and it is
+   * never labelled or aliased as Apple anywhere on this site (R3 and the
+   * trademark boundary in .claude/specs/mac-theme.md §2). Keep it abstract.
+   */
+  .m-mark {
+    flex: none;
+    width: 9px;
+    height: 11px;
+    border-radius: 3px;
+    background: linear-gradient(
+      180deg,
+      #61bb46 0 16.66%,
+      #fdb827 16.66% 33.33%,
+      #f5821f 33.33% 50%,
+      #e03a3e 50% 66.66%,
+      #963d97 66.66% 83.33%,
+      #009ddc 83.33% 100%
+    );
+  }
+
+  .m-menu {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .m-clock {
+    margin-left: auto;
+    font-weight: 400;
+  }
+
+  /* Macintosh HD, top right — the Mac put its volumes on the right. */
+  .m-hd {
+    position: absolute;
+    top: 21px;
+    right: 8px;
+    width: 26px;
+  }
+
+  .m-hd-box {
+    display: block;
+    height: 15px;
+    background: #dedede;
+    border: 1px solid #000;
+    /* The Mac bevel: 1px and grey, where Win98 used 2px of pure black/white. */
+    box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #888;
+  }
+
+  .m-hd-slot {
+    display: block;
+    width: 12px;
+    height: 2px;
+    margin: 8px auto 0;
+    background: #888;
+  }
+
+  /*
+   * The icon's name plaque. Left as a bar rather than real text: at this size
+   * "Macintosh HD" renders as illegible mush, and a 6px string in the preview
+   * would be noise rather than information.
+   */
+  .m-hd-name {
+    display: block;
+    width: 20px;
+    height: 4px;
+    margin: 2px auto 0;
+    background: #fff;
+  }
+
+  .m-win {
+    position: absolute;
+    top: 36px;
+    left: 10px;
+    /* Clears the right-hand icon column so the window never buries the HD. */
+    right: 42px;
+    background: #dedede;
+    border: 1px solid #555;
+    box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.28);
+  }
+
+  .m-title {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 3px;
+    /*
+     * PINSTRIPES. Never a gradient — that is the Y2K panel one column over, and
+     * a gradient here would erase the only glanceable difference between them.
+     */
+    background: repeating-linear-gradient(180deg, #fff 0 1px, #cccccc 1px 2px);
+    border-bottom: 1px solid #888;
+  }
+
+  /* Close box on the LEFT. Windows put it on the right; this is the tell. */
+  .m-close,
+  .m-zoom,
+  .m-collapse {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    background: #dedede;
+    border: 1px solid #555;
+    box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #888;
+  }
+
+  .m-boxes {
+    display: flex;
+    flex: none;
+    gap: 3px;
+  }
+
+  /* The title sits in a face-coloured plaque that interrupts the stripes. */
+  .m-titletext {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0 5px;
+    background: #dedede;
+    font-size: 0.6rem;
+    /*
+     * line-height: 1 keeps the plaque no taller than the 9px control boxes
+     * beside it. At the inherited line-height the text box overflowed the title
+     * bar's content area and the plaque's grey fill bled over the hairline
+     * underneath it.
+     */
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #000;
+    white-space: nowrap;
+  }
+
+  .m-body {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+  }
+
+  /* Content wells are INSET: shadow on the top-left, white on the bottom-right. */
+  .m-well {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #888;
+    box-shadow: inset 1px 1px 0 #c9c9c9;
+  }
+
+  .m-folder {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 15px;
+    background: #cdd8e4;
+    border: 1px solid #000;
+  }
+
+  /* The folder tab. Two shapes make a folder; one makes a rectangle. */
+  .m-folder::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 1px;
+    width: 9px;
+    height: 4px;
+    background: #cdd8e4;
+    border: 1px solid #000;
+    border-bottom: 0;
+  }
+
+  .m-lines {
+    flex: 1;
+    height: 13px;
+    background: repeating-linear-gradient(180deg, #333 0 1px, transparent 1px 5px);
+  }
+
+  /*
+   * The Mac scroll bar: square buttons at BOTH ends and a dithered track. Both
+   * details are era-correct and neither exists in the Y2K panel.
+   */
+  .m-scroll {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: 11px;
+    background-color: #eee;
+    background-image:
+      linear-gradient(45deg, #b9b9b9 25%, transparent 25% 75%, #b9b9b9 75%),
+      linear-gradient(45deg, #b9b9b9 25%, transparent 25% 75%, #b9b9b9 75%);
+    background-position: 0 0, 2px 2px;
+    background-size: 4px 4px;
+    border: 1px solid #888;
+  }
+
+  .m-arrow {
+    flex: none;
+    height: 9px;
+    background: #dedede;
+    box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #888;
+  }
+
+  .m-arrow--end {
+    /* Pins the second arrow to the bottom whatever the well's height is. */
+    margin-top: auto;
+  }
+
+  .m-thumb {
+    /*
+     * Shrinkable on purpose. The scroll column stretches to the well's height,
+     * and the well gets shorter at the narrow breakpoint — with a rigid thumb
+     * the arrow buttons overflowed the bottom of the track and the window grew
+     * a pixel taller than its own frame. Letting the thumb absorb the deficit
+     * keeps both arrows inside the track at every size.
+     */
+    flex: 0 1 auto;
+    height: 18px;
+    min-height: 6px;
+    margin: 1px 0;
+    background: #dedede;
+    box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #888;
+  }
+
+  /* Trash, bottom right — the other half of "icons live on the right". */
+  .m-trash {
+    position: absolute;
+    right: 11px;
+    bottom: 7px;
+    width: 18px;
+    height: 20px;
+    background: #dedede;
+    border: 1px solid #000;
+    box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #888;
+  }
+
+  .m-trash-lid {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    height: 3px;
+    background: #888;
+  }
+
+  /*
+    ── Chat panel ────────────────────────────────────────────────────────
+    Kept, deliberately, though no element currently carries these classes: the
+    chat theme is hidden rather than deleted, and this is the half of its panel
+    that is expensive to rebuild from scratch. The markup that used it is quoted
+    at the top of this file. Costs about a hundred bytes of unused CSS in the
+    inlined <style>; the alternative is redrawing the bubbles by hand later.
+  */
   .panel--chat {
     background: #f4f6f8;
   }
@@ -538,16 +928,51 @@ import { THEME_STORAGE_KEY } from '../../config';
     text-underline-offset: 3px;
   }
 
-  @media (max-width: 720px) {
+  /*
+   * There is no two-across middle step any more, and that is a consequence of
+   * there being three panels rather than four.
+   *
+   * With four, 2×2 was the honest middle: four did not fit legibly on a tablet
+   * and three-across left an orphan on its own row. With three panels the
+   * arithmetic inverts — two-across is what leaves the orphan, and three-across
+   * fits all the way down to where the row itself stops fitting. The row is
+   * capped at 52rem, so with the dialog's 1.5rem padding either side it holds
+   * its designed ~264px panels down to a 880px viewport; below that the panels
+   * would start passing under the ~220px width where the Mac menu bar collides
+   * with its own clock, so it stacks there instead of squeezing.
+   */
+  @media (max-width: 880px) {
     .splash-panels {
-      grid-template-columns: 1fr;
+      /*
+       * One column, but not a full-bleed one: a 750px-wide panel with a 120px
+       * preview inside it reads as a stretched banner. Capped at the width the
+       * art is drawn for and centred.
+       */
+      grid-template-columns: minmax(0, 22rem);
+      justify-content: center;
+      max-width: none;
     }
     .y-desktop,
-    .c-window {
+    .c-window,
+    .m-desktop {
       height: 120px;
     }
     .panel--paper .p-card {
       height: 92px;
+    }
+    /*
+     * The Mac art is absolutely positioned inside a fixed-height desktop, so its
+     * pieces have to be re-seated when that height drops 28px or the window
+     * runs under the Trash icon.
+     */
+    .m-hd {
+      top: 19px;
+    }
+    .m-win {
+      top: 30px;
+    }
+    .m-well {
+      min-height: 30px;
     }
   }
 

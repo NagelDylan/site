@@ -56,7 +56,8 @@ import EducationWindow from './content/EducationWindow';
 import ContactWindow from './content/ContactWindow';
 import GuestbookWindow from './content/GuestbookWindow';
 import WinampWindow from './content/WinampWindow';
-import { HelpWindow, ResumeWindow, WebringWindow } from './content/panels';
+import ResumeWindow from './content/ResumeWindow';
+import { HelpWindow, WebringWindow } from './content/panels';
 
 /** Desktop icons. The whole site is reachable from here and from Start (G10). */
 const DESKTOP_ICONS: { kind: WindowKind; label: string; icon: IconName }[] = [
@@ -225,7 +226,11 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
               <span>{entry.label}</span>
             </button>
           ))}
-          {/* §13: the résumé icon exists only when the file does. */}
+          {/*
+           * §13: the résumé icon exists only when the file does. The label is the
+           * document half of the window's title ('Résumé.pdf — Adobe Acrobat
+           * Reader 4.0'), the same way Welcome.htm's icon is not called Netscape.
+           */}
           {resume.available ? (
             <button type="button" className="y2k-icon" onClick={() => openKind('resume')}>
               <Icon name="floppy" />

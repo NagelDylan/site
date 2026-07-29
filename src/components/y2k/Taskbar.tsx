@@ -12,6 +12,7 @@
  */
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ThemeId } from '../../data/voice';
+import { THEMES } from '../../config';
 import { THEME_LABELS, returnToChooser } from '../../lib/theme';
 import { FEATURED } from '../../data';
 import Icon, { StartFlag } from './Icon';
@@ -184,7 +185,13 @@ const Taskbar = ({
             </Sub>
 
             <Sub {...subProps('themes')} label="🎨 Themes">
-              {(['paper', 'y2k', 'chat'] as ThemeId[]).map((theme) => (
+              {/*
+                From THEMES in config.ts, not a local literal. The literal that
+                used to be here read ['paper', 'y2k', 'chat'] and had gone stale —
+                it never offered the Classic Mac theme — which is the argument for
+                reading the shared list even in a menu that only ever holds a few.
+              */}
+              {THEMES.map((theme) => (
                 <li key={theme}>
                   <button
                     type="button"
@@ -296,7 +303,13 @@ const Taskbar = ({
         </div>
 
         <div className="y2k-tray">
-          {/* Always-visible theme switcher (G8). Keyboard-reachable, like everything else. */}
+          {/*
+            Always-visible theme switcher (G8). Keyboard-reachable, like everything
+            else. Two tray buttons rather than a loop over THEMES on purpose: each
+            one is a hand-picked emoji and a hand-written label, and the Start menu's
+            Themes submenu above is the exhaustive list. The 💬 chatbot button that
+            used to sit here was removed when that theme was hidden.
+          */}
           <button
             type="button"
             className="y2k-tray-btn"
@@ -309,11 +322,11 @@ const Taskbar = ({
           <button
             type="button"
             className="y2k-tray-btn"
-            title="Switch to the chatbot theme"
-            aria-label="Switch to the chatbot theme"
-            onClick={() => onTheme('chat')}
+            title="Switch to the Classic Mac theme"
+            aria-label="Switch to the Classic Mac theme"
+            onClick={() => onTheme('mac')}
           >
-            💬
+            🖥
           </button>
           {/*
             Back to the theme chooser, sitting with the theme buttons because that

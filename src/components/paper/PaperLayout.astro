@@ -14,11 +14,14 @@ import '../../styles/theme-paper.css';
 import SiteShell from '../../layouts/SiteShell.astro';
 import PaperControls from './PaperControls.tsx';
 import { IDENTITY, SOCIALS } from '../../data/identity';
+import { getResume } from '../../lib/resume';
 
 type Props = {
   title: string;
   description?: string;
   path?: string;
+  /** Passed through to SiteShell → BaseHead. /resume uses it for its empty state. */
+  noIndex?: boolean;
   /** Adds the page-turn animation — project detail pages only (§9). */
   pageTurn?: boolean;
 };
@@ -26,10 +29,28 @@ type Props = {
 const { pageTurn = false, ...head } = Astro.props;
 const here = Astro.url.pathname.replace(/\/$/, '') || '/';
 
+/*
+ * The nav is BUILT here rather than declared at module scope, because the Résumé
+ * entry is conditional: a nav link to a page with no document on it is worse than
+ * no nav link at all — it promises a file and delivers an apology, which is
+ * exactly what §18.5 forbids. /resume still exists and still renders in both
+ * states (deep links and bookmarks have to resolve to something), but it is only
+ * *advertised* once there is something there.
+ *
+ * Same file-is-the-switch property as every other résumé surface: getResume()
+ * checks for public/resume.pdf at build time, so dropping the PDF in lights this
+ * link up along with the buttons, with no code change.
+ *
+ * Order is Home, Experience, Projects, Résumé, About, Contact — the résumé sits
+ * with the other things a recruiter is scanning for, not filed under About.
+ */
+const resume = getResume();
+
 const NAV = [
   { href: '/', label: 'Home' },
   { href: '/experience', label: 'Experience' },
   { href: '/projects', label: 'Projects' },
+  ...(resume.available ? [{ href: resume.page, label: 'Résumé' }] : []),
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
@@ -45,6 +66,12 @@ const year = new Date().getFullYear();
       </a>
       <nav class="nav-cards" aria-label="Main">
         {
+          /*
+            startsWith, so /projects/tanks still marks Projects as current. It is
+            safe for /resume because no nav href is a prefix of another one — check
+            that again before adding a route like /resume-old, which would light up
+            two cards at once.
+          */
           NAV.map((item) => (
             <a
               class="nav-card"

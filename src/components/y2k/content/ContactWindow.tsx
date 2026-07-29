@@ -2,35 +2,56 @@
  * CONTACT, dressed as an MSN Messenger conversation window.
  *
  * ─── ON HONESTY ──────────────────────────────────────────────────────────────
- * FEATURES.formSubmission and FEATURES.turnstile are both false: there is no
- * backend and no CAPTCHA behind this form. So this window does NOT say "message
- * sent". The submit handler logs to the console — which is all it can truthfully
- * do — and the confirmation says so in plain words, then points at the address
- * that actually works.
+ * This window really sends now. `submitContact` relays the message to Dylan's
+ * inbox through Web3Forms (src/lib/contact.ts explains why a third party and not
+ * a server of ours).
  *
- * The Messenger costume is a joke about the *interface*. It is not a licence to
- * claim a delivery that did not happen (§18.5).
- * ─────────────────────────────────────────────────────────────────────────────
+ * The rule that produced the old "⚠ NOT SENT" is unchanged: the log says
+ * delivered only when delivery was confirmed. A failure gets its own loud line
+ * and the address that needs no server. The Messenger costume is a joke about the
+ * *interface* — it was never a licence to claim a delivery that did not happen
+ * (§18.5), and a confirmed one still has to be earned.
  */
-import { useState } from 'react';
-import { FEATURES } from '../../../config';
-import { IDENTITY, SOCIALS } from '../../../data';
+import { useState } from "react";
+import { FEATURES, TURNSTILE_SITE_KEY } from "../../../config";
+import { IDENTITY, SOCIALS } from "../../../data";
+import { contactMailto, submitContact } from "../../../lib/contact";
+import { useHoneypot } from "../../shared/Honeypot";
 
-type Sent = { name: string; email: string; message: string } | null;
+/** What came back, in the register of a chat log. */
+type Outcome =
+  | { kind: "sent"; message: string }
+  | { kind: "failed"; message: string }
+  | { kind: "unconfigured"; message: string }
+  | null;
 
 const ContactWindow = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [sent, setSent] = useState<Sent>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [outcome, setOutcome] = useState<Outcome>(null);
   const [copied, setCopied] = useState(false);
+  const honeypot = useHoneypot();
 
-  const onSubmit = (event: React.SyntheticEvent) => {
+  const onSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
-    const payload = { name, email, message };
-    // The only honest destination available right now.
-    console.log('[y2k contact] form submitted, not sent — no backend is wired up:', payload);
-    setSent(payload);
+
+    if (!FEATURES.formSubmission) {
+      setOutcome({ kind: "unconfigured", message });
+      return;
+    }
+
+    setSending(true);
+    const result = await submitContact({
+      name,
+      email,
+      message,
+      source: "y2k",
+      botcheck: honeypot.tripped,
+    });
+    setSending(false);
+    setOutcome({ kind: result.ok ? "sent" : "failed", message });
   };
 
   const copyEmail = async () => {
@@ -42,6 +63,9 @@ const ContactWindow = () => {
       setCopied(false);
     }
   };
+
+  /** Rebuilt from current state, so it stays right if they edit and retry. */
+  const fallback = contactMailto({ name, email, message, source: "y2k" });
 
   return (
     <div className="y2k-client y2k-client--face" style={{ padding: 4 }}>
@@ -62,7 +86,7 @@ const ContactWindow = () => {
           <span>To: </span>
           <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a>
           <button type="button" className="y2k-btn" onClick={copyEmail}>
-            {copied ? 'copied!' : 'copy'}
+            {copied ? "copied!" : "copy"}
           </button>
           <a href={SOCIALS.linkedin} target="_blank" rel="noreferrer noopener">
             LinkedIn
@@ -74,29 +98,59 @@ const ContactWindow = () => {
 
         <div className="y2k-msn-log y2k-in" aria-live="polite">
           <p>
-            <b>Dylan says:</b> hi!! this is a contact form wearing a Messenger costume.
+            <b>Dylan says:</b> hi!! this is a contact form wearing a Messenger
+            costume.
           </p>
           <p>
-            <b>Dylan says:</b> {IDENTITY.availability}. Based in {IDENTITY.location}.
+            <b>Dylan says:</b> {IDENTITY.availability}. Based in{" "}
+            {IDENTITY.location}.
           </p>
-          <p>
-            <b>Dylan says:</b> the box below is real UI on top of no server. Read the fine print
-            before you trust it.
-          </p>
-          {sent ? (
+
+          {outcome ? (
             <>
               <p>
-                <b>You said:</b> {sent.message || '(no message)'}
+                <b>You said:</b> {outcome.message || "(no message)"}
               </p>
-              <p>
-                <b>System:</b> ⚠ NOT SENT. This form has no backend yet, so your message went to
-                the browser console and nowhere else. Nothing was delivered, and saying otherwise
-                would be a lie in a very loud font.
-              </p>
-              <p>
-                <b>System:</b> to actually reach Dylan, e-mail{' '}
-                <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> — that one works.
-              </p>
+
+              {outcome.kind === "sent" ? (
+                <p>
+                  <b>System:</b> ✓ DELIVERED. that is in his inbox — confirmed
+                  by the relay, not guessed at. he reads it and he replies.
+                </p>
+              ) : null}
+
+              {outcome.kind === "failed" ? (
+                <>
+                  <p>
+                    <b>System:</b> ⚠ NOT SENT. the send failed, so do not assume
+                    he saw that. pretending otherwise would be a lie in a very
+                    loud font.
+                  </p>
+                  <p>
+                    <b>System:</b> nothing is lost —{" "}
+                    <a href={fallback}>
+                      click here to send it as a real e-mail
+                    </a>
+                    , or write to{" "}
+                    <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a>.
+                    that one always works.
+                  </p>
+                </>
+              ) : null}
+
+              {outcome.kind === "unconfigured" ? (
+                <>
+                  <p>
+                    <b>System:</b> ⚠ NOT SENT. this build has no delivery key,
+                    so that went nowhere at all.
+                  </p>
+                  <p>
+                    <b>System:</b> everything you typed is in{" "}
+                    <a href={fallback}>this prefilled e-mail</a> — one click and
+                    it actually arrives.
+                  </p>
+                </>
+              ) : null}
             </>
           ) : null}
         </div>
@@ -130,35 +184,37 @@ const ContactWindow = () => {
             />
           </label>
 
-          {/* Phase B slot. Clearly marked as a placeholder: no widget is loaded. */}
-          <div className="y2k-turnstile" data-turnstile-slot aria-label="Turnstile placeholder">
-            {FEATURES.turnstile ? (
-              <span>[ turnstile widget mounts here ]</span>
-            ) : (
-              <>
-                <strong>[ CLOUDFLARE TURNSTILE — PLACEHOLDER SLOT ]</strong>
-                <span>no widget is loaded; nothing is being verified</span>
-              </>
-            )}
-          </div>
+          {honeypot.field}
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button type="submit" className="y2k-btn y2k-btn-lg">
-              Send ▶
-            </button>
+          {/*
+            Turnstile mounts here once a site key exists and its secret is in the
+            Web3Forms dashboard, which is what actually verifies the token. While
+            the key is null nothing renders — the old placeholder announced a
+            widget that was never coming, and the honeypot is the real defence in
+            the meantime.
+          */}
+          {FEATURES.turnstile && TURNSTILE_SITE_KEY ? (
+            <div
+              className="y2k-turnstile cf-turnstile"
+              data-sitekey={TURNSTILE_SITE_KEY}
+            />
+          ) : null}
+
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <button
-              type="button"
-              className="y2k-btn"
-              onClick={() =>
-                console.log('[y2k contact] nudge — decorative; nothing was nudged and nothing was sent')
-              }
+              type="submit"
+              className="y2k-btn y2k-btn-lg"
+              disabled={sending}
             >
-              Nudge
+              {sending ? "Sending…" : "Send ▶"}
             </button>
-            <small>
-              Heads up: this button does not send mail. It logs to the console. The e-mail link
-              above is the one that reaches him.
-            </small>
           </div>
         </form>
       </div>

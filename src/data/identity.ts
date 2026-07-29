@@ -50,6 +50,34 @@ export const PHOTOS = {
     src: '/media/me-y2k.webp',
     small: '/media/me-y2k-small.webp',
   },
+  /**
+   * MAC DELIBERATELY SHARES THE Y2K ARTWORK, and the paths are written out rather
+   * than referencing PHOTOS.y2k because an object literal cannot read itself.
+   *
+   * Why the duplication: `assets-src/` is frozen (see README) — no new source
+   * artwork can be produced for this repo, so there is no `me-mac.png` to
+   * optimise and there is no `me-mac.webp`. Do not add one to this entry hoping
+   * it appears; nothing generates it. This knowingly bends G9's one portrait per
+   * theme rule, and it is the only place in the four themes where that rule is
+   * bent.
+   *
+   * What makes it read as Macintosh is the *treatment*, not the file: a 1-bit
+   * black-and-white dither applied in `src/styles/mac/content-base.css`
+   * (grayscale + contrast + a multiply dither overlay, inverted in dark mode).
+   *
+   * Two constraints follow from sharing pixel art:
+   *   - The Y2K note in `theme-y2k.css` still applies in full — this image is a
+   *     256px pixel grid scaled up, so rendering must stay nearest-neighbour
+   *     (`image-rendering: pixelated`). Let the browser smooth it and it erases
+   *     the hard pixel edges the artwork is made of, and the dither on top turns
+   *     to mush.
+   *   - Never re-encode it lossily. A lossy pass invents grey between the
+   *     pixels, which is precisely what a 1-bit treatment then amplifies.
+   */
+  mac: {
+    src: '/media/me-y2k.webp',
+    small: '/media/me-y2k-small.webp',
+  },
   chat: {
     src: '/media/me-chat.webp',
     small: '/media/me-chat-small.webp',

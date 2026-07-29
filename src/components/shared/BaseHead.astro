@@ -142,6 +142,12 @@ const personSchema = {
   The background colours matter for the same reason: without them the gap between
   paint and mount is a white flash, which against the black CRT desktop is worse
   than the paper flash being removed here.
+
+  The two `data-theme='chat'` rules are inert while that theme is hidden — the
+  attribute can no longer take that value (see THEMES in src/config.ts). They stay
+  because they are ~90 bytes of dead selector, and because leaving them means
+  un-hiding the theme does not also require remembering to restore its
+  flash-suppression. Do not "clean them up" without reading that comment first.
 */}
 <style is:inline>
   html[data-theme='y2k'] #paper-root,

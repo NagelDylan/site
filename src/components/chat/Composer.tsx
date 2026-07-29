@@ -90,14 +90,21 @@ const Composer = ({
       {/*
         Privacy notice (§11.4). The spec's wording is "conversations are logged so
         Dylan can see what people ask" — which will be true in Phase B, when the
-        Worker exists to log them. In Phase A there is no backend and nothing
-        leaves the browser, so the notice says that instead. Writing the Phase B
-        sentence early would be a small lie about data handling, which is the
-        worst category of small lie to ship.
+        Worker exists to log them. In Phase A there is no chat backend and the
+        conversation never leaves the browser, so the notice says that instead.
+        Writing the Phase B sentence early would be a small lie about data
+        handling, which is the worst category of small lie to ship.
+
+        Scope matters in the wording. The *conversation* goes nowhere, but the
+        recruiter-capture form the bot can render does now really submit (see
+        src/lib/contact.ts), and it sits in this same pane. So this says "this
+        conversation" rather than "nothing here" — an unqualified claim would read
+        as covering that form too, and would be false about it.
       */}
       <p className="c-composer__privacy">
-        Nothing here is sent anywhere or stored — this conversation lives in your browser tab and
-        disappears when you close it.
+        This conversation isn't sent anywhere or stored — it lives in your browser tab and
+        disappears when you close it. The contact form is the one thing here that does send, and
+        only when you submit it.
         {turnsRemaining <= 4 && turnsRemaining > 0 ? (
           <span className="c-composer__count"> {turnsRemaining} questions left in this chat.</span>
         ) : null}

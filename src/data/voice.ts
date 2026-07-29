@@ -1,13 +1,27 @@
 /**
  * VOICE LAYER (spec §8, layer 2).
  *
- * Same facts, three voices. SCOPE IS DELIBERATELY NARROW (§2): hero, about, and
+ * Same facts, four voices. SCOPE IS DELIBERATELY NARROW (§2): hero, about, and
  * project blurbs only. Experience bullets and education are shared verbatim from
- * the fact layer — precision matters more than flavour there, and three drifting
+ * the fact layer — precision matters more than flavour there, and four drifting
  * copies of a job history is how a date goes stale in exactly one place.
  *
- * Every string in this file is subject to §0. In particular, the Y2K voice is
- * loud, and loud copy is exactly where a hype claim sneaks in:
+ * Every string in this file is subject to §0, and each register fails in its own
+ * direction — which is the reason to name them here rather than trust a single
+ * warning to cover all four:
+ *
+ *   - Y2K is LOUD, and loud copy is where a hype claim sneaks in: a superlative,
+ *     a trophy, an "AWARD WINNING" that nobody wrote on purpose.
+ *   - MAC is QUIET AND PRECISE, which is the opposite failure and the harder one
+ *     to catch. A calm, well-formed, documentation-shaped sentence is where an
+ *     *invented* detail sneaks in — a version number, a file size, a duration,
+ *     a "shipped in three weeks". It does not sound like a boast, so nobody
+ *     stops to check it. MAC therefore asserts exactly what PAPER asserts and
+ *     nothing else: if PAPER cannot say it, MAC cannot either (R5).
+ *   - CHAT speaks about Dylan in the third person, where the risk is helpfully
+ *     filling a gap the fact layer left empty. It never gap-fills (R5, R6).
+ *
+ * The rules bind identically in all four:
  *   - No performance metrics, in any voice (R1).
  *   - FlowSense won nothing, in any voice. "Built at Hack the 6ix 2024" is the
  *     ceiling. No "AWARD WINNING", no trophies, no "🏆" (R2).
@@ -15,7 +29,7 @@
  *   - Graduation 2028; the only 2027 is the co-op term (R4).
  */
 
-export type ThemeId = 'paper' | 'y2k' | 'chat';
+export type ThemeId = 'paper' | 'y2k' | 'mac' | 'chat';
 
 export type Voice = {
   /** Hero eyebrow/greeting line, above the name. Optional per theme. */
@@ -129,6 +143,65 @@ const Y2K: Voice = {
 };
 
 /**
+ * MAC: an Apple manual or a Read Me file from 1997 (mac-theme spec §5). Calm,
+ * courteous, second person where it addresses the reader, sentence case, short
+ * declarative sentences. It carries the *same* enthusiasm as Y2K at one tenth
+ * the volume — the contrast between the two retro themes is the joke, so this
+ * register under-writes on purpose. Deadpan, never a wink it has to explain.
+ *
+ * Three constraints hold it in place. Keep them if you edit this:
+ *
+ *   1. NO CONTRACTIONS. "I am", not "I'm". It is the cheapest audible signal
+ *      that this is neither PAPER nor CHAT, and it reads as documentation
+ *      without dressing up in period costume.
+ *   2. ONE EXCLAMATION MARK IN THE WHOLE VOICE, and it is not this voice's — it
+ *      belongs to the title of Wii Play's "Tanks!". Nothing here is excited in
+ *      its own words. If a future edit wants an exclamation mark, it has to
+ *      justify being the second one.
+ *   3. NO NEW INFORMATION. Every fact below is the same fact PAPER states, and
+ *      the header explains why that discipline matters more in a quiet voice:
+ *      a version number or a duration invented here would read as a spec sheet
+ *      rather than as a boast, and would sail straight past a reader.
+ *
+ * Section labels for this theme live in `headings` and are Mac-flavoured nouns
+ * (Extensions, System Information), because the windows they title are Mac
+ * objects — Extensions Manager, About This Macintosh.
+ */
+const MAC: Voice = {
+  greeting: 'Please read this document before continuing.',
+  heroSub:
+    'Computer Science student at the University of Waterloo. I build full-stack products and the AI infrastructure beneath them: evaluation platforms, retrieval systems, and LLM-powered features that ship to real users. No installation is required to read on.',
+  ctaPrimary: 'Open Projects',
+  ctaSecondary: 'Send a message',
+  bioShort:
+    "I am a Computer Science student at the University of Waterloo, and at present a software developer intern at Apple. I have built AI evaluation infrastructure, shipped LLM-powered features at Carta, and taken a startup's web platform from redesign through full-stack product work at Empathia.ai. I prefer systems that are correct, measurable, and actually used.",
+  bioLong: [
+    'This began with games. I wrote A* pathfinding and collision handling from scratch in C# and MonoGame, because reading about them was not the same as watching them run. That became full-stack web work, and then it became AI systems.',
+    'Four co-op terms followed: retrieval-augmented generation, prompt-based classification in place of legacy ML models, and LLM evaluation infrastructure. One observation keeps recurring. AI features are easy to demonstrate and hard to trust. Most of my recent work sits on the second half of that sentence — evaluation, measurement, and the plumbing that tells you whether a model change actually helped.',
+    'I am most useful where the frontend and the backend meet the model. I like owning a system end to end, and I like problems where the correct answer is not obvious until you have built something to measure it.',
+    'Away from the machine: reading, travel planning, and losing at squash and badminton. That wording is deliberate.',
+  ],
+  headings: {
+    work: 'Work',
+    experience: 'Work History',
+    projects: 'Projects',
+    about: 'Read Me',
+    contact: 'Get in Touch',
+    skills: 'Extensions',
+    education: 'System Information',
+    interests: 'Also Installed',
+  },
+  projectBlurbs: {
+    acronymize:
+      'A word puzzle in which the answers spell out an acronym. Right or wrong is not especially useful feedback, so a sentence-transformer model scores how near your guess came.',
+    flowsense:
+      'A reading tool for dense PDFs: hover a term and the definition arrives already knowing which page you are on. Built at Hack the 6ix 2024 by a team of four.',
+    tanks:
+      'A from-scratch rebuild of Wii Play\u2019s \u201cTanks!\u201d in C#. Each enemy carries personality traits that change how it hunts you, which is the reason I wrote the pathfinding myself.',
+  },
+};
+
+/**
  * Chatbot: conversational, third-person advocate (§11.2). Talks *about* Dylan,
  * never as him — a synthetic first-person Dylan is uncanny and invites "did he
  * actually write this?". Openly, humorously transparent that its job is to make
@@ -169,7 +242,8 @@ const CHAT: Voice = {
   },
 };
 
-export const VOICES: Record<ThemeId, Voice> = { paper: PAPER, y2k: Y2K, chat: CHAT };
+/** Keyed in THEMES order (paper, y2k, mac, chat) so the four stay easy to diff. */
+export const VOICES: Record<ThemeId, Voice> = { paper: PAPER, y2k: Y2K, mac: MAC, chat: CHAT };
 
 /** The four starter prompts for the chat theme (§11.3). Exact wording. */
 export const STARTER_PROMPTS = [

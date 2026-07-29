@@ -20,6 +20,19 @@ export function requestTheme(theme: ThemeId): void {
   window.dispatchEvent(new CustomEvent('nagel:theme-change', { detail: { theme } }));
 }
 
+/**
+ * This theme's own id, annotated as `ThemeId` rather than left to infer.
+ *
+ * 'chat' is not in THEMES any more (the theme is hidden — see config.ts), so a
+ * plain `'chat'` literal makes the `theme === SELF` comparison below a compile
+ * error: TypeScript sees `'paper' | 'y2k' | 'mac'` against `'chat'` and reports no
+ * overlap. The assertion — rather than a `: ThemeId` annotation, which control-flow
+ * analysis narrows straight back to the literal on a const — keeps this retained
+ * tree compiling, and the comparison starts being true again the moment 'chat'
+ * returns to THEMES.
+ */
+const SELF = 'chat' as ThemeId;
+
 type Props = {
   mode: Mode;
   onModeChange: (mode: Mode) => void;
@@ -38,7 +51,7 @@ const Toolbar = ({ mode, onModeChange }: Props) => {
     <div className="c-toolbar">
       <div className="c-switcher" role="group" aria-label="Choose how this site looks">
         {THEMES.map((theme) => {
-          const active = theme === 'chat';
+          const active = theme === SELF;
           return (
             <button
               className="c-switcher__btn"

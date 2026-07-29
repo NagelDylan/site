@@ -2,8 +2,10 @@
 /**
  * /contact — form, direct email, socials, availability (wireframe §19.5, right).
  *
- * The mailto link is given equal billing with the form on purpose: in Phase A the
- * form is not connected, and email is the path that actually works.
+ * The mailto link keeps equal billing with the form even though the form now really
+ * sends (via the Web3Forms relay — src/lib/contact.ts): it is the route that works
+ * when the relay is down, when no key is configured, and when a visitor would rather
+ * not have a third party in the middle.
  */
 import PaperLayout from '../components/paper/PaperLayout.astro';
 import Card from '../components/paper/Card.astro';

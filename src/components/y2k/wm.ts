@@ -16,6 +16,7 @@
  *      window re-renders one window rather than resorting the desktop.
  */
 import { useCallback, useMemo, useReducer } from 'react';
+import { RESUME } from '../../config';
 import type { IconName } from './Icon';
 
 export type WindowKind =
@@ -33,6 +34,28 @@ export type WindowKind =
   | 'resume'
   | 'help'
   | 'webring';
+
+/**
+ * The résumé, resolved server-side and handed down through `ThemeAppProps`.
+ *
+ * Declared here rather than in a content file because three separate surfaces in
+ * this tree need it — the Acrobat window, Welcome.htm and the mobile page — and
+ * three hand-written copies of the same five fields is how one of them ends up
+ * missing `viewHref` and silently reads `undefined` into an <object data>.
+ *
+ * G9 keeps this a separate declaration from the mac and chat copies on purpose:
+ * do not hoist it into a shared module. `viewHref` already carries the PDF open
+ * parameters, so the window embeds it verbatim and never assembles a fragment of
+ * its own; `href` stays clean for the download. §13 is strict — nothing in this
+ * tree may link to a PDF that 404s, so every surface is gated on `available`.
+ */
+export type Resume = {
+  available: boolean;
+  href: string;
+  viewHref: string;
+  page: string;
+  filename: string;
+};
 
 export type WindowState = {
   /** Unique per open window. `project:tanks` keeps one window per project. */
@@ -75,8 +98,27 @@ export const WINDOW_DEFS: Record<WindowKind, Def> = {
   contact: { title: 'Dylan — Conversation', icon: 'mail', w: 460, h: 520 },
   guestbook: { title: 'guestbook.cgi — SIGN IT!!', icon: 'book', w: 480, h: 420 },
   recycle: { title: 'Recycle Bin', icon: 'trash', w: 440, h: 320 },
-  winamp: { title: 'WINAMP 2.9', icon: 'cd', w: 340, h: 250, resizable: false },
-  resume: { title: 'Résumé', icon: 'floppy', w: 400, h: 240, resizable: false },
+  /*
+   * Was 340×250 and fixed, while the player held one generated track and had
+   * nothing to list. It now carries a real twelve-track playlist editor
+   * (content/WinampWindow.tsx), so it is taller and it resizes: the real Winamp
+   * kept its main window fixed and its playlist separately resizable, and of the
+   * two halves of that behaviour the resizable one is the half that matters when
+   * both are in the same frame.
+   */
+  winamp: { title: 'WINAMP 2.9', icon: 'cd', w: 400, h: 440 },
+  /*
+   * Dressed as Acrobat 4.0 because that is the joke: a 1999 machine has no idea
+   * what a PDF is, so the window pretends to install a plug-in from 2026 before it
+   * shows one (content/ResumeWindow.tsx). The title names a period application and
+   * asserts nothing about the document inside it.
+   *
+   * Big and resizable, unlike every other document window here. It was 400×240 and
+   * fixed while this window only held a download button; a page of A4 rendered at
+   * that size is a grey smudge, and refusing the resize grip on the one window
+   * whose content is a whole document is the kind of detail that reads as broken.
+   */
+  resume: { title: 'Résumé.pdf — Adobe Acrobat Reader 4.0', icon: 'floppy', w: 720, h: 560 },
   help: { title: 'Help — How this desktop works', icon: 'help', w: 460, h: 380 },
   webring: { title: 'The Web Ring', icon: 'star', w: 420, h: 320 },
 };
@@ -270,6 +312,16 @@ export function windowsForRoute(route: string): OpenRequest[] {
   if (path === '/projects') return [{ kind: 'projects' }];
   if (path === '/about') return [{ kind: 'about' }];
   if (path === '/contact') return [{ kind: 'contact' }];
+  /*
+   * Read from config rather than typed as '/resume' here: paper renders that same
+   * URL as a real page and the mac desktop resolves it to its own window, so the
+   * string has three owners and RESUME.page is the one place it is written.
+   *
+   * Deliberately NOT gated on resume.available (which this module never sees): the
+   * route exists whether or not the file does, and the window itself is what says
+   * so honestly (§18.5). A deep link that opened nothing would look broken.
+   */
+  if (path === RESUME.page) return [{ kind: 'resume' }];
   const project = /^\/projects\/([\w-]+)$/.exec(path);
   if (project?.[1]) return [{ kind: 'projects' }, { kind: 'project', arg: project[1] }];
   return [{ kind: 'welcome' }];

@@ -1,0 +1,491 @@
+/*
+ * CLASSIC MAC THEME — SYSTEM SCREENS: alerts, startup, the crash, effect layers.
+ *
+ * Consumes the tokens from _foundation.css. Covers four surfaces that share one
+ * property — they all sit ON TOP of the desktop rather than inside a window:
+ *
+ *   1. Alerts        (Dialog.tsx)   — a bevelled box with NO title bar.
+ *   2. Startup       (Boot.tsx)     — Happy Mac, welcome plaque, extension row.
+ *   3. The crash     (Dialog.tsx)   — the bomb alert, then the Sad Mac.
+ *   4. Effect layers (effects.tsx)  — screensaver, zoom rects, Balloon Help.
+ *
+ * Six of the eight layers on the theme's stacking ladder live in this file. Every
+ * z-index below is taken from that ladder, which is documented once in
+ * _foundation.css; none of these numbers may be chosen locally.
+ *
+ * ─── WHERE LITERAL COLOURS ARE CORRECT ───────────────────────────────────────
+ * The startup screen, the Sad Mac and the screensaver are deliberately OUTSIDE
+ * the Platinum palette: a startup screen is not a window, and in 1999 it was a
+ * flat mid-grey field with no bevel anywhere on it. Those three use literal
+ * colours on purpose — but the grey field still gets a dark-mode variant, because
+ * a full-screen #cfcfcf flash at night is a glare, not a period detail.
+ *
+ * Nothing here styles buttons: `.mac-btn` and the default button's ring belong to
+ * controls.css, and restyling them from a dialog would fork the control.
+ */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   ALERTS
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * The layer centres the alert near the top third of the screen, which is where
+ * the real thing appeared — dead centre reads as a web modal.
+ *
+ * NO SCRIM, deliberately. Dialog.tsx renders no backdrop element and sets
+ * aria-modal="false" because these alerts are not modal: the desktop behind stays
+ * live. Painting a scrim here would claim a modality the component does not
+ * implement, so the layer is pointer-transparent and only the box itself takes
+ * clicks — otherwise this invisible sheet would swallow every click on the desk.
+ */
+.mac-root .mac-dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10500;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding: min(18vh, 132px) 16px 16px;
+  pointer-events: none;
+}
+
+.mac-root .mac-dialog {
+  pointer-events: auto;
+  display: grid;
+  /* Icon column, then everything else. minmax(0,1fr) not 1fr: a long unbroken
+     word in the body must wrap rather than widen the box past its own frame. */
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  width: min(420px, 88vw);
+  padding: 14px 16px 12px;
+  background: var(--mac-face);
+  color: var(--mac-ink);
+  border: 1px solid var(--mac-frame);
+  /* Heavier offset than a window's 2px: an alert is meant to sit visibly above
+     the whole desktop, and the hard un-blurred shadow is the era's idiom. */
+  box-shadow:
+    inset 1px 1px 0 var(--mac-bevel-hi),
+    inset -1px -1px 0 var(--mac-bevel-lo),
+    3px 3px 0 rgba(0, 0, 0, 0.38);
+}
+
+.mac-root .mac-dialog-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.mac-root .mac-dialog-text {
+  /* Pairs with minmax(0,1fr) above; without it a grid item's min-content width
+     wins and the text pushes the box wider instead of wrapping. */
+  min-width: 0;
+}
+
+/* Bold LEAD TEXT, not a title bar. Mac alerts have no title bar at all. */
+.mac-root .mac-dialog-title {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.mac-root .mac-dialog-body {
+  color: var(--mac-ink-soft);
+}
+
+.mac-root .mac-dialog-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* The bomb variant carries three paragraphs of honesty, so it needs the room,
+   and the bomb itself reads larger than a caution triangle at the same size. */
+.mac-root .mac-dialog--error {
+  width: min(480px, 92vw);
+}
+
+.mac-root .mac-dialog--error .mac-dialog-icon {
+  width: 40px;
+  height: 40px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   STARTUP
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.mac-root .mac-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: grid;
+  /*
+   * Row 2 is reserved at a fixed height even during the 'chime' phase, when the
+   * plaque is not in the DOM yet. Without the reservation the Happy Mac is
+   * centred alone, then jumps upward the instant the plaque mounts — the two
+   * beats are supposed to compose into one picture, which is exactly why
+   * Boot.tsx keeps the Happy Mac on screen instead of swapping it out.
+   */
+  grid-template-rows: auto 104px;
+  justify-items: center;
+  align-content: center;
+  row-gap: 20px;
+  /*
+   * No padding, on purpose: the extension row and the skip line below are
+   * absolutely positioned, and an abspos grid child is offset from its grid
+   * container's PADDING box — so any padding here would quietly push the
+   * extension icons in off the bottom-left corner they belong in.
+   */
+  padding: 0;
+  overflow: hidden;
+  background: #cfcfcf;
+  color: #1a1a1a;
+}
+
+html[data-mode='dark'] .mac-root .mac-boot {
+  background: #232326;
+  color: #e6e6e6;
+}
+
+/*
+ * Crisp edges are the whole point of a Happy Mac. It is a hand-drawn SVG so it
+ * scales cleanly, but `shape-rendering: crispEdges` is the lever that actually
+ * bites on vector geometry — it drops the antialiasing on the 1-bit face, which
+ * is what makes it read as pixels rather than as a modern smooth icon.
+ * `image-rendering` is kept alongside it for the raster-scaling path.
+ */
+.mac-root .mac-boot-happy {
+  width: 88px;
+  height: 88px;
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}
+
+.mac-root .mac-boot-plaque {
+  align-self: start;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+  width: min(300px, 84vw);
+  padding: 10px 14px 9px;
+  background: var(--mac-face);
+  color: var(--mac-ink);
+  border: 1px solid var(--mac-frame);
+  box-shadow:
+    inset 1px 1px 0 var(--mac-bevel-hi),
+    inset -1px -1px 0 var(--mac-bevel-lo),
+    2px 2px 0 rgba(0, 0, 0, 0.28);
+}
+
+.mac-root .mac-boot-plaque-mark {
+  display: flex;
+  align-items: center;
+}
+
+.mac-root .mac-boot-welcome {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/*
+ * FIXED HEIGHT, load-bearing. The status text cycles through seven lines of very
+ * different lengths every 300ms; with an auto-height row the plaque grows and
+ * shrinks under it and the whole startup screen jitters. The height is two lines
+ * at 11px so a long line ("Mounting Projects… N featured, N archived") can wrap
+ * once on a narrow viewport without resizing the box either.
+ */
+.mac-root .mac-boot-status {
+  grid-column: 1 / -1;
+  min-height: 30px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  /* --ink-soft, not --ink-dim: the dim token on the dark plaque face lands near
+     2.6:1, and this is real 11px text rather than decoration (G12). */
+  color: var(--mac-ink-soft);
+}
+
+/*
+ * The extension icons marching in along the bottom edge — the single most
+ * recognisable detail of a Mac starting up.
+ *
+ * nowrap + overflow:hidden is a guarantee, not a nicety: a second row of icons
+ * reads as a broken layout rather than a loading Mac. Boot.tsx caps the list at
+ * MAX_EXTENSION_ICONS for the same reason, so the two defences agree — adding an
+ * eighth status truncates the row instead of reflowing it.
+ */
+.mac-root .mac-boot-extensions {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: flex-end;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.mac-root .mac-boot-extension {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+  animation: mac-extension-in 240ms ease-out both;
+}
+
+@keyframes mac-extension-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mac-root .mac-boot-skip {
+  position: absolute;
+  bottom: 44px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  font-size: 11px;
+  text-align: center;
+  color: #5a5a5a;
+}
+
+html[data-mode='dark'] .mac-root .mac-boot-skip {
+  color: #9a9a9a;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   THE CRASH
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * The bomb alert reuses .mac-dialog wholesale — same box, same bevel — but its
+ * own layer, because unlike an ordinary alert this one HAS taken over the
+ * machine. So it is opaque to clicks (nothing behind it should be reachable) and
+ * dims the desk behind it. Advancing still works: SystemError listens on
+ * `window`, so a pointerdown anywhere, including on this layer, bubbles up.
+ */
+.mac-root .mac-syserr {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding: min(14vh, 108px) 16px 16px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* `Dylan OS 9  ID = 02`. Monospace is what sells the line as machine output. */
+.mac-root .mac-syserr-id {
+  margin: 0 0 10px;
+  font-family: var(--mac-mono);
+  font-size: 11px;
+  color: var(--mac-ink-soft);
+}
+
+/*
+ * Beat two: a black field, in both modes. This screen is deliberately outside the
+ * palette — the real Sad Mac was white-on-black at any setting, and there is no
+ * light-mode variant of a machine that has stopped.
+ */
+.mac-root .mac-sadmac {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: #000;
+  color: #e8e8e8;
+}
+
+/*
+ * REQUIRED. Dialog.tsx renders <Icon> as a DIRECT child here, with no sizing
+ * wrapper, and _foundation.css sizes .mac-icon-svg at 100% × 100%. Without an
+ * explicit box the Sad Mac inherits the full-screen flex container and fills the
+ * entire viewport.
+ */
+.mac-root .mac-sadmac > .mac-icon-svg {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}
+
+.mac-root .mac-sadmac-code {
+  margin: 0;
+  font-family: var(--mac-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #d0d0d0;
+}
+
+/* The reassurance line. Quiet, but it must stay legible on black (G12). */
+.mac-root .mac-sadmac-note {
+  max-width: 34em;
+  margin: 0;
+  font-size: 11px;
+  text-align: center;
+  color: #a8a8a8;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   EFFECT LAYERS
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.mac-root .mac-screensaver {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  background: #000;
+  /* The pointer is what wakes it, so hiding it costs nothing and the flock
+     reads better without an arrow parked in the middle of it. */
+  cursor: none;
+}
+
+/*
+ * 100% of a fixed inset:0 layer is exactly the window.innerWidth/innerHeight that
+ * effects.tsx writes to the canvas ATTRIBUTES, so the backing store and the
+ * layout box agree and the drawing is not stretched. Do not give this element a
+ * padding, a border, or a width in any other unit.
+ */
+.mac-root .mac-screensaver canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Zoom rects. Scoped to the theme rather than to .mac-root because ZoomRects
+ * appends these to document.body, OUTSIDE the .mac-root subtree — a
+ * `.mac-root .mac-zoomrect` selector would never match a single one of them.
+ *
+ * Appearance only. Every rect's geometry (left/top/width/height) is written
+ * inline per instance, and the flight itself is a Web Animations API call on
+ * transform and opacity, so there is deliberately no CSS animation and no CSS
+ * geometry here — either would fight the JS.
+ */
+html[data-theme='mac'] .mac-zoomrect {
+  position: fixed;
+  z-index: 10000;
+  border: 1px dotted var(--mac-ink, #000);
+  background: transparent;
+  pointer-events: none;
+  /* effects.tsx documents that this belongs here: the rect must grow from its
+     own centre towards the middle of the screen, not from its top-left corner. */
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+/*
+ * Balloon Help. A yellow sticky-note rect with a pointed tail.
+ *
+ * top/left 0 are REQUIRED: effects.tsx positions this with `transform:
+ * translate3d(x, y, 0)` and nothing else, so the transform is measured from
+ * wherever the box already sits. Omit them and the balloon lands one document
+ * offset away from the control it describes.
+ *
+ * pointer-events: none is also required rather than tidy. The balloon is placed
+ * 10px below the anchor and follows the pointer between annotated controls, so
+ * without it the thing explaining a button would routinely sit on top of the next
+ * button and eat the click.
+ */
+.mac-root .mac-balloon {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  max-width: 220px;
+  padding: 6px 9px;
+  background: var(--mac-sticky);
+  color: var(--mac-sticky-ink);
+  border: 1px solid var(--mac-ink);
+  border-radius: 9px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.mac-root .mac-balloon-text {
+  display: block;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/*
+ * The tail: a rotated square, half of it outside the balloon.
+ *
+ * z-index: -1 does the hiding. .mac-balloon is a stacking context (positioned,
+ * with a z-index), and a negative-z child paints above that element's background
+ * but below its content — so the half of the diamond that overlaps the balloon
+ * disappears behind the yellow fill and only the point sticks out. No mask, no
+ * second pseudo-element to patch the seam.
+ *
+ * Aimed with [data-flip], which is the only other thing effects.tsx writes: the
+ * default is a balloon placed below-right of the anchor, `x` means it was flipped
+ * to the anchor's left edge, `y` means it was flipped above.
+ */
+.mac-root .mac-balloon-tail {
+  position: absolute;
+  z-index: -1;
+  top: -5px;
+  left: 12px;
+  width: 10px;
+  height: 10px;
+  background: var(--mac-sticky);
+  border: 1px solid var(--mac-ink);
+  transform: rotate(45deg);
+}
+
+.mac-root .mac-balloon[data-flip~='x'] .mac-balloon-tail {
+  left: auto;
+  right: 12px;
+}
+
+.mac-root .mac-balloon[data-flip~='y'] .mac-balloon-tail {
+  top: auto;
+  bottom: -5px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION (G17)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * App.tsx already declines to render the screensaver and the zoom rects under
+ * reduced motion — absent, not frozen, because a stopped screensaver is just a
+ * black rectangle over the site.
+ *
+ * THE STARTUP SCREEN STILL PLAYS, though, so its motion has to be neutralised
+ * here or the extension row keeps sliding in. `both` on the shorthand means the
+ * fill mode is holding the from-state, so cancelling the animation is not enough:
+ * the final opacity and transform must be restated or the icons vanish entirely.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .mac-root .mac-boot-extension {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Belt and braces. If a rect ever outlives a preference change mid-flight,
+     it should not be visible mid-arc. */
+  html[data-theme='mac'] .mac-zoomrect {
+    display: none;
+  }
+}

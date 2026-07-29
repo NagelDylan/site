@@ -1,10 +1,11 @@
 # Phase B — Cloudflare Pages Functions
 
-**Nothing lives here yet, and that is deliberate.** Phase B is blocked on accounts
-Dylan doesn't have: the Anthropic API key, the Cloudflare account, Turnstile keys, and
-an email-sending service (spec §18.4). No stub endpoints are committed here, because a
-route that returns a fake 200 is worse than a route that doesn't exist — the frontend
-already has honest offline states for both features.
+**Nothing lives here yet.** One of the two planned routes is still blocked on an
+account (the Anthropic API key for the chatbot); the other one is never coming,
+because contact is now delivered without a server — see below.
+
+No stub endpoints are committed here, because a route that returns a fake 200 is worse
+than a route that doesn't exist — the chat frontend already has an honest offline state.
 
 This file documents where the two endpoints go and what they have to do, so Phase B is
 a build rather than a re-derivation.
@@ -62,18 +63,19 @@ the notice's wording to what the backend actually does.
 
 ---
 
-## `functions/api/contact.ts`
+## `functions/api/contact.ts` — not needed; do not build it
 
-1. Verify the Turnstile token **server-side** against
-   `https://challenges.cloudflare.com/turnstile/v0/siteverify` with the secret key.
-   Real server-side verification is the entire reason Turnstile was chosen over a
-   client-only captcha on static hosting (§13). Reject on failure.
-2. Send the message to `dylannagel05@gmail.com` via whichever email service Dylan
-   picks.
-3. Also serves the chatbot's recruiter-email capture.
+Contact is **done without a server.** All four forms POST straight to Web3Forms from
+the browser, which holds the mail credentials and (once configured) the Turnstile
+secret. See `src/lib/contact.ts` for the reasoning and the delivery contract.
 
-Going live: set `TURNSTILE_SITE_KEY` and flip `FEATURES.turnstile` +
-`FEATURES.formSubmission` in `src/config.ts`.
+The reason the original plan here could not work: verifying a Turnstile token requires
+a secret key, and a fully static site has nowhere to put one. Standing up a Function
+purely to hold that secret would trade the site's prerendering guarantee (§13) for a
+captcha. Web3Forms' server does the verification instead.
+
+If you ever add this route anyway, delete `src/lib/contact.ts` in the same commit —
+two delivery paths for one message is how one of them silently rots.
 
 ---
 
@@ -84,6 +86,9 @@ environment variables. Expected names:
 
 ```
 ANTHROPIC_API_KEY
-TURNSTILE_SECRET_KEY
-EMAIL_API_KEY
 ```
+
+The contact form needs no secret here. Its only variable, `PUBLIC_WEB3FORMS_ACCESS_KEY`,
+is a routing identifier that ships in the client bundle by design (`.env.example`);
+anything genuinely secret about contact — the mail credentials, the Turnstile secret —
+lives in the Web3Forms dashboard.

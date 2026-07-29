@@ -1,0 +1,639 @@
+/*
+ * CLASSIC MAC THEME — CONTENT: documents, work history, About, About This
+ * Macintosh, the Guide, the Chooser and the Résumé panel.
+ *
+ * Imported by src/components/mac/App.tsx after mac/_foundation.css, which owns every
+ * colour token, the desktop shell, `.mac-client` and the document stock
+ * (`.mac-client--doc` / `--well`). Nothing here declares a colour of its own, and
+ * nothing restates a rule foundation already sets — the surfaces exist; this file
+ * lays out what stands on them.
+ *
+ * The generic widgets (`.mac-btn`, `.mac-kv`, `.mac-hairline`, `.mac-chiselled`,
+ * `.mac-pill`, `.mac-note`, `.mac-lead`, `.mac-bullets`, `.mac-links`,
+ * `.mac-media`, `.mac-input`) belong to mac/controls.css and are used as given.
+ * The one exception is documented at `.mac-portrait` and is forced by the HTML.
+ *
+ * Scoped under `.mac-root` throughout: four themes share one document, and the
+ * paper tree is still in the DOM when this one is mounted.
+ */
+
+/* ── Section roots ───────────────────────────────────────────────────────── */
+
+/* A `<h2>`'s UA top margin leaves a gap between the window bevel and its first
+   line, which reads as mispadding rather than as breathing room. Foundation sets
+   heading sizes and deliberately leaves margins to each tree. */
+.mac-root .mac-work > h2:first-child,
+.mac-root .mac-about > h2:first-child,
+.mac-root .mac-guide > h2:first-child {
+  margin-top: 0;
+}
+
+/*
+ * A prose measure for the windows that are NOT on document stock, so they get the
+ * same comfortable line length the `.mac-client--doc` rule below gives Read Me.
+ * Résumé.pdf needs it most: that window is 680px wide, and a 12px face running the
+ * full width of it is the one place this theme reads as an unstyled page.
+ */
+.mac-root .mac-work > p,
+.mac-root .mac-about > p,
+.mac-root .mac-about > ul,
+.mac-root .mac-system > p,
+.mac-root .mac-resume > p,
+.mac-root .mac-guide > * {
+  max-width: 62ch;
+}
+
+/* ── Documents: Read Me and SimpleText ───────────────────────────────────── */
+
+/*
+ * The measure goes on the document's CHILDREN. `.mac-client--doc` is itself the
+ * scroll container, so a max-width on it would narrow the scrollable area and
+ * leave a strip of bare window face beside the scroll bar. 62ch is about 370px at
+ * this 12px face — comfortable inside the 500–620px windows.
+ */
+.mac-root .mac-client--doc > * {
+  max-width: 62ch;
+}
+
+.mac-root .mac-doc-head {
+  margin: 0 0 10px;
+}
+
+.mac-root .mac-doc-title {
+  letter-spacing: 0.01em;
+}
+
+/* The one line allowed to be larger than the system face. */
+.mac-root .mac-doc-name {
+  margin: 12px 0 1px;
+  font-size: 15px;
+}
+
+.mac-root .mac-doc-meta {
+  margin: 0 0 10px;
+  color: var(--mac-ink-dim);
+}
+
+.mac-root .mac-doc-greeting {
+  color: var(--mac-ink-soft);
+}
+
+/* ── "What's installed" ──────────────────────────────────────────────────── */
+
+/* `container-type` here because the narrow-layout query below needs a box to
+   measure and the list is the only ancestor of these rows this file owns — it is
+   also the correct box, being what the columns have to fit inside. */
+.mac-root .mac-installed {
+  container-type: inline-size;
+  margin: 8px 0 10px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid color-mix(in srgb, var(--mac-mid) 45%, transparent);
+}
+
+.mac-root .mac-installed-row {
+  border-bottom: 1px solid color-mix(in srgb, var(--mac-mid) 45%, transparent);
+}
+
+/*
+ * The grid is on the BUTTON, not the row: the button wraps the icon, name and note
+ * (ReadMeWindow.tsx), so a grid on the `<li>` would only ever see one child.
+ *
+ * The first two tracks are fixed rather than `auto` because each row is its own
+ * grid — `auto` would size every row to its own longest name and the columns would
+ * stagger. 12em clears "About This Macintosh" at this face.
+ */
+.mac-root .mac-installed-btn {
+  display: grid;
+  grid-template-columns: 16px 12em minmax(0, 1fr);
+  gap: 1px 8px;
+  align-items: baseline;
+  width: 100%;
+  margin: 0;
+  padding: 4px 5px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 90ms linear;
+}
+
+.mac-root .mac-installed-btn:hover {
+  background: var(--mac-well-alt);
+}
+
+/* Pressed inverts like a Finder list row rather than pushing in like a button. */
+.mac-root .mac-installed-btn:active {
+  color: var(--mac-select-ink);
+  background: var(--mac-select);
+}
+
+/* The Icon SVG is width/height:100% (foundation), so the box must be sized. */
+.mac-root .mac-installed-icon {
+  display: block;
+  align-self: center;
+  width: 16px;
+  height: 16px;
+}
+
+.mac-root .mac-installed-name {
+  font-weight: 700;
+}
+
+.mac-root .mac-installed-note {
+  color: var(--mac-ink-dim);
+}
+
+/* Narrow: the note drops under the name and the icon/name columns stay intact,
+   rather than squeezing the note to two words a line. */
+@container (max-width: 34em) {
+  .mac-root .mac-installed-btn {
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+
+  .mac-root .mac-installed-note {
+    grid-column: 2;
+  }
+}
+
+/* ── Work history ────────────────────────────────────────────────────────── */
+
+/* One block per role, separated by the hairline rhythm rather than by boxes. A
+   card per job would turn a work history into a dashboard, and this theme's whole
+   argument is that it does not need one. */
+.mac-root .mac-role {
+  margin: 0 0 10px;
+  padding: 0 0 10px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mac-mid) 50%, transparent);
+  border-left: 3px solid var(--mac-accent);
+}
+
+.mac-root .mac-role:last-of-type {
+  border-bottom: 0;
+}
+
+/*
+ * R3 — DO NOT "BRIGHTEN THIS UP FOR CONSISTENCY". This is the Apple role, and the
+ * rule limits it to one approved sentence with no embellishment. The plain
+ * treatment is a RULE, not a style preference: no accent colour, no tint, no left
+ * border, no emphasis of any kind the other roles carry. Plain text on the plain
+ * face, deliberately quieter than everything around it. An edit that makes this
+ * match the other blocks is a rule violation.
+ */
+.mac-root .mac-role--plain {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.mac-root .mac-role--plain .mac-role-co {
+  font-size: inherit;
+  color: inherit;
+}
+
+.mac-root .mac-role-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  align-items: baseline;
+}
+
+.mac-root .mac-role-co {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mac-accent);
+}
+
+/* A `<strong>` already; stated so that a markup change to a plain `<span>` cannot
+   silently unbold the title. */
+.mac-root .mac-role-title {
+  font-weight: 700;
+}
+
+.mac-root .mac-role-meta {
+  margin: 1px 0 6px;
+  font-size: 11px;
+  color: var(--mac-ink-dim);
+}
+
+.mac-root .mac-role-desc,
+.mac-root .mac-coop {
+  max-width: 62ch;
+}
+
+.mac-root .mac-coop {
+  color: var(--mac-ink-soft);
+}
+
+/* ── About Dylan Nagel ───────────────────────────────────────────────────── */
+
+/* NOTE: AboutWindow's root is `.mac-client .mac-about` and does NOT carry
+   `.mac-client--doc`, so this window sits on window face rather than white
+   document stock despite its own comment calling it a SimpleText page. Left alone
+   here — the class is not this file's to add — which is why the measure above has
+   to name `.mac-about` separately instead of inheriting from the `--doc` rule. */
+.mac-root .mac-about-meta {
+  margin: 1px 0 10px;
+  color: var(--mac-ink-dim);
+}
+
+.mac-root .mac-about-sticky {
+  max-width: 40ch;
+  margin: 10px 0;
+}
+
+/*
+ * THE PORTRAIT — load-bearing, and specified.
+ *
+ * This theme reuses the Y2K pixel art because `assets-src/` is frozen and no
+ * `me-mac.png` can be produced (§6). CSS is what makes it a Macintosh: a near-1-bit
+ * reading of a 256px pixel grid, with a dither on top.
+ *
+ * THE ART MUST NEVER BE SMOOTHED OR RE-ENCODED LOSSY. `src/data/identity.ts` states
+ * both constraints and they are one constraint twice: the hard pixel edges are what
+ * the artwork is made of, so `image-rendering: pixelated` is not a taste call, and a
+ * lossy pass invents grey between the pixels which the contrast boost then amplifies.
+ *
+ * print.css strips every filter (`* { filter: none !important }`), so the printed
+ * portrait is the untreated colour art at 120px. That is fine and is the reason the
+ * treatment is filters rather than a baked asset — it must stay legible unfiltered,
+ * so nothing here relies on the grayscale pass to be readable.
+ */
+.mac-root .mac-portrait {
+  image-rendering: pixelated;
+  /* Safari still wants the older keyword; the modern one repeats after it. */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+  filter: grayscale(1) contrast(1.9);
+}
+
+/*
+ * The dither overlay hangs off the WRAPPER, not off `.mac-portrait`: an `<img>` is
+ * a replaced element and generates no `::before`/`::after`, so the only available
+ * host is the `.mac-media` div AboutWindow puts around it — a class this file does
+ * not own. `:has(> .mac-portrait)` is what keeps that honest; the rule can only
+ * match the one wrapper holding a portrait and no other `.mac-media` is touched.
+ */
+.mac-root .mac-media:has(> .mac-portrait) {
+  position: relative;
+}
+
+.mac-root .mac-media:has(> .mac-portrait)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* A 2px checkerboard: half the cells pass through, half multiply down. Same
+     repeating-conic trick as the desk pattern, for the same reason — a repeating
+     linear gradient moirés into diagonal bands at fractional DPR. */
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    #8c8c8c 0deg 90deg,
+    #ffffff 90deg 180deg
+  );
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+}
+
+/* Dark inverts the art, so the dither inverts with it: `multiply` over an inverted
+   image would eat the light strokes that then carry the drawing. Raw values because
+   these are blend operands, not colours — black is "leave alone" under `screen`. */
+html[data-mode='dark'] .mac-root .mac-portrait {
+  filter: grayscale(1) contrast(1.9) invert(1);
+}
+
+html[data-mode='dark'] .mac-root .mac-media:has(> .mac-portrait)::after {
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    #4a4a4a 0deg 90deg,
+    #000000 90deg 180deg
+  );
+  mix-blend-mode: screen;
+}
+
+/* ── About This Macintosh ────────────────────────────────────────────────── */
+
+/* The real dialog's header row: mark, wordmark, and the version string's old slot. */
+.mac-root .mac-system-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+}
+
+/* Foundation sizes `.mac-rainbow`; this only stops the flex from squashing it. */
+.mac-root .mac-system-mark {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.mac-root .mac-system-os {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mac-root .mac-system-tag {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--mac-ink-dim);
+  text-align: right;
+}
+
+/* The inset list well. Repeats foundation's well recipe rather than reusing the
+   class because this is a block inside a window, not a whole client, and it needs
+   its own scroll ceiling — a long coursework list must not push the availability
+   line off the bottom of a 500 × 400 window. */
+.mac-root .mac-system-well {
+  max-height: 150px;
+  padding: 5px 7px;
+  overflow-y: auto;
+  color: var(--mac-well-ink);
+  background: var(--mac-well);
+  border: 1px solid var(--mac-shadow);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.mac-root .mac-bar-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Name and bar on two columns so every bar starts and ends on the same pixel;
+   ragged bar ends read as noise rather than as the memory graph they quote. */
+.mac-root .mac-bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42%;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.mac-root .mac-bar-name {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * THE COURSEWORK BARS ARE DECORATIVE BY DESIGN AND MUST STAY NUMBERLESS.
+ *
+ * R1 bans performance metrics outright, and a bar with a figure beside it in a
+ * window about education reads as a grade. NO NUMERIC LABEL MAY EVER BE ADDED —
+ * not in the markup, not as a `::after { content: … }` here, not in a `title`, not
+ * in a tooltip. The widths come from a hash of the course name (SystemWindow.tsx)
+ * and mean nothing on purpose. Flat and bevelled like the era's capacity bars: no
+ * gradient, no animation, nothing that suggests a value being filled in.
+ */
+.mac-root .mac-bar {
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  background: var(--mac-face-2);
+  border: 1px solid var(--mac-shadow);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.14);
+}
+
+.mac-root .mac-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--mac-accent);
+}
+
+/* ── Macintosh Guide ─────────────────────────────────────────────────────── */
+
+.mac-root .mac-guide-topics {
+  margin: 0;
+}
+
+.mac-root .mac-guide-topic {
+  margin: 0 0 12px;
+}
+
+.mac-root .mac-guide-q {
+  margin: 0 0 4px;
+}
+
+/* A `<dd>` carries a 40px UA margin-left, which would indent every answer under
+   its question and lose the Guide's flush-left column. */
+.mac-root .mac-guide-a {
+  margin: 0;
+}
+
+/*
+ * The Guide's coachmark list: a bold number in its own column, text beside it.
+ * Numbered with `::marker` on the real `<ol>` rather than `list-style: none` plus a
+ * counter, because Safari drops list semantics entirely from a markerless list —
+ * and numbered instructions are exactly where "step 2 of 3" matters aloud.
+ */
+.mac-root .mac-guide-steps {
+  margin: 0;
+  padding-left: 2em;
+}
+
+.mac-root .mac-guide-steps > li {
+  margin: 0 0 4px;
+}
+
+.mac-root .mac-guide-steps > li::marker {
+  font-weight: 700;
+  color: var(--mac-ink);
+}
+
+/* ── Chooser ─────────────────────────────────────────────────────────────── */
+
+/* A container, not a viewport query: the Chooser is a 460px window on a desktop
+   that may be 2000px wide, so `@media (max-width: …)` measures the wrong box and
+   would only ever fire in mobile mode. Inline-size containment is safe here — this
+   is a stretched flex item, so its width comes from the window body, not contents. */
+.mac-root .mac-chooser {
+  container-type: inline-size;
+}
+
+/* TWO PANES, SIDE BY SIDE — the whole visual joke. The Chooser picked which driver
+   talked to which device; here the drivers are the four themes. So the split has to
+   be unmistakable: the list keeps its inset well, the detail pane keeps a rule down
+   its left edge. */
+.mac-root .mac-chooser-panes {
+  display: grid;
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin: 0 0 10px;
+}
+
+.mac-root .mac-chooser-side {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mac-root .mac-chooser-list {
+  max-height: 176px;
+  margin: 0;
+  padding: 1px;
+  overflow-y: auto;
+  list-style: none;
+  color: var(--mac-well-ink);
+  background: var(--mac-well);
+  border: 1px solid var(--mac-shadow);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Flex, not grid: the "(in use)" span is conditional, so a fixed column count
+   would drop it onto a second row on the one item that has it. */
+.mac-root .mac-chooser-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  padding: 2px 4px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 90ms linear;
+}
+
+.mac-root .mac-chooser-item[data-selected] {
+  color: var(--mac-select-ink);
+  background: var(--mac-select);
+}
+
+.mac-root .mac-chooser-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.mac-root .mac-chooser-name {
+  overflow-wrap: anywhere;
+}
+
+.mac-root .mac-chooser-inuse {
+  color: var(--mac-ink-dim);
+}
+
+/* `--mac-ink-dim` over `--mac-select` is the one place this pairing loses its
+   contrast, so on the selected row the marker rides currentColor instead. */
+.mac-root .mac-chooser-item[data-selected] .mac-chooser-inuse {
+  color: currentColor;
+  opacity: 0.78;
+}
+
+.mac-root .mac-chooser-detail {
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--mac-mid) 50%, transparent);
+}
+
+.mac-root .mac-chooser-detail-name {
+  display: block;
+  margin: 0 0 1px;
+  font-size: 13px;
+}
+
+.mac-root .mac-chooser-detail-note {
+  margin: 0 0 8px;
+  color: var(--mac-ink-dim);
+}
+
+/* One column below a ~390px client, which is a ~420px window: list above detail.
+   The threshold is deliberately under the 460px window's real client width rather
+   than at it, so a scroll bar appearing inside the Chooser cannot flip the layout
+   to one column and then back again. The vertical rule becomes a horizontal one so
+   the two panes still read as two panes. */
+@container (max-width: 390px) {
+  .mac-root .mac-chooser-panes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mac-root .mac-chooser-list {
+    max-height: 132px;
+  }
+
+  .mac-root .mac-chooser-detail {
+    padding-top: 8px;
+    padding-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--mac-mid) 50%, transparent);
+    border-left: 0;
+  }
+}
+
+/* ── Résumé.pdf ──────────────────────────────────────────────────────────── */
+
+.mac-root .mac-resume-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mac-root .mac-resume-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+}
+
+.mac-root .mac-resume-name {
+  font-size: 13px;
+}
+
+/* A frame around the embed, so the document reads as a page held in a window
+   rather than as a hole cut in one. */
+.mac-root .mac-resume-page {
+  margin: 0 0 10px;
+  padding: 1px;
+  background: var(--mac-well);
+  border: 1px solid var(--mac-shadow);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+/*
+ * The height is REQUIRED. An `<object>` has no intrinsic size, so with none
+ * declared it collapses to the CSS default 150px sliver — a grey band that looks
+ * exactly like a PDF which failed to load. Clamped rather than a flat `vh` because
+ * this is the one resizable window of the three (wm.ts, 680 × 560) and the embed
+ * has to stay sensible at both ends of that.
+ */
+.mac-root .mac-resume-object {
+  display: block;
+  width: 100%;
+  height: clamp(240px, 56vh, 620px);
+  background: var(--mac-well);
+  border: 0;
+}
+
+/*
+ * The `<object>`'s fallback children, which render only when the browser declines
+ * to draw a PDF in-page. Screen-only by construction, not by a rule here:
+ * `.mac-resume-page` is `data-decorative` and print.css drops it, and print.css
+ * hides `object`/`embed` outright. So nothing below is ever `display: none` — the
+ * two buttons outside the frame are what a printed copy keeps instead.
+ */
+.mac-root .mac-resume-fallback {
+  max-width: 58ch;
+  margin: 10px;
+}
+
+.mac-root .mac-resume-fallback-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 10px 10px;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+
+/* The only motion in this file is the 90ms hover wash on the two list-row buttons.
+   Platinum's own feedback was instant, so removing it costs nothing. */
+@media (prefers-reduced-motion: reduce) {
+  .mac-root .mac-installed-btn,
+  .mac-root .mac-chooser-item {
+    transition: none;
+  }
+}

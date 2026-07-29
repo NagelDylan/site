@@ -7,19 +7,34 @@
  *
  * Switching dispatches `nagel:theme-change` rather than navigating, so the URL is
  * untouched (G7) and the swap is instant. ThemeBoot.astro listens for it.
+ *
+ * The list of themes comes from THEMES in src/config.ts rather than being written
+ * out here. It used to be a local literal, and the literal had gone stale: it read
+ * ['paper', 'y2k', 'chat'], so paper visitors were never offered the Classic Mac
+ * theme at all. Reading the shared list means this cluster cannot fall behind the
+ * splash again — and it is why hiding the chat theme took no edit in this file.
+ *
+ * The ♪ sound switch is rendered by `Mixtape.tsx`, not here. See the comment at the
+ * bottom of this file for why it had to move.
  */
 import { useCallback, useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
+import { THEMES } from '../../config';
 import { persistMode, returnToChooser, THEME_LABELS, type Mode } from '../../lib/theme';
 import type { ThemeId } from '../../data/voice';
 import { play, SOUND_STORAGE_KEY } from './sounds';
-
-const THEMES: ThemeId[] = ['paper', 'y2k', 'chat'];
+import Mixtape from './Mixtape';
 
 type Props = { initialMode: Mode };
 
 const PaperControls = ({ initialMode }: Props) => {
   const [mode, setMode] = useState<Mode>(initialMode);
+  /**
+   * Whether sound is allowed at all. Mixtape owns the switch and reports changes
+   * here; this copy exists so `chirp` below knows whether it may make a noise.
+   * Read once on mount as well, so the first render after hydration is right even
+   * before the visitor touches anything.
+   */
   const [soundOn, setSoundOn] = useState(false);
 
   // The pre-paint script may have resolved a different mode than the server
@@ -56,19 +71,6 @@ const PaperControls = ({ initialMode }: Props) => {
     document.documentElement.style.colorScheme = next;
     persistMode(next);
     chirp('scratch');
-  };
-
-  const toggleSound = () => {
-    const next = !soundOn;
-    setSoundOn(next);
-    try {
-      localStorage.setItem(SOUND_STORAGE_KEY, next ? 'on' : 'off');
-    } catch {
-      /* private mode */
-    }
-    // Play the confirmation only when turning it ON, so enabling is audible and
-    // disabling is silent — the obvious behaviour.
-    if (next) play('pin');
   };
 
   return (
@@ -108,16 +110,16 @@ const PaperControls = ({ initialMode }: Props) => {
         {mode === 'dark' ? '☾' : '☀'}
       </button>
 
-      <button
-        type="button"
-        className="ctrl"
-        onClick={toggleSound}
-        aria-pressed={soundOn}
-        aria-label={soundOn ? 'Turn paper sounds off' : 'Turn paper sounds on'}
-        title="Paper sounds are synthesized, not recorded"
-      >
-        ♪ {soundOn ? 'on' : 'off'}
-      </button>
+      {/*
+        The ♪ switch used to be a button in this file, toggling nothing but the
+        synthesised rustle/scratch effects. It moved into Mixtape when it started
+        starting real music, and the move is not cosmetic: `audio.play()` has to be
+        called from inside the click handler or Safari treats the user gesture as
+        expired and refuses. Mixtape owns the switch, persists the preference under
+        the same key, and reports the value back here — which is all this component
+        still needs it for, since `chirp` must stay silent when sound is off.
+      */}
+      <Mixtape onSoundChange={setSoundOn} />
     </div>
   );
 };

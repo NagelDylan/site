@@ -1,12 +1,14 @@
 ---
 /**
- * Mounts the client-side themes (Y2K, chat) and hands the page over to them.
+ * Mounts the client-side themes (Y2K, Classic Mac, chat) and hands the page over
+ * to them.
  *
  * Rendered once per page by SiteShell. The paper tree is already in the HTML; if
- * the active theme is Y2K or chat, this hides paper, dynamically imports that
- * theme's App, and mounts it here. The dynamic import is what keeps a paper
- * visitor from downloading the window manager or the chat client — Vite
- * code-splits each into its own chunk, fetched only when its theme is chosen.
+ * the active theme is one of the client-mounted ones, this hides paper,
+ * dynamically imports that theme's App, and mounts it here. The dynamic import
+ * is what keeps a paper visitor from downloading two window managers or the chat
+ * client — Vite code-splits each into its own chunk, fetched only when its theme
+ * is chosen.
  *
  * See src/lib/theme-mount.ts for why the architecture is split this way.
  */
@@ -29,18 +31,46 @@ const resume = getResume();
 
   let mounted: { theme: ThemeId; unmount: () => void } | null = null;
 
+  /**
+   * The résumé state, serialised into data-resume above and read back here.
+   *
+   * The catch literal is a hand-written duplicate of ResumeState in
+   * src/lib/resume.ts, and it has to be: this runs in the browser, and that module
+   * imports node:fs. Keep the two in step — a client theme reads these fields
+   * directly, so a missing one is not a type error here, it is `undefined` landing
+   * in an href. Every value stays deliberately pessimistic: if the attribute is
+   * unreadable we do not know whether the file exists, so we say it does not.
+   */
   const readResume = () => {
     try {
       return JSON.parse(appRoot?.dataset.resume ?? '{}');
     } catch {
-      return { available: false, href: '/resume.pdf', filename: 'resume.pdf' };
+      return {
+        available: false,
+        href: '/resume.pdf',
+        viewHref: '/resume.pdf#view=FitH',
+        page: '/resume',
+        filename: 'resume.pdf',
+      };
     }
   };
 
   async function loadApp(theme: ThemeId) {
     // Static specifiers so Vite can see and split each chunk at build time.
+    // A computed specifier here would either bundle both client trees into one
+    // chunk or fail to resolve at all, so keep them written out literally and
+    // keep this list in step with CLIENT_THEMES in src/lib/theme-mount.ts.
+    //
+    // There was a third line here, `import('../chat/App')`. It was removed when
+    // the chat theme was hidden, and the reason is the build rather than the
+    // runtime: this branch was already unreachable (the caller checks
+    // isClientTheme first), but a static import specifier is enough for Vite to
+    // emit the whole chat client as a chunk, so the hidden theme's bundle was
+    // still being deployed and read by anyone who looked in dist/_astro. The
+    // source is all still in src/components/chat/ — restoring the theme means
+    // putting this one line back. See THEMES in src/config.ts for the full list.
     if (theme === 'y2k') return (await import('../y2k/App')).default;
-    if (theme === 'chat') return (await import('../chat/App')).default;
+    if (theme === 'mac') return (await import('../mac/App')).default;
     return null;
   }
 
@@ -62,8 +92,43 @@ const resume = getResume();
     requestAnimationFrame(() => requestAnimationFrame(dismissSplash));
   }
 
+  /**
+   * Silence every player on the page before the themes swap.
+   *
+   * ─── WHY THIS IS HERE AND NOT IN THE PLAYERS ─────────────────────────────
+   * Three themes now have audio (paper's mixtape chip, Y2K's Winamp, the Mac's
+   * QuickTime Player), and each of them could be left playing into the next theme
+   * for a *different* reason:
+   *
+   *   • Paper is never unmounted. It is the server-rendered page, so switching
+   *     away only sets `paperRoot.hidden = true` — the island keeps running and its
+   *     <audio> keeps playing. Hiding a node does not pause it.
+   *   • Y2K and mac ARE unmounted, and that is not enough either: removing an
+   *     <audio> element from the document does not stop it. The element goes on
+   *     playing, detached, with nothing left on the page to pause it.
+   *
+   * So a React cleanup in each player cannot cover both cases, and by the time
+   * `mounted.unmount()` has run there is no handle on the element left. The one
+   * moment when every player is still reachable is right here, before anything is
+   * torn down or hidden — so this is the only place the sweep can live.
+   *
+   * Each player derives its own on/off state from its element's `pause` event
+   * rather than from a variable it set itself, which is what makes this work
+   * without the players knowing about theme switching at all: pausing them here
+   * flips their switches for them, so nobody comes back to paper and finds a
+   * control claiming to be on with silence behind it.
+   */
+  function silenceAudio() {
+    for (const el of document.querySelectorAll('audio, video')) {
+      const media = el as HTMLMediaElement;
+      if (!media.paused) media.pause();
+    }
+  }
+
   async function activate(theme: ThemeId | null) {
     if (mounted && mounted.theme === theme) return;
+
+    silenceAudio();
 
     if (mounted) {
       mounted.unmount();
@@ -151,8 +216,9 @@ const resume = getResume();
    *
    * activate() early-returns when the requested theme is already mounted, so
    * without tearing down here, re-picking the same theme from the splash would
-   * leave the previous session intact — a Y2K desktop with its windows still open
-   * and no boot sequence. Unmounting makes the next pick a fresh mount.
+   * leave the previous session intact — a Y2K or Classic Mac desktop with its
+   * windows still open and no boot sequence. Unmounting makes the next pick a
+   * fresh mount.
    */
   window.addEventListener('nagel:theme-reset', () => {
     void activate(null);

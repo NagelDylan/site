@@ -28,6 +28,7 @@ import {
 import type { ThemeId } from '../../data/voice';
 import { VOICES } from '../../data/voice';
 import { MARQUEE_TEXT, Marquee, RainbowRule, UnderConstruction } from './deco';
+import type { Resume } from './wm';
 
 const voice = VOICES.y2k;
 
@@ -35,7 +36,7 @@ type Props = {
   onTheme: (theme: ThemeId) => void;
   onToggleMode: () => void;
   mode: 'light' | 'dark';
-  resume: { available: boolean; href: string; filename: string };
+  resume: Resume;
 };
 
 const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
@@ -73,10 +74,23 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
         <a className="y2k-btn" href="#projects">
           {voice.ctaPrimary}
         </a>
+        {/*
+         * A link out, not an embed. There is no window manager on this page and so
+         * no plug-in gag to run, and phone browsers routinely refuse to draw a PDF
+         * inline at all — an <object> here would be a dead grey box on the most
+         * common screen the site has. Handing the file to the browser's own viewer
+         * in a new tab is the honest version (§18.5). Both are gated on the file
+         * really existing (§13).
+         */}
         {resume.available ? (
-          <a className="y2k-btn" href={resume.href} download={resume.filename}>
-            💾 RÉSUMÉ
-          </a>
+          <>
+            <a className="y2k-btn" href={resume.href} target="_blank" rel="noreferrer noopener">
+              📄 READ RÉSUMÉ ↗
+            </a>
+            <a className="y2k-btn" href={resume.href} download={resume.filename}>
+              💾 SAVE IT
+            </a>
+          </>
         ) : null}
       </p>
       <p>
@@ -250,8 +264,8 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
         </li>
       </ul>
       <p style={{ fontSize: 11 }}>
-        There is no contact form on this page — the desktop version has one, and even that one only
-        logs to the console, because there is no server behind it yet. E-mail actually arrives.
+        There is no contact form on this page — the desktop version has one, and that one really
+        does send. E-mail arrives either way.
       </p>
       <RainbowRule />
       <p style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -264,8 +278,8 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
         <button type="button" className="y2k-btn" onClick={() => onTheme('paper')}>
           📄 Paper
         </button>
-        <button type="button" className="y2k-btn" onClick={() => onTheme('chat')}>
-          💬 Bot
+        <button type="button" className="y2k-btn" onClick={() => onTheme('mac')}>
+          🖥 Mac
         </button>
         <button
           type="button"

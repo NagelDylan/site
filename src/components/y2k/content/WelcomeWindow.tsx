@@ -8,13 +8,14 @@
 import { IDENTITY, SOCIALS } from '../../../data';
 import { VOICES } from '../../../data/voice';
 import { Blink, RainbowRule, UnderConstruction, WebRing } from '../deco';
+import type { Resume } from '../wm';
 
 const voice = VOICES.y2k;
 
 type Props = {
-  onOpen: (kind: 'projects' | 'contact' | 'about' | 'experience' | 'guestbook') => void;
-  onTheme: (theme: 'paper' | 'chat') => void;
-  resume: { available: boolean; href: string; filename: string };
+  onOpen: (kind: 'projects' | 'contact' | 'about' | 'experience' | 'guestbook' | 'resume') => void;
+  onTheme: (theme: 'paper' | 'mac') => void;
+  resume: Resume;
 };
 
 const WelcomeWindow = ({ onOpen, onTheme, resume }: Props) => (
@@ -53,9 +54,17 @@ const WelcomeWindow = ({ onOpen, onTheme, resume }: Props) => (
       </button>
     </div>
 
-    {/* §13: the download exists only when the file does. The desktop reads fine without it. */}
+    {/*
+     * §13: both of these exist only when the file does. Reading and saving are
+     * separate offers on purpose — VIEW opens the Acrobat window on this desktop,
+     * which is a bit; the download is not, and a visitor who wants the file and
+     * not the bit should not have to find the bit first.
+     */}
     {resume.available ? (
-      <p>
+      <p style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <button type="button" className="y2k-btn" onClick={() => onOpen('resume')}>
+          📄 READ MY RÉSUMÉ RIGHT HERE
+        </button>
         <a className="y2k-btn" href={resume.href} download={resume.filename}>
           💾 DOWNLOAD MY RÉSUMÉ (.pdf)
         </a>

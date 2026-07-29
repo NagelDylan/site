@@ -1106,8 +1106,28 @@ html[data-mode='dark'] .y2k-msn-head {
 
 /* ── Winamp ───────────────────────────────────────────────────────────────── */
 
+/*
+ * Same override .y2k-pdf makes, for the same reason: the player must FILL the
+ * window body so the playlist gets the slack when the window is resized, rather
+ * than sitting in .y2k-client's scroller with a fixed-height list inside it.
+ * `overflow: hidden` here, and the scroll lives on the playlist alone.
+ *
+ * Declared after .y2k-client (same specificity, later wins) — keep it below that
+ * rule if this section ever moves.
+ */
+.y2k-winamp-frame {
+  display: flex;
+  padding: 4px;
+  overflow: hidden;
+}
+
 .y2k-winamp {
   display: grid;
+  /* The playlist is the only row allowed to take the slack, so the LCD, the
+     seek bar and the transport keep their heights when the window is resized. */
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 5px;
   padding: 6px;
   background: #2b2b38;
@@ -1132,6 +1152,12 @@ html[data-mode='dark'] .y2k-msn-head {
   flex: 1 1 auto;
   overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.y2k-winamp-clock {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
 }
 
 .y2k-winamp-viz {
@@ -1145,6 +1171,15 @@ html[data-mode='dark'] .y2k-msn-head {
   width: 3px;
   background: #00ff66;
   transform-origin: bottom;
+}
+
+.y2k-winamp-seek {
+  width: 100%;
+  accent-color: #00ff66;
+}
+
+.y2k-winamp-seek:disabled {
+  opacity: 0.45;
 }
 
 .y2k-winamp-row {
@@ -1175,9 +1210,86 @@ html[data-mode='dark'] .y2k-msn-head {
   accent-color: #00ff66;
 }
 
-.y2k-winamp-note {
+/* ── Winamp: the playlist editor ─────────────────────────────────────────────
+ * The track selector. Sunken well, inset border, one highlighted row — the
+ * playlist window's whole visual argument in 1999. The <ul> is the listbox and
+ * owns the focus ring; individual rows are not tab stops (see the roving
+ * tabindex note in WinampWindow.tsx).
+ */
+.y2k-winamp-pl {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+}
+
+/*
+ * Both of these are <p>, and `.y2k-client p` above sets a 9px bottom margin that
+ * beats a bare class on specificity — which lands as a crooked extra line under
+ * the playlist header and under the credit. Same trap the .y2k-hazard block
+ * documents; keep the prefixes.
+ */
+.y2k-client .y2k-winamp-pl-head {
+  margin: 0;
+  padding: 2px 4px;
+  color: #b8b8cc;
+  letter-spacing: 0.04em;
+  background: #3a3a4a;
+  border: 1px solid;
+  border-color: #6a6a80 #101018 #101018 #6a6a80;
+}
+
+.y2k-winamp-pl-list {
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+  background: #000;
+  border: 1px solid #444;
+}
+
+.y2k-winamp-pl-list li {
+  display: flex;
+  gap: 6px;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: #00d455;
+  white-space: nowrap;
+}
+
+.y2k-winamp-pl-list li:hover {
+  background: #14202a;
+}
+
+.y2k-winamp-pl-list li[data-current] {
+  color: #fff;
+  background: #0000a0;
+}
+
+.y2k-winamp-pl-num {
+  flex: 0 0 auto;
+}
+
+.y2k-winamp-pl-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.y2k-winamp-pl-time {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.y2k-client .y2k-winamp-note {
+  margin: 0;
   color: #9a9ab0;
   line-height: 1.4;
+}
+
+.y2k-client .y2k-winamp-note a,
+.y2k-client .y2k-winamp-note a:visited {
+  color: #00ff66;
 }
 
 /* ── Clippy ───────────────────────────────────────────────────────────────── */
@@ -1380,6 +1492,199 @@ html[data-mode='dark'] .y2k-msn-head {
   padding: 0 8px 10px;
 }
 
+/* ── Résumé viewer: the temporal compatibility layer (content/ResumeWindow) ── */
+/*
+ * Three states share this block: the fake plug-in installer, the hazard strip, and
+ * the embedded document. The window is dressed as Acrobat 4.0 but there is
+ * deliberately no toolbar or menu-strip pastiche here — the gag is the install
+ * dialog, and a fake File/Edit strip over a real PDF viewer would be two sets of
+ * controls, one of which does nothing.
+ */
+
+/*
+ * The 'ready' state overrides .y2k-client's scroll: the document must FILL the
+ * window body and be scrolled by its own viewer, not sit inside a second scroller
+ * that clips it. `min-height: 0` on the frame below is what stops a flex child
+ * from refusing to shrink and pushing the buttons off the bottom edge.
+ *
+ * Declared after .y2k-client (same specificity, later wins) — keep it below that
+ * rule if this section ever moves.
+ */
+.y2k-pdf {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px;
+  overflow: hidden;
+}
+
+/*
+ * Every paragraph below is qualified with .y2k-client for one reason:
+ * `.y2k-client p` above sets a 9px bottom margin and beats a bare class on
+ * specificity. These panels are spaced by flex/grid `gap`, so an inherited
+ * paragraph margin shows up as a crooked extra line under the hazard strip and
+ * under the status line. Do not drop the prefix to tidy the selectors.
+ */
+.y2k-client .y2k-hazard {
+  flex: none;
+  margin: 0;
+  padding: 4px 8px;
+  font-family: var(--y2k-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: #000;
+  background: #ffe14a;
+  /* Hazard hatching, drawn rather than fetched (§18.2). Kept faint: it sits
+     directly behind the warning text and legibility wins over authenticity. */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.16) 0 6px,
+    transparent 6px 12px
+  );
+  background-size: 17px 17px;
+  border: 2px solid;
+  border-color: var(--y2k-light) var(--y2k-shadow) var(--y2k-shadow) var(--y2k-light);
+  animation: y2k-hazard-march 7s linear infinite;
+}
+
+html[data-mode='dark'] .y2k-client .y2k-hazard {
+  background-color: var(--y2k-accent-2);
+}
+
+/* Marching stripes. Slow, low-contrast, and switched off entirely by G17 below. */
+@keyframes y2k-hazard-march {
+  to {
+    background-position: 17px 0;
+  }
+}
+
+.y2k-pdf-frame {
+  flex: 1 1 auto;
+  /* Without this a flex item refuses to shrink past its content and the embed
+     grows the window instead of fitting it. */
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  /* Acrobat's page canvas was darker than the page. So is this. */
+  background: var(--y2k-shadow);
+}
+
+.y2k-pdf-object {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+/* Only ever seen when the browser cannot display the PDF inline at all. */
+.y2k-client .y2k-pdf-fallback {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--y2k-field);
+  color: var(--y2k-field-text);
+}
+
+.y2k-pdf-actions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 0;
+}
+
+.y2k-client .y2k-pdf-note {
+  flex: none;
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--y2k-text-dim);
+}
+
+/* ── The fake plug-in installer ───────────────────────────────────────────── */
+
+.y2k-install {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 12px;
+  color: var(--y2k-text);
+  /* The whole panel skips to the end on click, so say so with the cursor. */
+  cursor: pointer;
+}
+
+/*
+ * A Win98 dialog headed its warnings in the system font, not a pixel display
+ * font, so this one heading opts out of the theme's h3 treatment: the panel is
+ * chrome pretending to be an installer, not a content heading.
+ */
+.y2k-install h3 {
+  margin: 0;
+  font-family: var(--y2k-font);
+  font-size: 12px;
+  color: inherit;
+}
+
+.y2k-client .y2k-install-sub {
+  margin: 0;
+  font-family: var(--y2k-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+/*
+ * Segmented, because Win98 drew discrete blocks with gaps rather than a smooth
+ * gradient. Blocks are flex children of equal width so the count can change in
+ * ResumeWindow.tsx without touching this file.
+ */
+.y2k-progress {
+  display: flex;
+  gap: 2px;
+  height: 20px;
+  padding: 2px;
+  background: var(--y2k-field);
+  border: 2px solid;
+  border-color: var(--y2k-shadow) var(--y2k-light) var(--y2k-light) var(--y2k-shadow);
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-dark),
+    inset -1px -1px 0 var(--y2k-face-2);
+}
+
+.y2k-progress i {
+  flex: 1 1 0;
+  min-width: 3px;
+}
+
+/* Win98's progress blocks were the system navy, not the title-bar gradient. */
+.y2k-progress i[data-on='true'] {
+  background: #000080;
+}
+
+html[data-mode='dark'] .y2k-progress i[data-on='true'] {
+  background: var(--y2k-accent-3);
+}
+
+/*
+ * Fixed height because the lines wrap differently from each other: left to size
+ * itself, the panel would grow and shrink under the pointer as they rotate and
+ * CANCEL would walk out from under the cursor mid-click.
+ */
+.y2k-client .y2k-progress-status {
+  margin: 0;
+  min-height: 2.8em;
+  font-family: var(--y2k-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--y2k-text-dim);
+}
+
+.y2k-install-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 /* ── Mobile: no window manager, just maximalism (§10 mobile) ──────────────── */
 
 .y2k-m {
@@ -1503,6 +1808,18 @@ html[data-mode='dark'] .y2k-m {
     display: none !important;
   }
 
+  /*
+   * The embedded PDF cannot print with the page: the browser prints this document,
+   * not the viewer's contents, so the frame would come out as a grey rectangle and
+   * a half-finished fake installer is pure noise. The links and the honest note
+   * below them survive, which is what a printed page should carry (G15). The
+   * hazard strip is marked data-decorative in the JSX and print.css drops it.
+   */
+  .y2k-pdf-frame,
+  .y2k-install {
+    display: none !important;
+  }
+
   .y2k-window {
     position: static !important;
     width: auto !important;
@@ -1605,7 +1922,8 @@ html[data-mode='light'] .y2k-m :focus-visible {
   .y2k-blink,
   .y2k-marquee > span,
   .y2k-clippy-guy,
-  .y2k-winamp-viz i {
+  .y2k-winamp-viz i,
+  .y2k-hazard {
     animation: none !important;
   }
 
@@ -1621,6 +1939,13 @@ html[data-mode='light'] .y2k-m :focus-visible {
   .y2k-sparkle {
     display: none !important;
   }
+
+  /*
+   * The résumé window's plug-in "install" is removed in JS rather than here: with
+   * reduced motion the VIEW button lands straight on the document, no interval is
+   * started and .y2k-progress never renders at all (content/ResumeWindow.tsx).
+   * A frozen progress bar sitting at one block would be worse than no bar.
+   */
 }
 
 /* ── Portrait ─────────────────────────────────────────────────────────────── */

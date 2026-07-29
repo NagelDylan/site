@@ -8,7 +8,10 @@
  * out after their links because a printed link is otherwise useless.
  *
  * Themes contribute to this by marking decoration with data-decorative and
- * chrome with data-chrome, both of which are hidden below.
+ * chrome with data-chrome, both of which are hidden below. Two more hooks in the
+ * same idiom handle content that only makes sense in one medium:
+ * data-print-hide (real on screen, meaningless on paper) and data-print-only
+ * (the paper substitute for it, hidden on screen by each theme's stylesheet).
  */
 @media print {
   :root {
@@ -33,6 +36,7 @@
   [data-halftone],
   [data-cursor-trail],
   [data-motion-control],
+  [data-print-hide],
   .skip-link,
   nav,
   footer nav,
@@ -42,6 +46,28 @@
   marquee,
   blink {
     display: none !important;
+  }
+
+  /*
+   * An embedded PDF cannot be printed with the page around it. Depending on the
+   * browser you get a blank rectangle, a screenshot of somebody's viewer chrome
+   * complete with toolbar, or the first page cropped to the box height — never the
+   * document. So the object goes, and the /resume page prints a data-print-only
+   * line naming the file and its URL instead, which is the only thing that is
+   * actually useful on paper.
+   */
+  object,
+  embed {
+    display: none !important;
+  }
+
+  /*
+   * The other half of that pair: content written for the printed page only. It is
+   * display:none on screen in the theme stylesheets, so this has to be !important
+   * to win — the screen rule is more specific than a bare attribute selector.
+   */
+  [data-print-only] {
+    display: block !important;
   }
 
   /* Flatten the craft: no rotation, no shadows, no overlap. */

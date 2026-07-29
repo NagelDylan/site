@@ -113,6 +113,15 @@ html[data-theme='paper'] {
   --rule-strong: rgba(38, 36, 31, 0.55);
   --rule-faint: rgba(38, 36, 31, 0.16);
 
+  /*
+   * The hairline around the embedded PDF on /resume. It cannot be --rule, and
+   * that is the whole reason it exists: the box's interior is the browser's own
+   * viewer painting a white sheet of paper, which we cannot theme, so this line
+   * has to read against WHITE on one side and against card stock on the other.
+   * --rule-strong is already measured for exactly that job on a card.
+   */
+  --embed-frame: var(--rule-strong);
+
   /* Riso spot inks. Dusty pastels, per §9. */
   --ink-sage: #a8c3ae;
   --ink-blush: #e8b4b8;
@@ -251,6 +260,16 @@ html[data-theme='paper'][data-mode='dark'] {
   --rule: rgba(255, 255, 255, 0.2);
   --rule-strong: rgba(255, 255, 255, 0.5);
   --rule-faint: rgba(255, 255, 255, 0.16);
+
+  /*
+   * NOT --rule-strong here, unlike light mode. The PDF inside that box is still a
+   * white sheet in dark mode — a browser's PDF viewer has no night mode we can
+   * reach — so a translucent-white hairline would vanish into the document it is
+   * supposed to be framing. A solid warm grey is the only value that reads on both
+   * sides: 5.5:1 against the white page, 3.6:1 against the near-black card, so the
+   * white slab reads as a sheet lying on the desk rather than as a lighting bug.
+   */
+  --embed-frame: #6f6862;
 
   /* Inks stay dusty but lift, since they now sit on black rather than cream. */
   --ink-sage: #7fae8c;
@@ -410,7 +429,15 @@ body[data-theme='paper'] {
 [data-theme='paper'] .card--tilt-c {
   --tilt: var(--tilt-c);
 }
-[data-theme='paper'] .card--flat {
+/*
+ * Both spellings on purpose. Card.astro builds its class as `card--tilt-${tilt}`,
+ * so `tilt="flat"` emits .card--tilt-flat and only ever matched .card--flat by
+ * accident of nobody checking — which meant every card asking to be flat was
+ * silently still tilted. Kept as a pair rather than renamed so any hand-written
+ * .card--flat elsewhere keeps working.
+ */
+[data-theme='paper'] .card--flat,
+[data-theme='paper'] .card--tilt-flat {
   --tilt: 0deg;
 }
 
@@ -829,6 +856,38 @@ body[data-theme='paper'] {
 }
 
 /*
+ * The mirror of .overlap-left, for a box sitting to the RIGHT of a photo: it
+ * slides left under the photo's edge instead of right under it.
+ *
+ * The difference is not just direction. .overlap-left raises the CARD over the
+ * polaroid, so the card wins the overlap and a strip of photograph goes under it.
+ * Here the PHOTO stays on top (see .about-portrait) and this box slides beneath,
+ * which means the overlap lands on padding rather than on content — provided the
+ * padding is deeper than the offset, which is what the second rule guarantees.
+ * Keep that inequality if you retune either number: 3.6rem of padding against a
+ * 2.4rem offset leaves ~1.2rem of clearance, enough to absorb the corner swing a
+ * rotated card and a rotated polaroid add at their edges.
+ */
+[data-theme='paper'] .overlap-right {
+  margin-left: -2.4rem;
+}
+
+[data-theme='paper'] .overlap-right > .card {
+  padding-left: 3.6rem;
+}
+
+/*
+ * The /about portrait column. `position: relative` is required for the z-index to
+ * apply at all; the raise is what puts the polaroid's right edge over the bio card
+ * beside it rather than under it (grid items otherwise paint in document order,
+ * and the card comes second).
+ */
+[data-theme='paper'] .about-portrait {
+  position: relative;
+  z-index: 2;
+}
+
+/*
  * The contact column beside the timeline. It hangs lower than the work history
  * and is nudged left of the board's right edge — equal margins would read as a
  * two-column web layout, and this is supposed to read as a note dropped on a
@@ -1106,6 +1165,106 @@ body[data-theme='paper'] {
   color: var(--text-soft);
 }
 
+/* ── Résumé viewer (/resume) ───────────────────────────────────────────────── */
+/*
+ * The page ships TWO ways of getting at the document — an inline <object> and a
+ * plain pair of links — and shows exactly one of them, chosen by viewport width in
+ * the media query further down this section.
+ *
+ * Why width and not feature detection: mobile Safari and several Android browsers
+ * decline to render a PDF inside <object> at all. They do not fall back to the
+ * element's children and they do not error; they paint an empty grey rectangle. A
+ * dead rectangle where a document should be reads as a broken site, not as an
+ * unsupported feature. There is no CSS test for "this browser has an inline PDF
+ * viewer", and paper is the no-JS theme, so a width query is the only tool
+ * available — and both boxes being in the static HTML is what makes it work with
+ * scripting switched off.
+ */
+[data-theme='paper'] .resume-page {
+  display: grid;
+  gap: 2.4rem;
+  /*
+   * Narrower than .wrap. The embed is set to fit the page WIDTH (#view=FitH in
+   * config.ts), so a wider box makes the rendered page taller and the internal
+   * scroll longer — the opposite of what more room usually buys you.
+   */
+  max-width: 58rem;
+  margin-top: 1.6rem;
+}
+
+/* Tighter than a normal card: padding here is width the document wanted. */
+[data-theme='paper'] .resume-sheet {
+  padding: 1.1rem;
+  /*
+   * Flat, and set here rather than trusted to a tilt prop. A rotated ancestor
+   * makes the browser rasterise the embedded viewer at an angle: the PDF's own
+   * text, scrollbar and toolbar all come out skewed and soft, which reads as a
+   * broken plug-in rather than as craft. This is the one card in the theme that
+   * genuinely must not tilt.
+   */
+  --tilt: 0deg;
+}
+
+[data-theme='paper'] .resume-embed {
+  display: block;
+  width: 100%;
+  /* Belt and braces against the viewer forcing its own intrinsic width. */
+  max-width: 100%;
+  /*
+   * Viewport-relative with both ends pinned. A fixed pixel height is wrong in both
+   * directions: too short to read on a laptop, and on a 27" monitor a full-height
+   * well pushes the download button off the top of the screen — which is the one
+   * thing the button row above the embed exists to prevent.
+   */
+  height: min(78vh, 52rem);
+  min-height: 26rem;
+  border: 1px solid var(--embed-frame);
+  /* Shows through until the viewer paints, so the card never flashes white. */
+  background: var(--media-bg);
+}
+
+/*
+ * The <object>'s fallback children, which render only when there is no inline PDF
+ * viewer. They inherit the box's full height, so they are centred — otherwise the
+ * message strands itself at the top of a very tall empty rectangle and looks like
+ * the failure it is describing.
+ */
+[data-theme='paper'] .resume-embed-fallback {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: 1.6rem 1.5rem;
+}
+
+/* The narrow-viewport half of the pair. Off above the breakpoint. */
+[data-theme='paper'] .resume-narrow {
+  display: none;
+}
+
+/*
+ * Print-only content, hidden on screen in every state. print.css turns it back on
+ * — see the note there about why an embedded PDF cannot be printed.
+ */
+[data-theme='paper'] [data-print-only] {
+  display: none;
+}
+
+/*
+ * Deliberately NOT the 860px board breakpoint used by the mobile section below.
+ * That one is about the corkboard collapsing to a single column; this one is about
+ * whether a browser is likely to have an inline PDF viewer at all, which is a
+ * different question that happens to correlate with width.
+ */
+@media (max-width: 48rem) {
+  [data-theme='paper'] .resume-embed {
+    display: none;
+  }
+  [data-theme='paper'] .resume-narrow {
+    display: block;
+  }
+}
+
 /* ── Forms ────────────────────────────────────────────────────────────────── */
 [data-theme='paper'] .field {
   display: block;
@@ -1198,6 +1357,51 @@ body[data-theme='paper'] {
   border: 1px dashed var(--rule-strong);
 }
 
+/* ── The mixtape (paper/Mixtape.tsx) ─────────────────────────────────────────
+ * The ♪ on/off switch and one forward arrow, boxed in the same dashed rule as the
+ * theme group so the pair reads as one object rather than as two more loose
+ * buttons in a row of loose buttons.
+ *
+ * No song title is rendered, by request. The name and artist are on each chip's
+ * `title` (hover) and `aria-label` (assistive tech), so the cluster keeps a fixed
+ * width no matter which song is cued — which is the incidental win: a header
+ * control that resized itself every time the tape moved on was always going to
+ * shove the rest of the row sideways.
+ *
+ * The ♪ chip inherits `.ctrl[aria-pressed='true']` from above, so "on" fills with
+ * sage ink exactly as it did when this button lived in PaperControls. That
+ * continuity is deliberate: to a returning visitor it is the same switch.
+ */
+[data-theme='paper'] .mixtape {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border: 1px dashed var(--rule-strong);
+}
+
+/*
+ * The switch's label changes between "off", "on" and "error", which are three
+ * different widths, and a control that twitches when you click it feels broken.
+ * Wide enough for the longest of the three and centred.
+ */
+[data-theme='paper'] .mixtape-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 5.5ch;
+  white-space: nowrap;
+}
+
+/* One glyph, so square-ish — matches the ☀/☾ chip. */
+[data-theme='paper'] .mixtape-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2ch;
+}
+
 /* ── Page-turn: project detail pages only (§9) ────────────────────────────── */
 /*
  * Never on the primary scroll — a page-turn there would fight reading. This
@@ -1279,6 +1483,19 @@ body[data-theme='paper'] {
   }
   [data-theme='paper'] .overlap-left {
     margin-right: 0;
+  }
+  /*
+   * Stacked, there is nothing to the left to tuck under — and the deep left
+   * padding that protected the text from the photo would just read as a stray
+   * indent, so it goes back to the tightened .card value below. Specificity is
+   * why this is spelled out: `.overlap-right > .card` beats the plain `.card`
+   * rule in this same block, so leaving it out would keep the 3.6rem.
+   */
+  [data-theme='paper'] .overlap-right {
+    margin-left: 0;
+  }
+  [data-theme='paper'] .overlap-right > .card {
+    padding-left: 1.25rem;
   }
   /* Stacked, the offsets that framed it beside the timeline just misalign it. */
   [data-theme='paper'] .aside-contact {
@@ -1362,5 +1579,22 @@ body[data-theme='paper'] {
     --plate-edge: transparent;
     --plate-red: transparent;
     --plate-sage: transparent;
+  }
+
+  /*
+   * print.css flattens the collage — rotation, shadows, positioning — but it does
+   * that with `transform: none` and `position: static`, and an overlap built from a
+   * negative margin survives both. So the offsets are reset here, where the classes
+   * that own them live. Its comment says "no overlap"; this is the half of that
+   * intent the wildcard rule cannot reach.
+   */
+  [data-theme='paper'] .overlap-left {
+    margin-right: 0;
+  }
+  [data-theme='paper'] .overlap-right {
+    margin-left: 0;
+  }
+  [data-theme='paper'] .overlap-right > .card {
+    padding-left: 1.8rem;
   }
 }

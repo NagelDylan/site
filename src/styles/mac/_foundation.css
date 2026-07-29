@@ -1,0 +1,476 @@
+/*
+ * CLASSIC MAC THEME — FOUNDATION: tokens and the desktop shell.
+ *
+ * Imported first by src/components/mac/App.tsx. Everything else in src/styles/mac/
+ * is a skin on top of the structure established here, and every partial consumes
+ * the custom properties defined here rather than declaring colours of its own.
+ *
+ * ─── WHY THIS FILE EXISTS SEPARATELY ─────────────────────────────────────────
+ * This theme is a SHELL, not a document with grey paint on it: a fixed menu bar,
+ * a non-scrolling desk, an icon column, and windows that are absolutely
+ * positioned from inline left/top/width/height/zIndex written by wm.ts. Without
+ * the rules below, every one of those elements falls back into normal document
+ * flow and the whole theme renders as a single long grey page with the windows
+ * stacked underneath each other. That failure mode looks like "the CSS is
+ * broken" but is really "the CSS never established a desktop", so the structural
+ * rules live in one file, first in the cascade, and are not mixed in with skin.
+ *
+ * Scoped under .mac-root / html[data-theme='mac'] throughout. Four themes share
+ * one document and the paper tree is still in the DOM (hidden) when this theme is
+ * mounted, so a bare `button {}` or `p {}` rule here would leak across.
+ *
+ * Two modes (G4). Dark is a graphite appearance, not an inverted one: same
+ * bevels and structure, cooler and darker surfaces. Every colour is a token so a
+ * partial cannot accidentally hardcode a light-mode grey and break dark.
+ */
+
+.mac-root {
+  /*
+   * Chicago and Charcoal were the real system faces and are not on the web. The
+   * fallbacks matter in order: Geneva is the genuine article on a Mac, Verdana
+   * and Tahoma are the closest widely-installed shapes elsewhere. No webfont —
+   * CDNs are blocked (§18.2), and Press Start 2P belongs to the Y2K theme;
+   * borrowing it here would collapse the two retro themes into one look.
+   */
+  --mac-font: 'Charcoal', 'Chicago', Geneva, Verdana, Tahoma, sans-serif;
+  --mac-mono: 'Monaco', 'Courier New', monospace;
+
+  /* ── Platinum surfaces ─────────────────────────────────────────────────── */
+  --mac-face: #dedede;
+  --mac-face-2: #cccccc;
+  --mac-white: #ffffff;
+  --mac-light: #eeeeee;
+  --mac-mid: #999999;
+  --mac-shadow: #888888;
+  --mac-dark: #555555;
+  --mac-ink: #000000;
+  --mac-ink-soft: #333333;
+  --mac-ink-dim: #6a6a6a;
+
+  /* ── The desk ──────────────────────────────────────────────────────────── */
+  --mac-desktop: #6f8bab;
+  --mac-desktop-2: #5c7592;
+
+  /* ── Selection and accent ──────────────────────────────────────────────── */
+  --mac-select: #b3c7e6;
+  --mac-select-ink: #000000;
+  --mac-accent: #3a5f8f;
+
+  /* ── Wells: inset content areas (list views, text fields, comment boxes) ── */
+  --mac-well: #ffffff;
+  --mac-well-ink: #000000;
+  --mac-well-alt: #f1f4f7;
+
+  /* ── Stickies ──────────────────────────────────────────────────────────── */
+  --mac-sticky: #fdf6a9;
+  --mac-sticky-line: #e0d67a;
+  --mac-sticky-ink: #3a3520;
+
+  --mac-link: #1a3f7a;
+  --mac-link-visited: #5a3a7a;
+
+  /*
+   * The bevel, as three reusable values.
+   *
+   * The Mac bevel is 1px and GREY. Win98's is 2px and pure black-and-white, and
+   * that single difference is most of what separates Platinum from Windows at a
+   * glance — so it is expressed as tokens here rather than left to each partial
+   * to re-derive, because one partial reaching for 2px black would read as the
+   * wrong operating system.
+   */
+  --mac-bevel-hi: var(--mac-white);
+  --mac-bevel-lo: var(--mac-shadow);
+  --mac-frame: var(--mac-dark);
+
+  font-family: var(--mac-font);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--mac-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-mode='dark'] .mac-root {
+  --mac-face: #4a4a4c;
+  --mac-face-2: #3c3c3e;
+  --mac-white: #6e6e70;
+  --mac-light: #58585a;
+  --mac-mid: #6a6a6c;
+  --mac-shadow: #232324;
+  --mac-dark: #171718;
+  --mac-ink: #f2f2f2;
+  --mac-ink-soft: #c9c9c9;
+  --mac-ink-dim: #9a9a9a;
+
+  --mac-desktop: #26303c;
+  --mac-desktop-2: #1c242e;
+
+  --mac-select: #3d5878;
+  --mac-select-ink: #ffffff;
+  --mac-accent: #7aa4d8;
+
+  --mac-well: #2c2c2e;
+  --mac-well-ink: #f2f2f2;
+  --mac-well-alt: #333336;
+
+  --mac-sticky: #5c5730;
+  --mac-sticky-line: #7d7644;
+  --mac-sticky-ink: #f0ebc8;
+
+  --mac-link: #8fb8e8;
+  --mac-link-visited: #b79ad8;
+
+  --mac-bevel-hi: var(--mac-white);
+  --mac-bevel-lo: var(--mac-shadow);
+  --mac-frame: #101011;
+}
+
+/*
+ * The desk does not scroll — the windows do. Mirrors the Y2K theme, which sets
+ * the same pair, because both themes take over the viewport entirely.
+ */
+html[data-theme='mac'],
+html[data-theme='mac'] body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* The narrow-viewport page IS a document, so it must scroll again (see App.tsx,
+   which toggles .mac-mobile on <html>). */
+html[data-theme='mac'].mac-mobile,
+html[data-theme='mac'].mac-mobile body {
+  height: auto;
+  overflow: auto;
+}
+
+/* ── The shell ───────────────────────────────────────────────────────────── */
+
+.mac-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--mac-desktop);
+}
+
+/* The watch cursor, drawn as SVG because no cursor asset can be downloaded. */
+.mac-root[data-busy='true'] {
+  cursor: wait;
+}
+
+/*
+ * The desk sits below the menu bar and above the control-strip lane.
+ *
+ * The 22px top inset is MENU_BAR_HEIGHT in wm.ts, which the window manager also
+ * uses as the minimum y for a dragged window so a title bar can never hide
+ * behind the menu bar. If you change one, change both.
+ */
+.mac-desktop {
+  position: absolute;
+  inset: 22px 0 0 0;
+  overflow: hidden;
+  background-color: var(--mac-desktop);
+  /*
+   * The 50% dither. Two offset radial dots on a 2px grid reads as the period's
+   * checkerboard desktop pattern at any zoom, and unlike a repeating-linear
+   * gradient it does not moiré into visible diagonal banding on a fractional
+   * device-pixel ratio.
+   */
+  background-image:
+    repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      color-mix(in srgb, var(--mac-desktop-2) 88%, transparent) 0deg 90deg,
+      transparent 90deg 180deg
+    );
+  background-size: 4px 4px;
+}
+
+/* ── Windows ─────────────────────────────────────────────────────────────── */
+
+/*
+ * REQUIRED, not cosmetic: wm.ts writes left/top/width/height/zIndex as inline
+ * styles, so without position:absolute the windows ignore all of it, stack in
+ * document order, and the theme reads as a flat page. This is the single most
+ * load-bearing rule in the theme.
+ */
+.mac-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px; /* MIN_W in wm.ts */
+  background: var(--mac-face);
+  border: 1px solid var(--mac-frame);
+  box-shadow:
+    inset 1px 1px 0 var(--mac-bevel-hi),
+    inset -1px -1px 0 var(--mac-bevel-lo),
+    2px 2px 0 rgba(0, 0, 0, 0.32);
+  /* Promote only while dragging; a permanent layer per window costs memory for
+     nothing once the pointer is up. */
+  will-change: auto;
+}
+
+.mac-window[data-dragging='true'] {
+  will-change: transform;
+  /* A drag must not select the title text underneath the pointer. */
+  user-select: none;
+}
+
+/* Zoomed fills the desk rather than the viewport, so the menu bar stays clear. */
+.mac-window[data-zoomed] {
+  inset: 4px 4px 34px 4px;
+  width: auto !important;
+  height: auto !important;
+}
+
+/*
+ * Collapsed is the title bar and nothing else. MacWindow already sets hidden +
+ * inline display:none on the body; this keeps the frame from reserving height.
+ */
+.mac-window[data-collapsed] {
+  height: auto !important;
+}
+
+/*
+ * The body is the flex child that scrolls. min-height:0 is required — without it
+ * a flex item refuses to shrink below its content height, the window grows past
+ * its own frame, and the content spills over the bottom border instead of
+ * scrolling inside it.
+ */
+.mac-window-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 2px 2px;
+  overflow: hidden;
+}
+
+/*
+ * The scroll region. Every content window's root is .mac-client, so this is what
+ * actually scrolls; the inset well look belongs to the window body, not the page.
+ */
+.mac-client {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 12px;
+  background: var(--mac-face);
+  color: var(--mac-ink);
+}
+
+/* Documents (Read Me, SimpleText, About) sit on white stock, not on chrome grey. */
+.mac-client--doc,
+.mac-client--well {
+  background: var(--mac-well);
+  color: var(--mac-well-ink);
+  border: 1px solid var(--mac-shadow);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.12);
+  margin: 2px;
+}
+
+/* ── Baseline typography inside the shell ────────────────────────────────── */
+
+.mac-root h1,
+.mac-root h2,
+.mac-root h3,
+.mac-root h4 {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.mac-root h2 {
+  font-size: 13px;
+}
+
+.mac-root p {
+  margin: 0 0 8px;
+}
+
+.mac-root p:last-child {
+  margin-bottom: 0;
+}
+
+.mac-root a {
+  color: var(--mac-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mac-root a:visited {
+  color: var(--mac-link-visited);
+}
+
+/*
+ * Focus visibility (G12). base.css sets `outline: 3px solid currentColor`, which
+ * on a grey window face against a grey-blue desk is nearly invisible. This keeps
+ * a ring in the Platinum idiom but guarantees contrast against BOTH surfaces by
+ * pairing a dark inner ring with a light outer one, so whichever surface it lands
+ * on, one of the two reads.
+ */
+.mac-root :focus-visible {
+  outline: 2px solid var(--mac-ink);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.55);
+}
+
+html[data-mode='dark'] .mac-root :focus-visible {
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+/*
+ * The scroll-container marker.
+ *
+ * `.mac-scroll` opts an element into the era's scroll bars, which are skinned in
+ * mac/window-chrome.css. But a skin does nothing on an element that never
+ * overflows, and the class is used in two different ways:
+ *
+ *   • on five `.mac-client` roots, which already scroll from the rule above; and
+ *   • on five INNER wells — `.mac-list-well`, `.mac-ext-list`, `.mac-system-well`,
+ *     `.mac-getinfo-comments`, `.mac-chooser-list` — which are each styled by a
+ *     different content partial.
+ *
+ * Nobody owns the second group as a set, so the declaration lives here instead of
+ * being repeated (or forgotten) five times. The values deliberately match
+ * `.mac-client` above: this rule out-specifies it on the combined elements, so
+ * anything other than `overflow-x: hidden` here would silently re-enable
+ * horizontal scrolling on the document windows.
+ *
+ * A well still needs a constrained height from its own partial to overflow at
+ * all — this guarantees the axis, not the box.
+ */
+.mac-root .mac-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/*
+ * The icon SVGs are drawn on a 32×32 grid and FILL THEIR CONTAINER, so every
+ * `<Icon>` must sit inside an element that gives it a box.
+ *
+ * Almost every call site in the tree already does — `.mac-icon-glyph`,
+ * `.mac-list-icon`, `.mac-dialog-icon`, `.mac-getinfo-icon` and friends all size
+ * it. Two render an `<Icon>` as a bare child instead, and both would otherwise
+ * expand to fill the viewport: the Sad Mac in Dialog.tsx and the Application-menu
+ * icon in MenuBar.tsx. Those are pinned in mac/system.css and mac/menubar.css
+ * respectively.
+ *
+ * If you add an `<Icon>` somewhere new, wrap it in a sized element. Do not
+ * "fix" this rule to a fixed pixel size — the partials rely on filling.
+ */
+.mac-icon-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The menu-bar mark. Sized once here because five components render it. */
+.mac-rainbow {
+  display: block;
+  width: 11px;
+  height: 14px;
+}
+
+/*
+ * THE STACKING LADDER — the whole theme's z-index contract, in one place.
+ *
+ * `.mac-desktop` is `position: absolute` with `z-index: auto`, so it opens NO
+ * stacking context: the windows wm.ts numbers from 11 upward compete directly
+ * with everything else inside `.mac-root`. That is deliberate (a window must be
+ * able to rise above the Stickies note and the icon column) but it means every
+ * overlay has to be placed on one shared ladder rather than each partial picking
+ * a number it likes:
+ *
+ *     1      Stickies note, desktop icon column   — a dragged window passes OVER
+ *     11+    windows                              — assigned by wm.ts
+ *     9000   menu bar, control strip              — always-visible chrome
+ *     10000  Balloon Help
+ *     10500  dialogs and alerts
+ *     11000  boot screen, system error, Sad Mac, screensaver
+ *
+ * The top band matters: the startup screen and the screensaver must cover the
+ * MENU BAR too, or a boot that leaves a strip of live chrome across the top of
+ * the screen reads as a rendering bug rather than as a Macintosh starting up.
+ * Zoom rects sit at 10000 with the balloons — they are transient and must not
+ * paint over an alert.
+ */
+
+/*
+ * The Stickies surface, shared by three consumers.
+ *
+ * `StickyNote` in deco.tsx puts `.mac-sticky` on every instance, and two callers
+ * — `.mac-about-sticky` in AboutWindow and `.mac-m-sticky` on the mobile page —
+ * rely on this base rule alone for their appearance. It lives in the foundation
+ * rather than in a partial precisely because those two consumers are styled in a
+ * DIFFERENT partial (mac/content-base.css, mac/mobile.css) than the desk note is,
+ * so neither partial can own it without the other one losing it.
+ *
+ * `.mac-desknote` in desktop.css overrides this for the pinned desk note; it is
+ * declared later in the cascade at equal specificity and so wins.
+ */
+.mac-root .mac-sticky,
+.mac-m .mac-sticky {
+  padding: 10px 12px;
+  background-color: var(--mac-sticky);
+  /* Faint ruled lines, as the real note pad had. */
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 17px,
+    var(--mac-sticky-line) 17px 18px
+  );
+  color: var(--mac-sticky-ink);
+  border: 1px solid var(--mac-shadow);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.22);
+}
+
+html[data-mode='dark'] .mac-root .mac-sticky,
+html[data-mode='dark'] .mac-m .mac-sticky {
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+/*
+ * MotionMedia's play control.
+ *
+ * `src/components/shared/MotionMedia.tsx` is theme-agnostic: it renders the
+ * poster still plus a `[data-motion-control]` button that fetches the animation
+ * on intent, and it leaves the button's appearance entirely to the active theme.
+ * Every other theme styles it in its own stylesheet — see `.y2k-media
+ * [data-motion-control]`, `.media-frame [data-motion-control]` in paper, and the
+ * chat equivalent.
+ *
+ * It lives here rather than in a partial because the button has NO class of its
+ * own, so it falls between owners: it appears inside `.mac-media` (styled in
+ * mac/controls.css) and `.mac-getinfo-media` (styled in mac/content-finder.css),
+ * and mac/mobile.css covers only the `.mac-m-shot` variant. Left unstyled it
+ * renders as a bare user-agent button inside the Get Info window's framed well.
+ *
+ * print.css already hides it, so no print handling is needed here.
+ */
+.mac-root [data-motion-control] {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 3px 8px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--mac-ink);
+  background: var(--mac-face);
+  border: 1px solid var(--mac-frame);
+  border-radius: 4px;
+  box-shadow:
+    inset 1px 1px 0 var(--mac-bevel-hi),
+    inset -1px -1px 0 var(--mac-bevel-lo);
+}
+
+.mac-root [data-motion-control]:active {
+  box-shadow:
+    inset 1px 1px 0 var(--mac-bevel-lo),
+    inset -1px -1px 0 var(--mac-bevel-hi);
+}
+
+/*
+ * Content written for the printed page only, per the data-print-only hook in
+ * print.css. Hidden on screen here; print.css overrides with !important.
+ */
+.mac-root [data-print-only] {
+  display: none;
+}

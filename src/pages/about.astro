@@ -26,13 +26,26 @@ const voice = VOICES.paper;
 
       <div class="grid" style="margin-top:1.6rem;">
         <!--
-          Photo and bio are stacked rather than side by side. In a 4/8 split the
-          bio column was narrow enough that the opening paragraph set as an
-          almost vertical ribbon of text; a full-width measure below the photo
-          reads properly.
+          Photo and bio share the top row and deliberately overlap (§9 — the board
+          is a collage, not a two-column layout).
+
+          Why the bio moved up here: this row used to hold the portrait and the
+          résumé sheet, but ResumeSheet renders nothing until public/resume.pdf
+          exists, so in practice the photo sat alone on a 70rem row with dead
+          space beside it. The bio was the full-width card directly below.
+
+          The PHOTO is the one that sits on top (.about-portrait raises it), not
+          the card. That direction matters: the overlap then falls on the card's
+          left padding instead of across the portrait, so no line of text ends up
+          under a photograph. .overlap-right owns the offset and the compensating
+          padding, so the 860px breakpoint and print can drop both in one place.
         -->
-        <div class="col-12" style="display:flex;flex-wrap:wrap;gap:2rem;align-items:flex-start;">
-          <figure class="polaroid" style="--tilt:-2.4deg;flex:0 0 auto;max-width:17rem;" data-print-block>
+        <div class="col-4 about-portrait">
+          <figure
+            class="polaroid"
+            style="--tilt:-2.4deg;width:100%;max-width:20rem;"
+            data-print-block
+          >
             <span class="pin" data-decorative aria-hidden="true"></span>
             <img
               src={PHOTO.src}
@@ -45,16 +58,27 @@ const voice = VOICES.paper;
             <figcaption>This is me ^</figcaption>
           </figure>
 
-          <div style="flex:1 1 20rem;min-width:0;">
+          <!--
+            Below the portrait rather than beside it, since the bio has the rest of
+            the row now. Renders nothing at all while the PDF is absent, which is
+            why the layout above must not depend on it being there.
+          -->
+          <div style="margin-top:1.8rem;">
             <ResumeSheet />
           </div>
         </div>
 
-        <div class="col-12">
-          <Card tilt="a" pin="left" tape={['tr']} tapeColor="blush">
+        <div class="col-8 overlap-right">
+          <Card tilt="a" pin="center" tape={['tr']} tapeColor="blush">
             <p class="lede">{voice.bioShort}</p>
             <hr class="stitch" style="margin:1.2rem 0;" data-decorative />
-            <div style="columns:2 22rem;column-gap:2.4rem;">
+            <!--
+              18rem rather than 22rem: in this narrower column a 22rem threshold
+              collapsed to a single ~45rem measure, which is too wide to read
+              comfortably. 18rem keeps two columns here and still folds to one on
+              the narrow breakpoint.
+            -->
+            <div style="columns:2 18rem;column-gap:2.4rem;">
               {voice.bioLong.map((para) => <p style="margin-bottom:0.9rem;">{para}</p>)}
             </div>
           </Card>

@@ -1,30 +1,34 @@
 /**
- * Contact form — Phase A (§18.4).
+ * Contact form — paper theme.
  *
- * The UI is complete, the Turnstile widget has a marked slot, and the submit
- * handler logs to the console and shows a result state. What it does NOT do is
- * claim the message was sent, because nothing is sent: there is no Cloudflare
- * account, no Turnstile key, and no email service yet.
+ * ─── ON HONESTY ──────────────────────────────────────────────────────────────
+ * This form now really sends: `submitContact` POSTs to Web3Forms, which relays
+ * the message to Dylan's inbox (src/lib/contact.ts explains why a third party
+ * rather than a Worker — a static site has nowhere to keep a secret).
  *
- * That honesty is deliberate and load-bearing. A form that says "thanks, I'll be
- * in touch!" while dropping the message on the floor is worse than no form —
- * it silently loses a recruiter. So the success state says plainly that the form
- * isn't wired yet and points at the mailto link, which does work.
+ * What has NOT changed is the rule that made the old stub say "nothing was sent":
+ * the success state appears only when Web3Forms confirmed delivery. Every other
+ * outcome says it did not go through and hands back a prefilled mailto, so the
+ * visitor's effort survives a failure. A form that reports a delivery it did not
+ * confirm silently loses a recruiter, and that is still the one thing this file
+ * refuses to do (§18.5).
  *
- * Phase B: flip FEATURES.formSubmission and FEATURES.turnstile in src/config.ts,
- * set TURNSTILE_SITE_KEY, and POST to ENDPOINTS.contact where the Worker verifies
- * the Turnstile token server-side (§13).
+ * When `FEATURES.formSubmission` is false — no access key in this build — the
+ * form says so up front, before anything is typed, rather than after.
  */
 import { useState } from 'react';
 import type { ChangeEvent, SubmitEvent } from 'react';
-import { ENDPOINTS, FEATURES, TURNSTILE_SITE_KEY } from '../../config';
+import { FEATURES, TURNSTILE_SITE_KEY } from '../../config';
 import { IDENTITY } from '../../data/identity';
+import { contactMailto, submitContact } from '../../lib/contact';
+import { useHoneypot } from '../shared/Honeypot';
 
-type Status = 'idle' | 'sending' | 'stubbed' | 'sent' | 'error';
+type Status = 'idle' | 'sending' | 'sent' | 'unconfigured' | 'failed';
 
 const ContactForm = () => {
   const [status, setStatus] = useState<Status>('idle');
   const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const honeypot = useHoneypot();
 
   const update =
     (field: keyof typeof form) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -32,29 +36,28 @@ const ContactForm = () => {
 
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setStatus('sending');
 
     if (!FEATURES.formSubmission) {
-      // eslint-disable-next-line no-console
-      console.info('[contact] Phase A stub — nothing was transmitted:', form);
-      setStatus('stubbed');
+      setStatus('unconfigured');
       return;
     }
 
-    try {
-      const response = await fetch(ENDPOINTS.contact, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      setStatus(response.ok ? 'sent' : 'error');
-    } catch {
-      setStatus('error');
-    }
+    setStatus('sending');
+    const result = await submitContact({ ...form, source: 'paper', botcheck: honeypot.tripped });
+    setStatus(result.ok ? 'sent' : 'failed');
   };
 
   return (
     <form onSubmit={onSubmit} noValidate>
+      {/* Said before anything is typed, not in a confirmation afterwards. */}
+      {FEATURES.formSubmission ? null : (
+        <p style={{ marginBottom: '1rem' }}>
+          <strong>Heads up: this form can't send in this build.</strong> No delivery key is
+          configured, so nothing would leave your browser. Email{' '}
+          <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> instead — that always arrives.
+        </p>
+      )}
+
       <label className="field">
         <span>your name</span>
         <input
@@ -84,42 +87,44 @@ const ContactForm = () => {
         <textarea name="message" value={form.message} onChange={update('message')} required />
       </label>
 
+      {honeypot.field}
+
       {/*
-        Turnstile slot. Cloudflare's script renders into this container once a site
-        key exists; the token is then verified server-side in the Worker, which is
-        the whole reason Turnstile was chosen over a client-only captcha (§13).
+        Turnstile slot. The widget mounts here once TURNSTILE_SITE_KEY is set and
+        the matching secret is in the Web3Forms dashboard, which is where the
+        token gets verified. Until then nothing is rendered at all: a placeholder
+        that loads a third-party script would be worse than no placeholder, and
+        the honeypot is doing the work in the meantime.
       */}
-      <div
-        className="cf-turnstile"
-        data-sitekey={TURNSTILE_SITE_KEY ?? undefined}
-        style={{
-          margin: '0 0 1.1rem',
-          padding: '0.6rem 0.8rem',
-          border: '1.5px dashed var(--rule-strong)',
-          fontSize: '0.85rem',
-          fontFamily: 'var(--font-type)',
-        }}
-      >
-        {FEATURES.turnstile ? null : 'Turnstile slot — activates in Phase B'}
-      </div>
+      {FEATURES.turnstile && TURNSTILE_SITE_KEY ? (
+        <div className="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} style={{ margin: '0 0 1.1rem' }} />
+      ) : null}
 
       <button className="btn btn--primary" type="submit" disabled={status === 'sending'}>
         {status === 'sending' ? 'sending…' : 'send ✎'}
       </button>
 
       <div role="status" aria-live="polite" style={{ marginTop: '1rem' }}>
-        {status === 'stubbed' && (
+        {status === 'sent' && (
           <p>
-            <strong>This form isn't connected yet.</strong> Nothing was sent — I didn't want to
-            pretend otherwise. Email me directly at{' '}
-            <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> and it'll actually reach me.
+            <strong>That arrived.</strong> It's in his inbox — he reads it and he'll reply. Relayed
+            through Web3Forms, which is the only way a site with no server can send mail.
           </p>
         )}
-        {status === 'sent' && <p>Thanks — that reached me. I'll reply soon.</p>}
-        {status === 'error' && (
+        {status === 'unconfigured' && (
           <p>
-            Something went wrong sending that. Please email{' '}
-            <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> instead.
+            <strong>Nothing was sent.</strong> Delivery isn't configured in this build, so saying
+            otherwise would be a lie. Everything you typed is in{' '}
+            <a href={contactMailto({ ...form, source: 'paper' })}>this prefilled email</a> — one
+            click and it's on its way.
+          </p>
+        )}
+        {status === 'failed' && (
+          <p>
+            <strong>That didn't go through.</strong> The send failed, so don't assume he saw it.
+            Everything you typed is in{' '}
+            <a href={contactMailto({ ...form, source: 'paper' })}>this prefilled email</a>, or write
+            to <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> directly.
           </p>
         )}
       </div>
