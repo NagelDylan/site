@@ -22,10 +22,7 @@ export const EDUCATION: Education = {
   ],
 };
 
-/**
- * Grouped by how central each thing is to real work, and with no proficiency
- * tiers — no stars, no percentages, no "expert/intermediate".
- */
+/** Grouped by how much I actually reach for each thing. No proficiency tiers. */
 export const SKILLS: SkillGroup[] = [
   { label: 'Languages', items: ['Python', 'TypeScript', 'JavaScript', 'C#', 'SQL', 'Bash'] },
   {

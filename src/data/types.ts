@@ -1,7 +1,4 @@
-/**
- * Types for the data files: the single source of truth for every dated, named
- * or linked claim on the site. Wording lives in copy.ts.
- */
+/** Shapes for the data files. The louder wording lives in copy.ts. */
 
 export type Link = {
   label: string;
@@ -41,7 +38,6 @@ export type Project = {
   name: string;
   /** One line. The louder blurb lives in copy.ts. */
   summary: string;
-  built: string;
   team: string;
   stack: string[];
   highlights: string[];

@@ -7,8 +7,8 @@
  * more, so it is a routing identifier rather than a credential. It can still be
  * scraped and POSTed to by a bot, hence the honeypot below.
  *
- * Callers must show a success state only when this returns `{ ok: true }`. On any
- * other outcome, say it did not go through and offer the mailto fallback.
+ * A success state is only honest when this returns `{ ok: true }`; every other
+ * outcome offers the mailto fallback instead.
  */
 import { IDENTITY } from '../data/identity';
 

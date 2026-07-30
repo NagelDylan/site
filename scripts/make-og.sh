@@ -2,9 +2,9 @@
 #
 # Rasterizes the social preview card from assets-src/og.svg.
 #
-# macOS-only: `sips` is what rasterizes the SVG, and Cloudflare's Linux build
-# image has no sips — which is why public/og/card.png is committed rather than
-# built at deploy time. Re-run this locally whenever the card changes.
+# macOS-only: `sips` rasterizes the SVG, and the Linux runner has no sips, which
+# is why public/og/card.png is committed rather than built on deploy. Re-run this
+# locally whenever the card changes.
 #
 # Usage: bash scripts/make-og.sh
 set -euo pipefail

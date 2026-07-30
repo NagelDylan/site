@@ -65,10 +65,8 @@ a {
   color: inherit;
 }
 
-/*
- * The Y2K palette is allowed to fail AA contrast; it is not allowed to hide
- * focus from a keyboard user. Restyle this ring, never remove it.
- */
+/* The palette is period-accurate at the cost of contrast, so the focus ring has
+   to be unmissable. */
 :focus-visible {
   outline: 3px solid currentColor;
   outline-offset: 2px;

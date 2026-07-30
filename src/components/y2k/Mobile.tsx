@@ -12,7 +12,6 @@ import {
   EDUCATION,
   FEATURED,
   IDENTITY,
-  INTERESTS,
   PHOTO,
   RECYCLE_BIN,
   ROLES,
@@ -93,8 +92,6 @@ const MobileY2k = ({ onToggleMode, mode, resume }: Props) => (
       {COPY.bioLong.map((paragraph) => (
         <p key={paragraph.slice(0, 24)}>{paragraph}</p>
       ))}
-      <h3>{COPY.headings.interests}</h3>
-      <p>{INTERESTS.join(' · ')}</p>
     </section>
 
     <section className="y2k-m-sec">
@@ -152,7 +149,7 @@ const MobileY2k = ({ onToggleMode, mode, resume }: Props) => (
             {blurb ? <p>{blurb}</p> : null}
             <p>{project.summary}</p>
             <p style={{ fontSize: 11 }}>
-              {project.built} · {project.team} · {project.stack.join(', ')}
+              {project.team} · {project.stack.join(', ')}
             </p>
             {project.framing ? <p className="y2k-note">{project.framing}</p> : null}
             <ul>

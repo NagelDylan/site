@@ -5,7 +5,7 @@
  * toggle. Narrow viewports get MobileY2k instead. Window dragging lives in
  * wm.ts, which bypasses React on the drag path.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { persistMode, type Mode } from '../../lib/mode';
 import { IDENTITY } from '../../data';
 import '../../styles/y2k.css';
@@ -110,8 +110,10 @@ const App = ({ resume }: Props) => {
 
   /** The mobile page scrolls; the desktop must not. */
   useEffect(() => {
-    document.documentElement.classList.toggle('y2k-mobile', narrow);
-    return () => document.documentElement.classList.remove('y2k-mobile');
+    const root = document.documentElement;
+    root.classList.add('y2k-locked');
+    root.classList.toggle('y2k-mobile', narrow);
+    return () => root.classList.remove('y2k-locked', 'y2k-mobile');
   }, [narrow]);
 
   /**
@@ -119,8 +121,10 @@ const App = ({ resume }: Props) => {
    * already-open window only focuses it, so this cannot pile up duplicates.
    */
   const { open } = wm;
+  const greeted = useRef(false);
   useEffect(() => {
-    if (narrow) return;
+    if (narrow || greeted.current) return;
+    greeted.current = true;
     open({ kind: 'welcome' });
   }, [narrow, open]);
 

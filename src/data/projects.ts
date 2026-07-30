@@ -15,7 +15,6 @@ export const FEATURED: Project[] = [
     name: 'Acronymize',
     summary:
       'Word puzzle game where you guess words that form an acronym from a theme and clues, with Wordle-style colour feedback.',
-    built: 'Oct – Nov 2025',
     team: 'Solo',
     stack: ['React 19', 'TypeScript', 'Vite', 'Django', 'PostgreSQL (Neon)', 'Clerk'],
     highlights: [
@@ -40,7 +39,6 @@ export const FEATURED: Project[] = [
     name: 'FlowSense',
     summary:
       'Reading tool for dense documents: upload a PDF and get context-aware definitions inline, without leaving the page.',
-    built: 'Hack the 6ix, 2024',
     team: 'Team of 4',
     stack: ['React', 'Django', 'PostgreSQL', 'Python', 'OpenAI GPT API'],
     highlights: [
@@ -68,7 +66,6 @@ export const FEATURED: Project[] = [
     slug: 'tanks',
     name: 'Tanks',
     summary: 'From-scratch recreation of "Tanks!" from Wii Play.',
-    built: '2023 – 2024',
     team: 'Solo',
     stack: ['C#', 'MonoGame', '.NET'],
     highlights: [
@@ -92,7 +89,7 @@ export const FEATURED: Project[] = [
   },
 ];
 
-/** Secondary projects. Six items; everything else is left out on purpose. */
+/** Older projects, in short form. */
 export const SECONDARY: SecondaryProject[] = [
   {
     name: 'Ice Cold Butter Beer',
@@ -137,23 +134,12 @@ export const SECONDARY: SecondaryProject[] = [
     name: 'Whitby Medical Clinic',
     stack: ['JavaScript', 'HTML', 'CSS'],
     oneLiner: 'Responsive clinic site — freelance client work, 2023.',
-    /**
-     * Repo only. Do not link or embed the live clinic site: the
-     * nageldylan.github.io/WhitbyMedical/ URL is registered on a different repo
-     * (MedicalClinic) and must not be surfaced.
-     */
+    // Repo only: the live URL is served from a different repo.
     links: [{ label: 'Repo', href: 'https://github.com/NagelDylan/WhitbyMedical' }],
   },
 ];
 
-/**
- * These four, and only these four, show up in the Recycle Bin as a joke.
- * MedicalClinic and the old portfolio repo stay out of it.
- */
+/** Thrown away, and in the Recycle Bin for the joke. */
 export const RECYCLE_BIN = ['SpotifAI', 'SpeakType', 'AdhdDoctor', 'TicTacToe'] as const;
 
-/**
- * BlinkTrack and ContextAI are left out: both are announced on my GitHub profile
- * with no repos behind them, and a "currently building" section that links
- * nowhere reads as vapour. Ship one and it becomes a featured project.
- */
+/* BlinkTrack and ContextAI have no repos behind them yet, so they are not here. */

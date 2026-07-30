@@ -55,8 +55,6 @@ const ProjectWindow = ({ slug }: { slug: string }) => {
       <p>{project.summary}</p>
 
       <dl className="y2k-kv">
-        <dt>Built</dt>
-        <dd>{project.built}</dd>
         <dt>Team</dt>
         <dd>{project.team}</dd>
         <dt>Stack</dt>

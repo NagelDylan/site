@@ -27,8 +27,17 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # astro@7 requires >=22.12.0 and vite@8 requires ^20.19.0 || >=22.12.0.
+          # Node 20 installs fine and then fails at `astro build`.
+          node-version: '22'
           cache: 'npm'
+          # Pin the public registry explicitly. package-lock.json was originally
+          # generated behind an internal Artifactory mirror, and every `resolved`
+          # URL pointed at hosts unreachable from this runner — `npm ci` fetched
+          # nothing and the build died with `astro: not found`. The lockfile is
+          # rewritten to registry.npmjs.org now; this keeps a stray internal
+          # config from reintroducing the problem.
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci

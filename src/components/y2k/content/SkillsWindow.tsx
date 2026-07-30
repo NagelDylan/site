@@ -3,21 +3,17 @@
  *
  * No proficiency tiers by design: flat lists in the order src/data lists them.
  */
-import { SKILLS } from '../../../data';
-import { COPY } from '../../../data/copy';
-import Icon from '../Icon';
+import { SKILLS } from "../../../data";
+import { COPY } from "../../../data/copy";
+import Icon from "../Icon";
 
 const SkillsWindow = () => (
   <div className="y2k-client y2k-client--face">
     <h2>{COPY.headings.skills}</h2>
-    <p style={{ fontSize: 11 }}>
-      Control Panel &gt; Add/Remove Skills. No star ratings in here — a number out of
-      five never told anybody anything.
-    </p>
     {SKILLS.map((group) => (
       <section key={group.label} style={{ marginBottom: 12 }}>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 18, height: 18, display: 'inline-block' }}>
+        <h3 style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 18, height: 18, display: "inline-block" }}>
             <Icon name="gear" />
           </span>
           {group.label.toUpperCase()}

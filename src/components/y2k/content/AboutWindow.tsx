@@ -1,7 +1,7 @@
 /** ABOUT ME!! — Notepad-flavoured about window. */
-import { IDENTITY, INTERESTS, PHOTO, SOCIALS } from '../../../data';
+import { IDENTITY, PHOTO, SOCIALS } from '../../../data';
 import { COPY } from '../../../data/copy';
-import { RainbowRule, UnderConstruction } from '../deco';
+import { RainbowRule } from '../deco';
 
 const AboutWindow = ({ onContact }: { onContact: () => void }) => (
   <div className="y2k-client">
@@ -27,13 +27,6 @@ const AboutWindow = ({ onContact }: { onContact: () => void }) => (
       <p key={paragraph.slice(0, 24)}>{paragraph}</p>
     ))}
 
-    <h3>{COPY.headings.interests}</h3>
-    <ul className="y2k-bullets">
-      {INTERESTS.map((interest) => (
-        <li key={interest}>{interest}</li>
-      ))}
-    </ul>
-
     <RainbowRule />
     <p>
       <strong>{IDENTITY.availability}.</strong>{' '}
@@ -48,7 +41,6 @@ const AboutWindow = ({ onContact }: { onContact: () => void }) => (
       <a href={SOCIALS.linkedin} target="_blank" rel="noreferrer noopener">
         LinkedIn
       </a>
-      <UnderConstruction label="MORE HOBBIES COMING SOON™" />
     </p>
   </div>
 );

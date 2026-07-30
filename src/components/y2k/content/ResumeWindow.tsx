@@ -6,10 +6,10 @@
  * every state that has a file behind it, so nobody has to sit through the bit to
  * reach the document. Reduced motion skips 'installing' outright.
  */
-import { useEffect, useState } from 'react';
-import { IDENTITY } from '../../../data';
-import { useReducedMotion } from '../hooks';
-import type { Resume } from '../wm';
+import { useEffect, useState } from "react";
+import { IDENTITY } from "../../../data";
+import { useReducedMotion } from "../hooks";
+import type { Resume } from "../wm";
 
 /**
  * Segmented rather than smooth, because that is what Win98 drew. 22 blocks at
@@ -20,19 +20,19 @@ const TICK_MS = 80;
 
 /** Rotating install chatter. */
 const STATUS_LINES = [
-  'DIALLING 2026 … CARRIER DETECTED',
-  'DOWNLOADING ACROREAD.VXD FROM A SERVER THAT IS NOT BUILT YET',
-  'ASKING THE FUTURE POLITELY FOR MORE THAN 640K',
-  'TEACHING A 1999 FONT RENDERER ABOUT SUBPIXELS',
-  'REGISTERING PDF HANDLER … PLEASE DO NOT REBOOT THE PAST',
-  'DEFRAGMENTING THE TIMELINE … ALMOST THERE',
+  "DIALLING 2026 … CARRIER DETECTED",
+  "DOWNLOADING ACROREAD.VXD FROM A SERVER THAT IS NOT BUILT YET",
+  "ASKING THE FUTURE POLITELY FOR MORE THAN 640K",
+  "TEACHING A 1999 FONT RENDERER ABOUT SUBPIXELS",
+  "REGISTERING PDF HANDLER … PLEASE DO NOT REBOOT THE PAST",
+  "DEFRAGMENTING THE TIMELINE … ALMOST THERE",
 ];
 
-type Phase = 'idle' | 'installing' | 'ready';
+type Phase = "idle" | "installing" | "ready";
 
 const ResumeWindow = ({ resume }: { resume: Resume }) => {
   const reducedMotion = useReducedMotion();
-  const [phase, setPhase] = useState<Phase>('idle');
+  const [phase, setPhase] = useState<Phase>("idle");
   const [filled, setFilled] = useState(0);
 
   /**
@@ -44,11 +44,14 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
    * updater: updaters must stay pure, and React may run one twice.
    */
   useEffect(() => {
-    if (phase !== 'installing') return;
+    if (phase !== "installing") return;
     const bar = window.setInterval(() => {
       setFilled((n) => Math.min(BLOCK_COUNT, n + 1));
     }, TICK_MS);
-    const done = window.setTimeout(() => setPhase('ready'), BLOCK_COUNT * TICK_MS + 140);
+    const done = window.setTimeout(
+      () => setPhase("ready"),
+      BLOCK_COUNT * TICK_MS + 140,
+    );
     return () => {
       window.clearInterval(bar);
       window.clearTimeout(done);
@@ -59,7 +62,7 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
     setFilled(0);
     // Reduced motion gets no bar and no timers at all: the press lands straight
     // on the document.
-    setPhase(reducedMotion ? 'ready' : 'installing');
+    setPhase(reducedMotion ? "ready" : "installing");
   };
 
   /**
@@ -69,13 +72,13 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
    */
   const skip = (event?: React.MouseEvent) => {
     event?.stopPropagation();
-    setPhase('ready');
+    setPhase("ready");
   };
 
   const cancel = (event: React.MouseEvent) => {
     event.stopPropagation();
     setFilled(0);
-    setPhase('idle');
+    setPhase("idle");
   };
 
   // No file on the server means nothing to view and nothing to download, so this
@@ -85,9 +88,11 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
       <div className="y2k-client y2k-client--face">
         <h2>RÉSUMÉ.PDF</h2>
         <p>
-          There is no PDF on the server yet, so there is nothing to download. Everything it would
-          say is already in these windows — {IDENTITY.availability.toLowerCase()}, and{' '}
-          <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> reaches him directly.
+          There is no PDF on the server yet, so there is nothing to download.
+          Everything it would say is already in these windows —{" "}
+          {IDENTITY.availability.toLowerCase()}, and{" "}
+          <a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a> reaches him
+          directly.
         </p>
       </div>
     );
@@ -103,13 +108,18 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
       <a className="y2k-btn" href={resume.href} download={resume.filename}>
         💾 SAVE TO A:\
       </a>
-      <a className="y2k-btn" href={resume.href} target="_blank" rel="noreferrer noopener">
+      <a
+        className="y2k-btn"
+        href={resume.href}
+        target="_blank"
+        rel="noreferrer noopener"
+      >
         🌐 OPEN IN NEW WINDOW ↗
       </a>
     </div>
   );
 
-  if (phase === 'ready') {
+  if (phase === "ready") {
     return (
       <div className="y2k-client y2k-client--face y2k-pdf">
         {/* Decorative so print drops it. */}
@@ -131,12 +141,12 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
             aria-label="Dylan Nagel's résumé (PDF)"
           >
             <p className="y2k-pdf-fallback">
-              This browser will not draw a PDF inside the page — which is fair, since this desktop
-              could not either. The file is still right here:{' '}
+              This browser will not draw a PDF inside the page — which is fair,
+              since this desktop could not either. The file is still right here:{" "}
               <a href={resume.href} download={resume.filename}>
                 save it to disk
-              </a>{' '}
-              or{' '}
+              </a>{" "}
+              or{" "}
               <a href={resume.href} target="_blank" rel="noreferrer noopener">
                 open it in a new window
               </a>
@@ -146,18 +156,11 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
         </div>
 
         {actions}
-
-        <p className="y2k-pdf-note">
-          Full disclosure, since this site does not pretend things work: there was no PDF plug-in
-          for a machine like this in 1999, and nothing was downloaded from 2026. That is your own
-          browser&apos;s PDF viewer doing the work — which, from where this desktop is standing, is
-          genuinely from the future.
-        </p>
       </div>
     );
   }
 
-  if (phase === 'installing') {
+  if (phase === "installing") {
     // Derived from the bar rather than kept in its own state: two timers that can
     // disagree is one timer too many.
     const step = Math.floor((filled * STATUS_LINES.length) / BLOCK_COUNT);
@@ -185,7 +188,7 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
             aria-valuetext={status}
           >
             {Array.from({ length: BLOCK_COUNT }, (_, i) => (
-              <i key={i} data-on={i < filled ? 'true' : undefined} />
+              <i key={i} data-on={i < filled ? "true" : undefined} />
             ))}
           </div>
 
@@ -208,12 +211,14 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
     <div className="y2k-client y2k-client--face">
       <h2>RÉSUMÉ.PDF</h2>
       <p>
-        <strong>THIS COMPUTER CANNOT READ PDF FILES.</strong> It is 1999. Portable Document Format
-        is something other people have, and this machine has a floppy drive and opinions.
+        <strong>THIS COMPUTER CANNOT READ PDF FILES.</strong> It is 1999.
+        Portable Document Format is something other people have, and this
+        machine has a floppy drive and opinions.
       </p>
       <p>
-        Fortunately there is a compatibility layer. It takes about two seconds, it is completely
-        unnecessary, and the two buttons under it already work perfectly well without it.
+        Fortunately there is a compatibility layer. It takes about two seconds,
+        it is completely unnecessary, and the two buttons under it already work
+        perfectly well without it.
       </p>
       <p>
         <button type="button" className="y2k-btn y2k-btn-lg" onClick={start}>
@@ -221,10 +226,6 @@ const ResumeWindow = ({ resume }: { resume: Resume }) => {
         </button>
       </p>
       {actions}
-      <p className="y2k-pdf-note">
-        One file, and no animated flames. Nothing is really installed and nothing is really
-        fetched from 2026 — the button plays a joke at you and then shows you the document.
-      </p>
     </div>
   );
 };

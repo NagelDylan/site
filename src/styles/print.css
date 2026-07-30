@@ -12,6 +12,9 @@
 
   html,
   body {
+    /* Undo the desktop's viewport lock so the document flows across pages. */
+    height: auto !important;
+    overflow: visible !important;
     background: #fff !important;
     color: var(--print-ink) !important;
     font-family: Georgia, 'Times New Roman', serif !important;
@@ -30,9 +33,7 @@
   footer nav,
   audio,
   video,
-  iframe,
-  marquee,
-  blink {
+  iframe {
     display: none !important;
   }
 

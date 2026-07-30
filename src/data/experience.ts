@@ -1,14 +1,12 @@
 /**
- * Experience, reverse-chronological. Rendered verbatim.
+ * Experience, reverse-chronological, rendered verbatim.
  *
- * Nothing here carries a performance metric — percentages, dollar figures, user
- * counts stay on the résumé. Technical scope is fine: the "roughly 60 destination
- * categories" and "3,000+ line file" numbers are scope, not results.
+ * Percentages, dollar figures and user counts stay on the résumé. The scope
+ * numbers that are here (60 destination categories, a 3,000-line file) are scope,
+ * not results.
  */
 import type { Role } from './types';
 
-// Everything about the Apple term beyond these four bullets stays off the site:
-// no other internal names, no internal URLs, no scale claims.
 export const ROLES: Role[] = [
   {
     slug: 'apple',

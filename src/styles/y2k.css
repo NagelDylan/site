@@ -5,8 +5,8 @@
  * bars; dark is a black CRT desktop with neon accents. No scanline or curvature
  * overlay in dark — it was tried and it looked like a filter, not a monitor.
  *
- * Period-accurate colour means the palette is below AA in places, but the focus
- * rings and the reduced-motion block at the bottom of the file are not optional.
+ * Period-accurate colour puts the palette below AA in places, which is why the
+ * focus rings and the reduced-motion block at the end of the file matter here.
  */
 /* Latin subset only: the other six subsets would emit six more woff2 files that
    this site's copy can never use. */
