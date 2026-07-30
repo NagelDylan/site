@@ -1,13 +1,6 @@
 /**
- * GeoCities decoration.
- *
- * Everything here is either CSS/SVG-drawn or pure text, because no era graphics
- * can be downloaded into this repo (§18.2) and none could be licensed anyway.
- *
- * All of it is marked data-decorative so print.css removes it (G15), and none of
- * it asserts a fact about Dylan that is not already in the fact layer — the
- * counter says outright that it counts nothing, the webring links to the site's
- * own themes, and the marquee only ever restates the availability line.
+ * GeoCities decoration. All CSS/SVG-drawn or plain text, no era graphics, and
+ * everything is marked data-decorative so print.css can drop it.
  */
 import { IDENTITY } from '../../data';
 
@@ -24,23 +17,6 @@ export const Marquee = ({ text, label }: { text: string; label?: string }) => (
 
 export const MARQUEE_TEXT = `★ WELCOME TO MY HOMEPAGE ★  ${IDENTITY.availability.toUpperCase()} ★  DRAG THE WINDOWS, THEY REALLY MOVE ★  NO POP-UPS EXCEPT THE ONES I MADE ON PURPOSE ★`;
 
-/**
- * Decorative visitor counter. Wired to nothing — there is no analytics service
- * behind this site (FEATURES.analytics is false) and a number pretending
- * otherwise would be a small lie in a large font.
- */
-export const HitCounter = ({ value = '0000ID10T' }: { value?: string }) => (
-  <span className="y2k-counter" data-decorative>
-    <span>You are visitor no.</span>
-    <b>
-      {value.split('').map((char, i) => (
-        <i key={i}>{char}</i>
-      ))}
-    </b>
-    <span>(decorative — counts nothing)</span>
-  </span>
-);
-
 export const UnderConstruction = ({ label = 'UNDER CONSTRUCTION' }: { label?: string }) => (
   <span className="y2k-construction" data-decorative>
     <span>▲</span>
@@ -50,30 +26,3 @@ export const UnderConstruction = ({ label = 'UNDER CONSTRUCTION' }: { label?: st
 );
 
 export const RainbowRule = () => <hr className="y2k-hr" data-decorative />;
-
-export const NetscapeBadge = () => (
-  <span className="y2k-badge" data-decorative title="Purely nostalgic. It works everywhere.">
-    Best viewed in <b>Netscape&nbsp;4</b> 800×600
-  </span>
-);
-
-/**
- * The webring goes nowhere except back into this same site, which is the joke:
- * one homepage, three completely different homepages.
- *
- * NEXT used to point at the chatbot. With that theme hidden the ring is paper and
- * the Macintosh, which keeps both directions pointing at somewhere a visitor can
- * actually go — a webring link to a theme that cannot be reached would be the one
- * kind of broken this joke cannot survive.
- */
-export const WebRing = ({ onTheme }: { onTheme: (theme: 'paper' | 'mac') => void }) => (
-  <div className="y2k-webring" data-decorative>
-    <span>◄ THE &ldquo;ONE GUY, THREE WEBSITES&rdquo; RING ►</span>
-    <button type="button" className="y2k-btn" onClick={() => onTheme('paper')}>
-      ◄ PREV (paper)
-    </button>
-    <button type="button" className="y2k-btn" onClick={() => onTheme('mac')}>
-      NEXT (macintosh) ►
-    </button>
-  </div>
-);

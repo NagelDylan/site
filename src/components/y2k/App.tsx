@@ -1,38 +1,14 @@
 /**
- * Y2K THEME — a Windows 98/2000 desktop, mounted on the client (§10).
+ * The desktop: a Windows 98/2000 machine that happens to be a personal site.
  *
- * This is not a document with a skin on it: it is a shell. The desktop is the
- * page, the Start menu is the navigation, and the windows really do drag. See
- * wm.ts for why the drag path deliberately bypasses React, and theme-mount.ts for
- * why this theme mounts on the client while paper is server-rendered.
- *
- * ─── WHAT THIS FILE OWNS ─────────────────────────────────────────────────────
- *   • the boot sequence, the BSOD/reboot cycle, and the idle screensaver
- *   • the desktop: banner, icons, sparkle trail, assistant, dialogs
- *   • routing a deep link to the window it should open (G7)
- *   • the always-visible theme switcher and the light/dark toggle (G4, G8)
- *   • narrow viewports, which get the simplified page instead (§10 mobile)
- *
- * ─── THE HARD RULES, AS THEY APPLY TO THIS THEME ─────────────────────────────
- * R1  No performance metrics anywhere, including in microcopy. (The decorative
- *     visitor counter and the "best viewed in" badge were removed at Dylan's
- *     request — do not reinstate them.)
- * R2  FlowSense won nothing. There is no award slot, badge, trophy or placement
- *     anywhere in this tree, and a blinking false claim is still a false claim.
- *     Enthusiasm goes on the engineering.
- * R3  Apple gets APPLE_DESCRIPTION verbatim and no Y2K embellishment — see the
- *     .y2k-role--plain treatment in ExperienceWindow. Text only, never the logo.
- * R4  Graduation is 2028. The only 2027 on this desktop is the Summer 2027 co-op
- *     *term* availability line, which is a work term and not a degree date.
- * R5  Every claim traces to src/data. Microcopy is allowed to be loud; it is not
- *     allowed to be new information.
+ * Owns the boot/BSOD/screensaver states, the desktop chrome and the light/dark
+ * toggle. Narrow viewports get MobileY2k instead. Window dragging lives in
+ * wm.ts, which bypasses React on the drag path.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ThemeAppProps } from '../../lib/theme-mount';
-import type { ThemeId } from '../../data/voice';
-import { persistMode, returnToChooser, type Mode } from '../../lib/theme';
+import { useCallback, useEffect, useState } from 'react';
+import { persistMode, type Mode } from '../../lib/mode';
 import { IDENTITY } from '../../data';
-import '../../styles/theme-y2k.css';
+import '../../styles/y2k.css';
 
 import Icon, { type IconName } from './Icon';
 import Taskbar from './Taskbar';
@@ -44,7 +20,7 @@ import { Screensaver, SparkleTrail } from './effects';
 import MobileY2k from './Mobile';
 import { MARQUEE_TEXT, Marquee } from './deco';
 import { useIdle, useNarrow, useReducedMotion } from './hooks';
-import { useWindowManager, windowsForRoute, type OpenRequest, type WindowKind, type WindowState } from './wm';
+import { useWindowManager, type OpenRequest, type Resume, type WindowKind, type WindowState } from './wm';
 
 import WelcomeWindow from './content/WelcomeWindow';
 import ExperienceWindow from './content/ExperienceWindow';
@@ -57,9 +33,9 @@ import ContactWindow from './content/ContactWindow';
 import GuestbookWindow from './content/GuestbookWindow';
 import WinampWindow from './content/WinampWindow';
 import ResumeWindow from './content/ResumeWindow';
-import { HelpWindow, WebringWindow } from './content/panels';
+import HelpWindow from './content/HelpWindow';
 
-/** Desktop icons. The whole site is reachable from here and from Start (G10). */
+/** Desktop icons. The whole site is reachable from here and from Start. */
 const DESKTOP_ICONS: { kind: WindowKind; label: string; icon: IconName }[] = [
   { kind: 'welcome', label: 'Welcome.htm', icon: 'globe' },
   { kind: 'projects', label: 'C:\\Projects\\', icon: 'folder' },
@@ -98,36 +74,29 @@ const SIGN_DIALOG: DialogSpec = {
   okLabel: 'Aw, OK',
 };
 
-const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
+type Props = {
+  /** Whether public/resume.pdf exists, plus every href a window could need. */
+  resume: Resume;
+};
+
+const App = ({ resume }: Props) => {
   const narrow = useNarrow();
   const reducedMotion = useReducedMotion();
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const [mode, setMode] = useState<Mode>(
+    () => (document.documentElement.dataset.mode as Mode) ?? 'light',
+  );
   /*
-   * The boot sequence plays on EVERY entry into this theme, not once per session.
-   *
-   * Spec §10 asked for once-per-session so that clicking around the site did not
-   * mean sitting through a cold boot on every deep link. Dylan overrode that: the
-   * BIOS post is the theme's opening joke and he wants it every time someone
-   * chooses Y2K. Since this component only mounts when the theme is activated
-   * (ThemeBoot unmounts it on the way out), a fresh mount is exactly "entered the
-   * theme again". It stays skippable with any key, click or tap.
+   * The BIOS post is the opening joke, so it plays on every visit rather than
+   * once per session. Skippable with any key, click or tap.
    */
   const [booting, setBooting] = useState(true);
-  /** Set when the boot we are running is a reboot, which lands on the chooser. */
-  const [rebooting, setRebooting] = useState(false);
   const [crashed, setCrashed] = useState(false);
   const [assistant, setAssistant] = useState(false);
   const [dialog, setDialog] = useState<DialogSpec | null>(null);
   const wm = useWindowManager();
-  const routed = useRef(false);
 
   /** The screensaver only exists when motion is welcome, and never mid-boot. */
   const { idle, wake } = useIdle(70_000, !reducedMotion && !booting && !crashed && !narrow);
-
-  const setTheme = useCallback((theme: ThemeId) => {
-    // Never navigate, never reload (G8). ThemeBoot.astro swaps the tree in place.
-    window.dispatchEvent(new CustomEvent('nagel:theme-change', { detail: { theme } }));
-  }, []);
 
   const toggleMode = useCallback(() => {
     setMode((current) => {
@@ -146,17 +115,14 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
   }, [narrow]);
 
   /**
-   * Deep link → windows (G7). /experience opens the Experience window rather than
-   * dropping the visitor on a bare desktop; /projects/tanks opens the explorer
-   * with that project on top. Runs once — reopening on every render would fight
-   * the visitor for control of their own windows.
+   * Open Welcome.htm on arrival so nobody lands on a bare desktop. Reopening an
+   * already-open window only focuses it, so this cannot pile up duplicates.
    */
   const { open } = wm;
   useEffect(() => {
-    if (routed.current || narrow) return;
-    routed.current = true;
-    for (const req of windowsForRoute(route)) open(req);
-  }, [route, narrow, open]);
+    if (narrow) return;
+    open({ kind: 'welcome' });
+  }, [narrow, open]);
 
   /** The paperclip introduces himself once the boot is out of the way. */
   useEffect(() => {
@@ -166,7 +132,7 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
   }, [booting, narrow]);
 
   if (narrow) {
-    return <MobileY2k onTheme={setTheme} onToggleMode={toggleMode} mode={mode} resume={resume} />;
+    return <MobileY2k onToggleMode={toggleMode} mode={mode} resume={resume} />;
   }
 
   const openKind = (kind: WindowKind, arg?: string) => open({ kind, arg: arg ?? null });
@@ -174,7 +140,7 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
   const renderContent = (win: WindowState) => {
     switch (win.kind) {
       case 'welcome':
-        return <WelcomeWindow resume={resume} onTheme={setTheme} onOpen={(kind) => openKind(kind)} />;
+        return <WelcomeWindow resume={resume} onOpen={(kind) => openKind(kind)} />;
       case 'experience':
         return <ExperienceWindow />;
       case 'projects':
@@ -202,9 +168,7 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
       case 'resume':
         return <ResumeWindow resume={resume} />;
       case 'help':
-        return <HelpWindow onTheme={setTheme} />;
-      case 'webring':
-        return <WebringWindow onTheme={setTheme} />;
+        return <HelpWindow />;
       default:
         return <div className="y2k-client" />;
     }
@@ -227,9 +191,8 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
             </button>
           ))}
           {/*
-           * §13: the résumé icon exists only when the file does. The label is the
-           * document half of the window's title ('Résumé.pdf — Adobe Acrobat
-           * Reader 4.0'), the same way Welcome.htm's icon is not called Netscape.
+           * The résumé icon exists only when the file does. Labelled with the
+           * document half of the window title, not the reader application.
            */}
           {resume.available ? (
             <button type="button" className="y2k-icon" onClick={() => openKind('resume')}>
@@ -239,10 +202,8 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
           ) : null}
         </div>
 
-        {/*
-         * G10: the availability line is readable without opening anything. This
-         * banner is the one piece of the desktop that no window covers.
-         */}
+        {/* The availability line is readable without opening anything: this
+            banner is the one piece of the desktop that no window covers. */}
         <div className="y2k-banner" data-decorative>
           <h1>
             ★ {IDENTITY.name.toUpperCase()} ★
@@ -281,7 +242,6 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
         activeId={wm.activeId}
         onOpen={(req: OpenRequest) => open(req)}
         onTaskClick={wm.toggleTask}
-        onTheme={setTheme}
         onToggleMode={toggleMode}
         mode={mode}
         onShutDown={() => setCrashed(true)}
@@ -289,24 +249,11 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
         resumeAvailable={resume.available}
       />
 
-      {/* Trail and screensaver are motion-only, so reduced motion removes them (G17). */}
+      {/* Trail and screensaver are motion-only, so reduced motion removes them. */}
       {!reducedMotion ? <SparkleTrail /> : null}
       {idle && !booting && !crashed ? <Screensaver onWake={wake} /> : null}
 
-      {booting ? (
-        <Boot
-          resumeAvailable={resume.available}
-          onDone={() => {
-            setBooting(false);
-            // A reboot shows the console first and only then hands back to the
-            // chooser, so the restart is something you watch rather than a jump cut.
-            if (rebooting) {
-              setRebooting(false);
-              returnToChooser();
-            }
-          }}
-        />
-      ) : null}
+      {booting ? <Boot resumeAvailable={resume.available} onDone={() => setBooting(false)} /> : null}
 
       {/*
        * Only ever reachable from Start → Shut Down, so it can never be mistaken
@@ -317,21 +264,12 @@ const App = ({ route, resume, mode: initialMode }: ThemeAppProps) => {
           onReboot={() => {
             setCrashed(false);
             wm.closeAll();
-            /**
-             * Reboot runs the real boot console, then hands back to the chooser.
-             *
-             * Two things had to be true at once here. The restart should actually
-             * look like a restart — POST lines, loading bar — rather than a jump
-             * cut. And it should end at the theme chooser, because being dropped
-             * straight back into the same desktop makes the shut-down gag a no-op.
-             *
-             * So this only arms the sequence: `rebooting` tells the Boot onDone
-             * handler to call returnToChooser() once the console has finished
-             * playing. Skipping the boot skips straight to the chooser too, since
-             * the skip path is the same onDone.
+            /*
+             * Replay the real boot console instead of cutting straight back to
+             * the desktop, and reopen Welcome.htm behind it.
              */
-            setRebooting(true);
             setBooting(true);
+            open({ kind: 'welcome' });
           }}
         />
       ) : null}

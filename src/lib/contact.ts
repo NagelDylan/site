@@ -1,34 +1,14 @@
 /**
- * The one place a contact message actually leaves the browser.
+ * Posts the contact form to Web3Forms.
  *
- * ─── WHY A THIRD PARTY AND NOT A WORKER ──────────────────────────────────────
- * This site is fully static (`output: 'static'`, no adapter — see astro.config.mjs)
- * and it is going to stay that way, because prerendered HTML is what §13 wants for
- * deep links and SEO. A static site has nowhere to keep a secret: anything the
- * browser can read, a visitor can read. So the original Phase B plan — a Pages
- * Function that verifies a Turnstile token with a secret key and then talks to an
- * email service — cannot be done without standing up a server.
+ * The site is fully static, so there is no server of ours to hold a mail secret.
+ * Web3Forms holds the credentials and relays submissions to the inbox. The access
+ * key ships in the JS bundle by design: it says "deliver to this inbox" and nothing
+ * more, so it is a routing identifier rather than a credential. It can still be
+ * scraped and POSTed to by a bot, hence the honeypot below.
  *
- * Web3Forms is the substitute. It holds the mail credentials and (once Turnstile
- * is switched on) the captcha secret, and it relays submissions to Dylan's inbox.
- * The verification that used to be "server-side in our Worker" is still genuinely
- * server-side — just on their servers rather than ours.
- *
- * ─── WHAT THE ACCESS KEY IS, AND ISN'T ───────────────────────────────────────
- * The access key ships in the JS bundle. That is by design: it is a routing
- * identifier, not a credential — it says "deliver to this inbox" and nothing more.
- * It cannot read past submissions or change the destination. What it *can* do is
- * be scraped and POSTed to by a bot, which is why the honeypot below exists and
- * why Turnstile is worth turning on. Do not treat this key as a secret and do not
- * add anything to this module that assumes it is one.
- *
- * ─── THE HONESTY CONTRACT (§18.5) ────────────────────────────────────────────
- * Every caller must render a success state only when this function returns
- * `{ ok: true }`, which happens only when Web3Forms answered `success: true`. A
- * form that reports delivery it did not confirm is the one failure mode this
- * codebase argues against in four different voices. Optimism is not permitted
- * here: on any other outcome the caller says it did not go through and points at
- * the mailto link, which needs no server at all.
+ * Callers must show a success state only when this returns `{ ok: true }`. On any
+ * other outcome, say it did not go through and offer the mailto fallback.
  */
 import { IDENTITY } from '../data/identity';
 
@@ -39,23 +19,17 @@ import { IDENTITY } from '../data/identity';
  */
 const ACCESS_KEY: string | null = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY?.trim() || null;
 
-/** Web3Forms' single submission endpoint. */
 const ENDPOINT = 'https://api.web3forms.com/submit';
 
 /** Give up rather than leave a form spinning forever on a dead network. */
 const TIMEOUT_MS = 15_000;
 
 /**
- * Whether a message can actually be delivered right now.
- *
- * `FEATURES.formSubmission` in src/config.ts is derived from this rather than set
- * by hand, so the flag cannot be switched on with nothing behind it — the exact
- * dishonesty the old Phase A comments were guarding against.
+ * Whether a message can actually be delivered right now. `FEATURES.formSubmission`
+ * in src/config.ts is derived from this rather than set by hand, so the flag cannot
+ * be switched on with nothing behind it.
  */
 export const CONTACT_ENABLED = ACCESS_KEY !== null;
-
-/** Which theme the visitor was in. Rides along so Dylan can see what they used. */
-export type ContactSource = 'paper' | 'y2k' | 'mac' | 'chat';
 
 export type ContactMessage = {
   email: string;
@@ -63,7 +37,6 @@ export type ContactMessage = {
   name?: string;
   company?: string;
   subject?: string;
-  source: ContactSource;
   /** True when the honeypot was filled. See `useHoneypot`. */
   botcheck?: boolean;
 };
@@ -78,13 +51,6 @@ export type ContactMessage = {
 export type ContactFailure = 'unconfigured' | 'rejected' | 'network';
 
 export type ContactResult = { ok: true } | { ok: false; reason: ContactFailure };
-
-const SOURCE_LABELS: Record<ContactSource, string> = {
-  paper: 'paper theme — /contact',
-  y2k: 'Y2K theme — Messenger window',
-  mac: 'Classic Mac theme — New Message window',
-  chat: 'chat theme — recruiter capture',
-};
 
 const defaultSubject = (msg: ContactMessage) => {
   if (msg.subject?.trim()) return msg.subject.trim();
@@ -116,7 +82,7 @@ export const submitContact = async (msg: ContactMessage): Promise<ContactResult>
     email: msg.email,
     company: msg.company?.trim() || '(not given)',
     message: msg.message,
-    sent_from: SOURCE_LABELS[msg.source],
+    sent_from: 'nagel-site — Messenger window',
   };
 
   try {
@@ -137,12 +103,7 @@ export const submitContact = async (msg: ContactMessage): Promise<ContactResult>
   }
 };
 
-/**
- * The prefilled-mailto fallback, which every failure branch offers.
- *
- * This is the route that works with no server, no third party and no key, and it
- * is why a failed submission never costs the visitor what they typed.
- */
+/** The prefilled-mailto fallback offered on every failure branch. */
 export const contactMailto = (msg: Partial<ContactMessage>) => {
   const lines = [
     msg.name?.trim() ? `From: ${msg.name.trim()}` : null,
@@ -158,7 +119,6 @@ export const contactMailto = (msg: Partial<ContactMessage>) => {
     name: msg.name,
     company: msg.company,
     subject: msg.subject,
-    source: msg.source ?? 'paper',
   });
 
   return `mailto:${IDENTITY.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(

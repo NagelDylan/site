@@ -1,14 +1,7 @@
 /*
- * Shared base layer. Deliberately thin.
- *
- * Spec G9: each theme gets its own structure and its own visual language — not
- * one layout reskinned. So this file carries only what is genuinely common:
- * a reset, focus visibility, screen-reader utilities, and the reduced-motion
- * floor. It sets NO colours, NO fonts, and NO spacing scale; a Win98 window and
- * a taped-in Polaroid have nothing to share there, and a shared token set would
- * quietly pull the three themes toward each other.
- *
- * Each theme owns styles/theme-<id>.css. Print lives in print.css (G15).
+ * Reset, focus visibility, screen-reader utilities and the reduced-motion floor.
+ * No colours, fonts or spacing live here; that is all in y2k.css. Print rules
+ * are in print.css.
  */
 
 *,
@@ -73,9 +66,8 @@ a {
 }
 
 /*
- * Focus visibility is non-negotiable in every theme, including Y2K.
- * G12 lets Y2K break AA contrast; it does not let it trap a keyboard user
- * (§10 accessibility floor). Themes may restyle this ring but must not remove it.
+ * The Y2K palette is allowed to fail AA contrast; it is not allowed to hide
+ * focus from a keyboard user. Restyle this ring, never remove it.
  */
 :focus-visible {
   outline: 3px solid currentColor;
@@ -95,7 +87,7 @@ a {
   border: 0;
 }
 
-/* Skip link — present in all themes so the desktop shell is escapable. */
+/* Skip link, so the desktop shell is always escapable from the keyboard. */
 .skip-link {
   position: absolute;
   top: 0;
@@ -113,11 +105,8 @@ a {
 }
 
 /*
- * Reduced-motion floor (G17). Applies across all three themes.
- *
- * For Y2K this is load-bearing rather than cosmetic: §10 requires it to kill
- * blink, marquee, the sparkle trail, and the screensaver. Theme CSS and theme JS
- * must both honour it — the JS side checks the same media query.
+ * Reduced-motion floor. The blink, sparkle trail and screensaver are driven in
+ * JS as well as CSS, so the script side checks this same media query.
  */
 @media (prefers-reduced-motion: reduce) {
   *,

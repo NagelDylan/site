@@ -1,10 +1,8 @@
 /**
- * The assistant (§10). A paperclip, legally distinct from any other paperclip.
+ * The desktop assistant: a paperclip, legally distinct from any other paperclip.
  *
- * His job is to introduce Dylan and offer to open things. Everything he says
- * traces to the fact layer — the availability line, the co-op count, the project
- * names — because microcopy is still copy, and R5 does not have a joke exemption.
- * He notably never mentions an award, because there is not one (R2).
+ * Introduces Dylan and offers to open windows. Everything he says is pulled from
+ * the data layer rather than hardcoded, since microcopy is still copy.
  */
 import { useState } from 'react';
 import { COOP_TERMS, IDENTITY } from '../../data';
@@ -56,10 +54,8 @@ const Clippy = ({ onOpen, onDismiss }: Props) => {
           </p>
         ) : null}
 
-        {/*
-          Once he's said goodbye, the options go with him. Leaving them under the
-          farewell for the 1.4s before he leaves read as a half-dismissed widget.
-        */}
+        {/* Once he's said goodbye the options go with him, or the widget reads
+            as half-dismissed for the 1.4s before he leaves. */}
         {says === 'bye' ? null : (
           <div className="y2k-clippy-actions">
             {says !== 'work' ? (

@@ -1,17 +1,9 @@
 /**
- * Boot sequence: BIOS post, then a loading bar (§10).
+ * Boot sequence: BIOS post, then a loading bar.
  *
- * Plays on every entry into the Y2K theme, and again on reboot. It used to be
- * gated to once per session via sessionStorage; Dylan asked for it every time,
- * since the POST is the theme's opening joke. See the comment on `booting` in
- * App.tsx.
- *
- * Skippable with any keypress, click or tap — a joke that cannot be interrupted is
- * not a joke — and the skip path is the same `onDone` as a natural finish, so a
- * reboot still lands where it should.
- *
- * Every line is either machine fiction or a count read from the fact layer. It
- * asserts nothing about Dylan that is not already true elsewhere on the desktop.
+ * Plays on every entry and again on reboot (deliberately not gated per session).
+ * Any keypress, click or tap skips it through the same `onDone` as a natural
+ * finish, so a reboot still lands where it should.
  */
 import { useEffect, useRef, useState } from 'react';
 import { FEATURED, SECONDARY } from '../../data';
@@ -29,7 +21,7 @@ const Boot = ({ resumeAvailable, onDone }: { resumeAvailable: boolean; onDone: (
     'Detecting Drive A: ................. 1.44M Floppy',
     '',
     `${pad('Mounting C:\\Projects\\')} ${FEATURED.length} featured, ${SECONDARY.length} archived`,
-    `${pad('Loading fact layer')} OK`,
+    `${pad('Loading JOBS.DAT')} OK`,
     `${pad('Loading window manager')} OK`,
     `${pad('Checking A:\\resume.pdf')} ${resumeAvailable ? 'FOUND' : 'not present (skipping)'}`,
     `${pad('Checking guestbook.cgi')} FULL SINCE 1999`,

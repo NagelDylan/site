@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="12" height="12" fill="#008080"/>
+      <rect width="6" height="12" fill="#016b6b"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#hatch)"/>
+
+  <!-- window -->
+  <g>
+    <rect x="70" y="58" width="1060" height="452" fill="#c0c0c0"/>
+    <path d="M70 58 H1130 V62 H74 V510 H70 Z" fill="#ffffff"/>
+    <path d="M1130 58 V510 H70 V506 H1126 V58 Z" fill="#404040"/>
+    <rect x="74" y="62" width="1052" height="444" fill="none" stroke="#808080" stroke-width="2"/>
+
+    <!-- title bar -->
+    <rect x="80" y="68" width="1040" height="44" fill="#000080"/>
+    <text x="96" y="99" font-family="Verdana, Geneva, sans-serif" font-size="22" font-weight="bold" fill="#ffffff">Welcome.htm — Netscape Navigator</text>
+    <g fill="#c0c0c0">
+      <rect x="990" y="74" width="34" height="32"/>
+      <rect x="1028" y="74" width="34" height="32"/>
+      <rect x="1066" y="74" width="34" height="32"/>
+    </g>
+    <g fill="#000000" font-family="Verdana, Geneva, sans-serif" font-size="18" font-weight="bold">
+      <text x="1001" y="99">_</text>
+      <text x="1039" y="97">▢</text>
+      <text x="1077" y="97">✕</text>
+    </g>
+
+    <!-- client area -->
+    <rect x="94" y="126" width="1012" height="368" fill="#ffffff"/>
+
+    <text x="600" y="196" text-anchor="middle" font-family="Verdana, Geneva, sans-serif" font-size="30" font-weight="bold" fill="#ff2fb9">★ WELCOME TO MY HOMEPAGE ★</text>
+
+    <text x="600" y="272" text-anchor="middle" font-family="Verdana, Geneva, sans-serif" font-size="66" font-weight="bold" fill="#000080">DYLAN NAGEL</text>
+
+    <text x="600" y="322" text-anchor="middle" font-family="Verdana, Geneva, sans-serif" font-size="27" fill="#111111">Full-Stack Developer · AI &amp; LLM Systems</text>
+
+    <rect x="94" y="348" width="1012" height="10" fill="#b6ff00"/>
+    <rect x="94" y="348" width="1012" height="4" fill="#00f0ff"/>
+
+    <rect x="316" y="384" width="568" height="52" fill="#000080"/>
+    <text x="600" y="419" text-anchor="middle" font-family="Verdana, Geneva, sans-serif" font-size="25" font-weight="bold" fill="#b6ff00">SEEKING A SUMMER 2027 SWE CO-OP</text>
+
+    <text x="600" y="470" text-anchor="middle" font-family="Verdana, Geneva, sans-serif" font-size="21" fill="#333333">Waterloo, ON · the windows really move</text>
+  </g>
+
+  <!-- taskbar -->
+  <rect x="0" y="562" width="1200" height="68" fill="#c0c0c0"/>
+  <rect x="0" y="562" width="1200" height="4" fill="#ffffff"/>
+  <rect x="14" y="576" width="176" height="42" fill="#c0c0c0"/>
+  <path d="M14 576 H190 V580 H18 V618 H14 Z" fill="#ffffff"/>
+  <path d="M190 576 V618 H14 V614 H186 V576 Z" fill="#404040"/>
+  <g>
+    <rect x="26" y="586" width="10" height="22" fill="#ff2fb9"/>
+    <rect x="36" y="586" width="10" height="22" fill="#b6ff00"/>
+    <rect x="46" y="586" width="10" height="22" fill="#00f0ff"/>
+    <rect x="56" y="586" width="10" height="22" fill="#ffd400"/>
+  </g>
+  <text x="76" y="605" font-family="Verdana, Geneva, sans-serif" font-size="22" font-weight="bold" fill="#000000">Start</text>
+  <rect x="1044" y="576" width="142" height="42" fill="#c0c0c0" stroke="#808080" stroke-width="2"/>
+  <text x="1115" y="604" text-anchor="middle" font-family="Verdana, Geneva, sans-serif" font-size="20" fill="#000000">11:59 PM</text>
+</svg>

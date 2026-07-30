@@ -1,15 +1,10 @@
 /**
- * Résumé availability (spec §13).
+ * Is there a résumé to show?
  *
- * SERVER-ONLY — imports node:fs. Import this from .astro frontmatter or build
- * scripts, never from a React island. Islands receive the resolved ResumeState
- * object as a prop (ThemeAppProps.resume), which is why every href a theme could
- * possibly need is precomputed here.
- *
- * The file itself is the switch: drop public/resume.pdf in place and every
- * download button, the /resume viewer page and its nav link all appear, with no
- * code change. RESUME.force in config.ts overrides the check in either direction.
- * Both of those properties are load-bearing — preserve them if you touch this.
+ * Server-only: imports node:fs, so call it from .astro frontmatter and pass the
+ * result into the island. Every href it might need is precomputed for that
+ * reason. Drop public/resume.pdf in place and the icon, Start menu entry and
+ * window all appear; RESUME.force in config.ts overrides the check either way.
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -21,8 +16,6 @@ export type ResumeState = {
   href: string;
   /** href + RESUME.viewParams, for <object data=...>. */
   viewHref: string;
-  /** RESUME.page — the canonical /resume route. */
-  page: string;
   filename: string;
 };
 
@@ -31,10 +24,10 @@ export function getResume(): ResumeState {
   return {
     available: RESUME.force ?? present,
     href: RESUME.path,
-    // Composed here, once, so no theme has to know the PDF open-parameter syntax
-    // and no download link accidentally ships the #view fragment on it.
+    // Composed here, once, so the window never has to know the PDF
+    // open-parameter syntax and the download link can never inherit the #view
+    // fragment.
     viewHref: `${RESUME.path}${RESUME.viewParams}`,
-    page: RESUME.page,
     filename: RESUME.filename,
   };
 }

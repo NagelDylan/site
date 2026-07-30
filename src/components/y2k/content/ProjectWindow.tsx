@@ -1,25 +1,19 @@
 /**
  * A featured project's window.
  *
- * The blurb is the Y2K voice layer's (already written, §8 layer 2); every other
- * string — summary, dates, team, stack, highlights, links — is verbatim fact
- * layer.
+ * The blurb is the only loud string; summary, dates, team, stack, highlights and
+ * links come verbatim from the data files. `project.framing` is the whole of what
+ * gets said about how a project did, so there is no award or placement slot here.
  *
- * R2 IS LOAD-BEARING HERE. FlowSense's only permitted framing is
- * `project.framing` ("Built at Hack the 6ix 2024."), rendered as stored. There is
- * no award slot in this component, no trophy, no badge, no placement, and none
- * may be added: FlowSense placed nowhere, and two of Dylan's own public documents
- * are already wrong about this. Enthusiasm goes on the engineering.
- *
- * Media is poster-first through the shared MotionMedia utility — tanks.webp is
- * 1 MB and must never load unprompted — framed here as a window client area.
+ * Media goes through MotionMedia poster-first: tanks.webp is 1 MB and must never
+ * load unprompted.
  */
-import MotionMedia from '../../shared/MotionMedia';
+import MotionMedia from '../MotionMedia';
 import { projectBySlug } from '../../../data';
-import { VOICES } from '../../../data/voice';
+import { COPY } from '../../../data/copy';
 import { RainbowRule } from '../deco';
 
-const blurbs = VOICES.y2k.projectBlurbs;
+const blurbs = COPY.projectBlurbs;
 
 const ProjectWindow = ({ slug }: { slug: string }) => {
   const project = projectBySlug(slug);

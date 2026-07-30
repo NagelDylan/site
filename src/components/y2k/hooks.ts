@@ -1,13 +1,9 @@
 /**
- * Small hooks shared across the desktop.
- *
- * Kept in one file because each is a handful of lines and they are all about the
- * same thing: reacting to the environment (viewport, motion preference, time,
- * idleness) rather than to the fact layer.
+ * Small environment hooks: viewport, motion preference, time, idleness.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/** G17. Live, not read-once: a visitor can flip the OS setting mid-visit. */
+/** Live, not read-once: a visitor can flip the OS setting mid-visit. */
 export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -21,10 +17,10 @@ export function useReducedMotion(): boolean {
 }
 
 /**
- * Narrow viewports get the simplified Y2K page instead of the window manager
- * (§10 mobile): dragging title bars with a thumb is a bad joke told slowly.
- * Coarse pointers count as narrow up to a larger width — a tablet in portrait
- * has the pixels for windows but not the input for them.
+ * Narrow viewports get the tiled page instead of the window manager, since
+ * dragging title bars with a thumb is miserable. Coarse pointers count as narrow
+ * up to a larger width: a tablet in portrait has the pixels for windows but not
+ * the input for them.
  */
 export function useNarrow(breakpoint = 860): boolean {
   const [narrow, setNarrow] = useState<boolean | null>(null);
@@ -63,9 +59,9 @@ function formatClock(date: Date): string {
 }
 
 /**
- * Fires when nobody has touched anything for `ms`. Disabled entirely when the
- * caller passes enabled=false, which is how reduced motion switches the
- * screensaver off rather than merely making it still.
+ * Fires when nobody has touched anything for `ms`. Passing enabled=false
+ * disables it outright, which is how reduced motion switches the screensaver off
+ * rather than merely making it still.
  */
 export function useIdle(ms: number, enabled: boolean): { idle: boolean; wake: () => void } {
   const [idle, setIdle] = useState(false);

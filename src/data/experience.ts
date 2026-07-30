@@ -1,33 +1,14 @@
 /**
- * Experience (spec §4). Reverse-chronological.
+ * Experience, reverse-chronological. Rendered verbatim.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * ALL COPY IN THIS FILE IS FINAL AND SHARED VERBATIM BY ALL THREE THEMES.
- * Do not rewrite it in a theme's voice. Spec §2 scopes the three-voice strategy
- * to hero / about / project blurbs only, precisely so job history cannot drift.
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * On numbers in this file: R1 bans *performance* metrics — percentages, dollar
- * figures, user counts (the §14 list). It does not ban technical scope. Carta's
- * "roughly 60 destination categories" and "3,000+ line file" are approved
- * verbatim copy (§4.2, and both appear in the §19.3 and §19.8 wireframes).
- * Do not "clean" them out.
+ * Nothing here carries a performance metric — percentages, dollar figures, user
+ * counts stay on the résumé. Technical scope is fine: the "roughly 60 destination
+ * categories" and "3,000+ line file" numbers are scope, not results.
  */
 import type { Role } from './types';
 
-/**
- * Apple's description is a single swappable field, per the build note in §4.1.
- *
- * R3: this exact wording, nothing more. No project names, no internal tooling,
- * no internal URLs, no scale claims. Substantially more material exists and is
- * held OUTSIDE this repo pending manager approval; it must never be pasted
- * here, quoted in a commit, or fed to a model.
- *
- * When cleared, replace this one string. Nothing else needs to change.
- */
-export const APPLE_DESCRIPTION =
-  'Working in security engineering: developing dispatch software, building prompt evaluation platforms, enriching data pipelines, and running agentic performance evaluations to drive LLM improvements.';
-
+// Everything about the Apple term beyond these four bullets stays off the site:
+// no other internal names, no internal URLs, no scale claims.
 export const ROLES: Role[] = [
   {
     slug: 'apple',
@@ -40,11 +21,25 @@ export const ROLES: Role[] = [
     arrangement: 'Hybrid',
     current: true,
     coopTerm: 4,
-    bullets: [],
-    description: APPLE_DESCRIPTION,
-    tags: ['Python', 'Django', 'React', 'TypeScript', 'LLM Evaluation', 'Agentic AI'],
+    bullets: [
+      'Independently designed and built an internal platform for evaluating prompts and agentic workflows end to end, scoring single-turn prompts against labeled datasets and agents on their full tool-call trajectories, with sandboxed custom graders and LLM-as-judge scoring. Python, Django Ninja, Celery, React, and TypeScript.',
+      'Built the LLM assistant layer for an internal security dashboard, where a plain-English request rewrites filters, rearranges panels, or updates records through typed tools, each one confirmed by the user and permission-checked before it runs.',
+      "Contributed to the security organization's work on Project Glasswing, Anthropic's early-access program for its Mythos model.",
+      'Automated recurring leadership reporting, from the data model through server-side chart rendering to scheduled digest emails.',
+    ],
+    description: null,
+    tags: [
+      'Python',
+      'Django',
+      'Django Ninja',
+      'Celery',
+      'React',
+      'TypeScript',
+      'LLM Evaluation',
+      'Agentic AI',
+    ],
     note: null,
-    // Text treatment only — never the Apple logo (§13, trademark).
+    // Text treatment only, never the Apple logo (trademark).
     logo: null,
     link: null,
   },
@@ -66,8 +61,7 @@ export const ROLES: Role[] = [
       'Designed a RESTful API and refactored the PostgreSQL schema to support AI prediction logging and surface model output in the frontend.',
       'Built React features for the Fund Admin dashboard and instrumented analytics with Snowplow and Amplitude, working with the analytics and frontend teams on event tracking.',
       'Built Metabase dashboards for workflow visibility; shipped within a Docker and Kubernetes CI/CD pipeline.',
-      // Vendor names genericized by Dylan's decision (§4.2). Do not restore
-      // Mercury Messenger, Coastal Bank, Justworks, or SVB.
+      // Vendors stay generic here on purpose.
       'Built automations for recurring notifications from banking and payroll providers.',
     ],
     description: null,
@@ -131,24 +125,18 @@ export const ROLES: Role[] = [
     description: null,
     tags: ['React', 'Node.js', 'SEO', 'Google Analytics', 'Google Tag Manager', 'Mailchimp'],
     /**
-     * Required by §4.4. This span is a four-month co-op term followed by about
-     * five months part-time alongside school; the site must not imply nine
-     * continuous months of full-time work. Every theme must render this note.
+     * This span is a four-month co-op term plus about five months part-time
+     * alongside school, so the note has to render: nine continuous months of
+     * full-time work would be wrong.
      */
     note: 'Four-month co-op term (Summer 2024), then part-time alongside school through January.',
     logo: '/media/empathia.webp',
-    // No outbound link — the site has since been replaced (§4.4).
+    // No outbound link — the site has since been replaced.
     link: null,
   },
 ];
 
-/**
- * Excluded from the experience section by Dylan's decision (§4.5).
- * Whitby Medical Walk In Clinic appears as a project card only — see projects.ts.
- */
-export const EXPERIENCE_EXCLUSIONS = ['Whitby Medical Walk In Clinic'] as const;
-
-/** Co-op term map (§3), used by the condensed timeline and the chatbot. */
+/** Co-op term map, used by the condensed timeline. */
 export const COOP_TERMS = [
   { term: 1, company: 'Empathia.ai', season: 'Summer 2024' },
   { term: 2, company: 'Empathia.ai', season: 'Winter 2025' },

@@ -1,13 +1,11 @@
 /**
  * Window chrome: title bar, minimise/maximise/close, drag, resize.
  *
- * Dragging is transform-only and bypasses React entirely while the pointer is
- * down (see the note at the top of wm.ts): pointermove writes a translate to the
- * node, pointerup commits the new x/y once. Pointer capture means a fast drag
- * that outruns the cursor does not drop the window.
+ * Dragging is transform-only and bypasses React while the pointer is down:
+ * pointermove writes a translate to the node, pointerup commits the new x/y once.
+ * Pointer capture keeps a fast drag from dropping the window.
  *
- * Chrome is marked data-chrome so print.css can strip it (G15) — a printed page
- * should read as a document, not a screenshot of a desktop.
+ * Chrome is marked data-chrome so print.css can strip it.
  */
 import { useCallback, useEffect, useRef } from 'react';
 import Icon from './Icon';
@@ -64,18 +62,11 @@ const Y2kWindow = ({
     (event: React.PointerEvent, mode: 'move' | 'size') => {
       if (event.button !== 0 || win.maximized) return;
       /**
-       * Never start a drag from a control inside the title bar.
-       *
-       * This handler sits on the whole header, and beginDrag calls
-       * setPointerCapture on it. Capture retargets every later pointer event —
-       * including pointerup — to the header, so a button under the cursor never
-       * receives its pointerup and therefore never fires a click. That made
-       * minimise/maximise/close dead: the only way to reach them was to maximise
-       * first (via double-click), because beginDrag bails early when maximised and
-       * so never captured. Bailing on button targets fixes all three states.
-       *
-       * Move-drags only: the resize grip IS a button and must still be able to
-       * start a drag.
+       * Never start a move-drag from a control inside the title bar. This
+       * handler sits on the whole header and setPointerCapture retargets every
+       * later pointer event — including pointerup — to the header, so a button
+       * under the cursor never fires its click. The resize grip is itself a
+       * button, so only move-drags bail.
        */
       if ((event.target as HTMLElement).closest('button') && mode === 'move') return;
       const node = ref.current;

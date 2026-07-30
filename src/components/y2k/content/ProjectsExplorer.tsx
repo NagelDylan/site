@@ -1,13 +1,12 @@
 /**
- * C:\Projects\ — the file-explorer window (§10, §19.9).
+ * C:\Projects\ — the file-explorer window.
  *
- * Three folders: the featured projects, the secondary ones, and the Recycle Bin
- * gag. Featured projects open their own window; secondary ones are a details
- * list, because a one-liner and a repo link do not need a window each.
+ * Three folders: featured projects, secondary ones, and the Recycle Bin gag.
+ * Featured projects open their own window; secondary ones are a details list,
+ * because a one-liner and a repo link do not need a window each.
  *
- * The Recycle Bin holds exactly RECYCLE_BIN from the fact layer and nothing else.
- * MedicalClinic and the old portfolio repo are excluded there deliberately and
- * must never be surfaced anywhere on this site — not even as a joke.
+ * The bin renders RECYCLE_BIN exactly and nothing else; anything left out of that
+ * list is left out on purpose.
  */
 import { useState } from 'react';
 import { FEATURED, RECYCLE_BIN, SECONDARY } from '../../../data';
@@ -119,10 +118,7 @@ const ProjectsExplorer = ({ onOpenProject }: { onOpenProject: (slug: string) => 
   );
 };
 
-/**
- * The Recycle Bin gag. Four names, no links, no descriptions — the joke is that
- * they are in the bin, and inventing detail about them would break R5 anyway.
- */
+/** The Recycle Bin gag: names only, no links and no descriptions. */
 export const BinList = () => (
   <div style={{ padding: '10px 12px' }}>
     <h3 style={{ marginTop: 0 }}>RECYCLE BIN</h3>

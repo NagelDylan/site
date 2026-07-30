@@ -1,12 +1,8 @@
 /**
  * Icon set, drawn as inline SVG.
  *
- * Every Win98 icon on this desktop is hand-drawn here because no image asset can
- * be downloaded into this repo (§18.2) and none of the era's icons could be
- * licensed anyway. They are deliberately chunky and 16-colour-ish.
- *
- * R3: there is no Apple icon in this file, and there must never be one — the
- * Apple role gets a text treatment, never the logo (trademark).
+ * Hand-drawn rather than sourced: none of the era's icons could be licensed.
+ * Deliberately chunky and 16-colour-ish. No Apple logo here — trademark.
  */
 
 export type IconName =

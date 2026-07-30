@@ -1,140 +1,69 @@
 ---
-/**
- * Home — the corkboard (spec §9, wireframe §19.2).
- *
- * Layout order matters more than the craft here. Name, headline, the Summer 2027
- * availability line, and the contact/résumé CTAs are all in the first screen and
- * all in the static HTML — never behind a drag, a peel, or a page turn (§9
- * usability rule). The tilted, overlapping cards decorate that; they don't gate it.
- */
-import PaperLayout from '../components/paper/PaperLayout.astro';
-import Card from '../components/paper/Card.astro';
-import ProjectCard from '../components/paper/ProjectCard.astro';
-import ResumeSheet from '../components/paper/ResumeSheet.astro';
-import { IDENTITY, PHOTO } from '../data/identity';
-import { FEATURED } from '../data/projects';
-import { ROLES } from '../data/experience';
-import { VOICES, CANONICAL } from '../data/voice';
-import { SITE } from '../config';
+import Layout from '../layouts/Layout.astro';
+import Desktop from '../components/y2k/App';
+import { getResume } from '../lib/resume';
+import { IDENTITY, SOCIALS } from '../data';
+import { CANONICAL } from '../data/copy';
 
-const voice = VOICES.paper;
-const tilts = ['a', 'b', 'c'] as const;
-const tapes = ['butter', 'sage', 'blush'] as const;
+/*
+ * Resolved at build time: the client island can't check the filesystem, so it
+ * gets the answer plus every href it might need.
+ */
+const resume = getResume();
 ---
 
-<PaperLayout title={SITE.title} description={CANONICAL.metaDescription} path="/">
-  <div class="cork">
-    <div class="wrap board">
-      <div class="grid">
-        <!-- Hero card -->
-        <div class="col-7 overlap-left">
-          <Card tilt="a" pin="left" tape={['tr']} tapeColor="sage">
-            <p class="annotation">{voice.greeting}</p>
-            <h1 class="display" style="margin-top:0.35rem;">{IDENTITY.name}</h1>
-            <p class="hand" style="font-size:1.5rem;margin-top:0.2rem;">{IDENTITY.headline}</p>
-            <hr class="stitch" style="margin:1.1rem 0;" data-decorative />
-            <p class="lede">{voice.heroSub}</p>
-            <p style="margin-top:1.2rem;font-size:1.3rem;" class="hand">
-              <span aria-hidden="true">▸</span>
-              <span class="highlight">{IDENTITY.availability}</span>
-            </p>
-            <p style="margin-top:1.4rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
-              <a class="btn btn--primary" href="/projects">{voice.ctaPrimary}</a>
-              <a class="btn" href="/contact">{voice.ctaSecondary}</a>
-            </p>
-          </Card>
-        </div>
+<Layout>
+  <div id="main">
+    <Desktop client:only="react" resume={resume} />
 
-        <!-- Polaroid -->
-        <div class="col-5">
-          <figure class="polaroid" style="--tilt:2.2deg;" data-print-block>
-            <span class="pin pin--sky" data-decorative aria-hidden="true"></span>
-            <img
-              src={PHOTO.small}
-              alt={PHOTO.alt}
-              width="400"
-              height="400"
-              loading="eager"
-              decoding="async"
-            />
-            <figcaption>hello!</figcaption>
-          </figure>
-        </div>
-
-        <!-- Featured work -->
-        <div class="col-12" style="margin-top:2.5rem;">
-          <p class="lettered" style="position:relative;display:inline-block;">
-            <span aria-hidden="true">✎</span> work
-          </p>
-        </div>
-
-        {
-          FEATURED.map((project, i) => (
-            <div class="col-4">
-              <ProjectCard
-                project={project}
-                blurb={voice.projectBlurbs[project.slug as keyof typeof voice.projectBlurbs]}
-                tilt={tilts[i % tilts.length]}
-                tapeColor={tapes[i % tapes.length]}
-              />
-            </div>
-          ))
-        }
-
-        <!--
-          Condensed timeline, with the contact card beside it rather than below.
-          "Get in touch" is one of the two things a recruiter is actually looking
-          for, so it sits in the same eyeline as the work history instead of at
-          the bottom of the board.
-        -->
-        <div class="col-8" style="margin-top:3rem;">
-          <p class="lettered"><span aria-hidden="true">✎</span> where I've been</p>
-          <Card tilt="flat" pin="none" class="on-desk" style="margin-top:1.2rem;background:transparent;box-shadow:none;outline:none;padding-left:0;">
-            <ol class="sketch-timeline">
-              {
-                ROLES.map((role) => (
-                  <li class="sketch-node">
-                    <p class="sketch-date">{role.datesShort}</p>
-                    <p style="font-size:1.1rem;">
-                      <strong>{role.company}</strong> — {role.title}
-                    </p>
-                    <p class="typewriter" style="color:var(--text-soft);">
-                      {role.location} · {role.arrangement}
-                    </p>
-                  </li>
-                ))
-              }
-            </ol>
-            <p style="margin-top:0.5rem;">
-              <a class="btn" href="/experience">Full experience →</a>
-            </p>
-          </Card>
-        </div>
-
-        <!--
-          Contact sits in the 4-column slot alongside the timeline, hanging a
-          little lower than the top of the work history rather than stranded at
-          the bottom of the board. The résumé sheet follows it in the same
-          column. Offsets live in .aside-contact so mobile can drop them.
-        -->
-        <div class="col-4 aside-contact">
-          <Card tilt="b" pin="right" halftone="blush">
-            <p class="hand" style="font-size:1.5rem;">
-              <span aria-hidden="true">✉</span> get in touch
-            </p>
-            <p style="margin-top:0.4rem;">
-              I'm looking for a Summer 2027 co-op. If you're hiring, I'd love to hear from you.
-            </p>
-            <p style="margin-top:1rem;">
-              <a class="btn" href="/contact">Contact me →</a>
-            </p>
-          </Card>
-
-          <div style="margin-top:2rem;">
-            <ResumeSheet />
-          </div>
-        </div>
+    {/*
+      The desktop is a window manager, so it needs JS. This is what is left
+      without it: the same facts, no chrome. Worth having — it is also what a
+      crawler that does not run scripts reads.
+    */}
+    <noscript>
+      <div class="noscript">
+        <h1>{IDENTITY.name}</h1>
+        <p><strong>{IDENTITY.headline}</strong> · {IDENTITY.location}</p>
+        <p>{IDENTITY.availability}.</p>
+        <p>{CANONICAL.bioShort}</p>
+        <ul>
+          <li><a href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}</a></li>
+          <li><a href={SOCIALS.github}>GitHub</a></li>
+          <li><a href={SOCIALS.linkedin}>LinkedIn</a></li>
+          {resume.available && <li><a href={resume.href}>Résumé (PDF)</a></li>}
+        </ul>
+        <p>The rest of this site is a Windows 98 desktop, and it needs JavaScript.</p>
       </div>
-    </div>
+    </noscript>
   </div>
-</PaperLayout>
+</Layout>
+
+<style>
+  .noscript {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+    font-family: Tahoma, Verdana, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #000;
+    background: #c0c0c0;
+    border: 2px solid #fff;
+    box-shadow: inset -2px -2px 0 #808080;
+  }
+
+  .noscript h1 {
+    font-size: 1.7rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .noscript p {
+    margin: 0.7rem 0;
+  }
+
+  .noscript ul {
+    margin: 0.7rem 0;
+    padding-left: 1.2rem;
+  }
+</style>

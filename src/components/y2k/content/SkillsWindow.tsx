@@ -1,19 +1,15 @@
 /**
  * MY SKILLZ, dressed as the Win98 Control Panel.
  *
- * §7 forbids proficiency tiers — no stars, no percentages, no expert/intermediate
- * labels. So each group is a flat list of the things themselves, ordered as the
- * fact layer orders them (by centrality to actual work).
+ * No proficiency tiers by design: flat lists in the order src/data lists them.
  */
 import { SKILLS } from '../../../data';
-import { VOICES } from '../../../data/voice';
+import { COPY } from '../../../data/copy';
 import Icon from '../Icon';
-
-const voice = VOICES.y2k;
 
 const SkillsWindow = () => (
   <div className="y2k-client y2k-client--face">
-    <h2>{voice.headings.skills}</h2>
+    <h2>{COPY.headings.skills}</h2>
     <p style={{ fontSize: 11 }}>
       Control Panel &gt; Add/Remove Skills. No star ratings in here — a number out of
       five never told anybody anything.

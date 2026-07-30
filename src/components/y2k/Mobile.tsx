@@ -1,15 +1,11 @@
 /**
- * MOBILE — a simplified Y2K page, not a shrunken desktop (§10 mobile).
+ * The narrow-viewport page: one long tiled page, not a shrunken desktop.
  *
- * A window manager on a phone is a bad joke told slowly: title bars are smaller
- * than a thumb, overlapping windows have nowhere to overlap, and drag fights the
- * scroll. So narrow viewports get what the era actually looked like on a small
- * screen — one long tiled page, a marquee, pixel headings, and maximalism, in
- * document order.
- *
- * G10 still holds here: everything the desktop conveys is on this page.
- * Experience bullets and education remain verbatim from the fact layer, and R3's
- * Apple boundary is respected exactly as it is on the desktop.
+ * A window manager is unusable on a phone — title bars are smaller than a thumb,
+ * overlapping windows have nowhere to overlap, and drag fights the scroll. So
+ * narrow screens get what the era actually looked like on a small screen:
+ * marquee, pixel headings and maximalism, in document order. Everything the
+ * desktop conveys is on this page.
  */
 import {
   COOP_TERMS,
@@ -18,34 +14,29 @@ import {
   IDENTITY,
   INTERESTS,
   PHOTO,
-  PHOTOS,
   RECYCLE_BIN,
   ROLES,
   SECONDARY,
   SKILLS,
   SOCIALS,
 } from '../../data';
-import type { ThemeId } from '../../data/voice';
-import { VOICES } from '../../data/voice';
+import { COPY } from '../../data/copy';
 import { MARQUEE_TEXT, Marquee, RainbowRule, UnderConstruction } from './deco';
 import type { Resume } from './wm';
 
-const voice = VOICES.y2k;
-
 type Props = {
-  onTheme: (theme: ThemeId) => void;
   onToggleMode: () => void;
   mode: 'light' | 'dark';
   resume: Resume;
 };
 
-const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
+const MobileY2k = ({ onToggleMode, mode, resume }: Props) => (
   <div className="y2k-m">
     <Marquee text={MARQUEE_TEXT} label="Site announcements" />
 
     <header className="y2k-m-hero">
       <p className="y2k-rainbow" style={{ fontWeight: 700 }}>
-        {voice.greeting}
+        {COPY.greeting}
       </p>
       <h1>{IDENTITY.name}</h1>
       <p>
@@ -59,28 +50,25 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
       <p style={{ marginTop: 10 }}>
         <img
           className="y2k-portrait"
-          src={PHOTOS.y2k.small}
+          src={PHOTO.small}
           alt={PHOTO.alt}
           width={110}
           height={110}
           style={{ width: 110, height: 'auto', margin: '0 auto', border: '3px ridge #ff2fb9' }}
         />
       </p>
-      <p style={{ marginTop: 8 }}>{voice.heroSub}</p>
+      <p style={{ marginTop: 8 }}>{COPY.heroSub}</p>
       <p style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
         <a className="y2k-btn" href={`mailto:${IDENTITY.email}`}>
-          {voice.ctaSecondary}
+          {COPY.ctaSecondary}
         </a>
         <a className="y2k-btn" href="#projects">
-          {voice.ctaPrimary}
+          {COPY.ctaPrimary}
         </a>
         {/*
-         * A link out, not an embed. There is no window manager on this page and so
-         * no plug-in gag to run, and phone browsers routinely refuse to draw a PDF
-         * inline at all — an <object> here would be a dead grey box on the most
-         * common screen the site has. Handing the file to the browser's own viewer
-         * in a new tab is the honest version (§18.5). Both are gated on the file
-         * really existing (§13).
+         * A link out, not an embed. Phone browsers routinely refuse to draw a PDF
+         * inline, so an <object> here would be a dead grey box on the most common
+         * screen the site has. Both links are gated on the file existing.
          */}
         {resume.available ? (
           <>
@@ -99,19 +87,19 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
     </header>
 
     <section className="y2k-m-sec">
-      <h2>{voice.headings.about}</h2>
-      <p>{voice.bioShort}</p>
+      <h2>{COPY.headings.about}</h2>
+      <p>{COPY.bioShort}</p>
       <RainbowRule />
-      {voice.bioLong.map((paragraph) => (
+      {COPY.bioLong.map((paragraph) => (
         <p key={paragraph.slice(0, 24)}>{paragraph}</p>
       ))}
-      <h3>{voice.headings.interests}</h3>
+      <h3>{COPY.headings.interests}</h3>
       <p>{INTERESTS.join(' · ')}</p>
     </section>
 
     <section className="y2k-m-sec">
-      <h2>{voice.headings.experience}</h2>
-      {/* Verbatim from the fact layer — no voice applied, on any screen size. */}
+      <h2>{COPY.headings.experience}</h2>
+      {/* Verbatim from src/data, at every screen size. */}
       {ROLES.map((role) => (
         <article key={role.slug} style={{ marginBottom: 16 }}>
           <h3>
@@ -144,9 +132,9 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
     </section>
 
     <section className="y2k-m-sec" id="projects">
-      <h2>{voice.headings.projects}</h2>
+      <h2>{COPY.headings.projects}</h2>
       {FEATURED.map((project) => {
-        const blurb = voice.projectBlurbs[project.slug as keyof typeof voice.projectBlurbs];
+        const blurb = COPY.projectBlurbs[project.slug as keyof typeof COPY.projectBlurbs];
         return (
           <article key={project.slug} style={{ marginBottom: 18 }}>
             <h3>{project.name.toUpperCase()}</h3>
@@ -166,7 +154,6 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
             <p style={{ fontSize: 11 }}>
               {project.built} · {project.team} · {project.stack.join(', ')}
             </p>
-            {/* FlowSense's only permitted framing (R2). No award, ever. */}
             {project.framing ? <p className="y2k-note">{project.framing}</p> : null}
             <ul>
               {project.highlights.map((highlight) => (
@@ -215,7 +202,7 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
     </section>
 
     <section className="y2k-m-sec">
-      <h2>{voice.headings.skills}</h2>
+      <h2>{COPY.headings.skills}</h2>
       {SKILLS.map((group) => (
         <div key={group.label}>
           <h3>{group.label}</h3>
@@ -225,7 +212,7 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
     </section>
 
     <section className="y2k-m-sec">
-      <h2>{voice.headings.education}</h2>
+      <h2>{COPY.headings.education}</h2>
       <p>
         <strong>{EDUCATION.school}</strong>
         <br />
@@ -244,7 +231,7 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
     </section>
 
     <section className="y2k-m-sec">
-      <h2>{voice.headings.contact}</h2>
+      <h2>{COPY.headings.contact}</h2>
       <p>
         <strong>{IDENTITY.availability}.</strong>
       </p>
@@ -267,20 +254,11 @@ const MobileY2k = ({ onTheme, onToggleMode, mode, resume }: Props) => (
         There is no contact form on this page — the desktop version has one, and that one really
         does send. E-mail arrives either way.
       </p>
-      <RainbowRule />
-      <p style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-      </p>
     </section>
 
     <div className="y2k-m-bar" data-chrome>
       <span style={{ fontWeight: 700 }}>Dylan OS 98</span>
       <span style={{ display: 'flex', gap: 6 }}>
-        <button type="button" className="y2k-btn" onClick={() => onTheme('paper')}>
-          📄 Paper
-        </button>
-        <button type="button" className="y2k-btn" onClick={() => onTheme('mac')}>
-          🖥 Mac
-        </button>
         <button
           type="button"
           className="y2k-btn"

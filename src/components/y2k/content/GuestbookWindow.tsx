@@ -1,13 +1,6 @@
 /**
- * guestbook.cgi — read-only gag (§10).
- *
- * Pre-seeded, period-accurate, fictional entries. There is no form, no data
- * store, and no submission path: a guestbook that accepted input would need a
- * backend, moderation and a spam story, and none of that is funny.
- *
- * None of these entries asserts anything about Dylan. They are microcopy: the
- * visitors are jokes, the projects they mention are real and already in the fact
- * layer, and nobody in here awards anybody anything (R2).
+ * guestbook.cgi — read-only gag. The entries are fictional and pre-seeded; there is
+ * no form, no store and no submission path, so there's nothing to moderate.
  */
 type Entry = { who: string; when: string; body: string };
 

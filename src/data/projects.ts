@@ -1,15 +1,11 @@
 /**
- * Projects (spec §5 featured, §6 secondary).
+ * Projects.
  *
- * Two hard rules live in this file:
+ * FlowSense placed nowhere: it was built at Hack the 6ix 2024, and some of my
+ * older writeups wrongly say 1st at Hack the North. This file is the right one.
  *
- *   R2 — FlowSense won no award. It was built at Hack the 6ix 2024 and placed
- *        nowhere. Never add a placement, prize, trophy, or award badge. Two of
- *        Dylan's own public documents still wrongly claim 1st at Hack the North
- *        (§15); this site is the correct version, not a copy of them.
- *
- *   R1 — No performance metrics. Tanks' beta-tester count and session-duration
- *        figures are deliberately absent (§5) and belong on the résumé only.
+ * Tanks' tester counts and session figures are left out here — they live on the
+ * résumé, along with every other number of that kind.
  */
 import type { Project, SecondaryProject } from './types';
 
@@ -28,10 +24,9 @@ export const FEATURED: Project[] = [
       'An ML sentence-transformer model that scores semantic similarity between a guess and the answer, so players get graded feedback instead of just right/wrong.',
     ],
     framing: null,
-    links: [{ label: 'GitHub', href: 'https://github.com/NagelDylan/Acronymize', verified: true }],
-    // Live demo is deliberately ABSENT, not disabled (§5). Dylan will deploy
-    // acronymize.nagelbros.com before applications; adding it is one entry here
-    // and the button appears everywhere at once.
+    links: [{ label: 'GitHub', href: 'https://github.com/NagelDylan/Acronymize' }],
+    // No live demo yet on purpose. Once acronymize.nagelbros.com is deployed,
+    // one entry here makes the button appear everywhere.
     media: {
       animated: '/media/acronymize.webp',
       poster: '/media/acronymize-poster.webp',
@@ -54,15 +49,12 @@ export const FEATURED: Project[] = [
       'PDF processing that preserves original formatting.',
       'Tab-based interface for multiple documents.',
     ],
-    /**
-     * R2. This is the only permitted framing. No placement, no trophy, no badge.
-     * Teammates are not named, by request (§5).
-     */
+    /** How it gets described, in full. No placement, and teammates are not named. */
     framing: 'Built at Hack the 6ix 2024.',
     links: [
-      // Dylan's fork, not upstream (§5).
-      { label: 'GitHub', href: 'https://github.com/NagelDylan/FlowSense', verified: true },
-      { label: 'Demo video', href: 'https://www.youtube.com/watch?v=2c1xXcaIki8', verified: true },
+      // My fork, not upstream.
+      { label: 'GitHub', href: 'https://github.com/NagelDylan/FlowSense' },
+      { label: 'Demo video', href: 'https://www.youtube.com/watch?v=2c1xXcaIki8' },
     ],
     media: {
       animated: '/media/flowsense.webp',
@@ -87,8 +79,8 @@ export const FEATURED: Project[] = [
     ],
     framing: null,
     links: [
-      { label: 'GitHub', href: 'https://github.com/NagelDylan/Tanks', verified: true },
-      { label: 'Gameplay video', href: 'https://youtu.be/OBn8ILREHPM', verified: true },
+      { label: 'GitHub', href: 'https://github.com/NagelDylan/Tanks' },
+      { label: 'Gameplay video', href: 'https://youtu.be/OBn8ILREHPM' },
     ],
     media: {
       animated: '/media/tanks.webp',
@@ -100,23 +92,15 @@ export const FEATURED: Project[] = [
   },
 ];
 
-/**
- * Secondary projects (§6). Six items; everything else is excluded.
- *
- * LINK PROVENANCE: the spec gives these as "repo" without full URLs, so the
- * repo paths below are inferred from the folder names in the §19.9 wireframe
- * and are marked `verified: false`. The launch pass must confirm each one by
- * hand (spec Appendix: outbound links were unreachable when the spec was
- * compiled). Anything still unverified can be hidden via LINK_AUDIT in config.
- */
+/** Secondary projects. Six items; everything else is left out on purpose. */
 export const SECONDARY: SecondaryProject[] = [
   {
     name: 'Ice Cold Butter Beer',
     stack: ['C#', 'MonoGame'],
     oneLiner: 'Retro arcade recreation with six modes and ball-physics simulation.',
     links: [
-      { label: 'Repo', href: 'https://github.com/NagelDylan/IceColdButterBeer', verified: false },
-      { label: 'Video', href: 'https://youtu.be/Z7evVo3lrIY', verified: true },
+      { label: 'Repo', href: 'https://github.com/NagelDylan/IceColdButterBeer' },
+      { label: 'Video', href: 'https://youtu.be/Z7evVo3lrIY' },
     ],
   },
   {
@@ -124,8 +108,8 @@ export const SECONDARY: SecondaryProject[] = [
     stack: ['C#', 'MonoGame'],
     oneLiner: 'Galaga-style shooter crossed with Minecraft.',
     links: [
-      { label: 'Repo', href: 'https://github.com/NagelDylan/MinecraftMayhem', verified: false },
-      { label: 'Video', href: 'https://youtu.be/z5gk4eCsG0k', verified: true },
+      { label: 'Repo', href: 'https://github.com/NagelDylan/MinecraftMayhem' },
+      { label: 'Video', href: 'https://youtu.be/z5gk4eCsG0k' },
     ],
   },
   {
@@ -133,48 +117,43 @@ export const SECONDARY: SecondaryProject[] = [
     stack: ['C#', 'MonoGame'],
     oneLiner: 'Sniper-scope shooter with a UAV recon system.',
     links: [
-      { label: 'Repo', href: 'https://github.com/NagelDylan/SniperAssassin', verified: false },
-      { label: 'Video', href: 'https://youtube.com/shorts/2V840XqLhFM', verified: true },
+      { label: 'Repo', href: 'https://github.com/NagelDylan/SniperAssassin' },
+      { label: 'Video', href: 'https://youtube.com/shorts/2V840XqLhFM' },
     ],
   },
   {
     name: 'Wordle',
     stack: ['C#', 'MonoGame'],
     oneLiner: 'Word puzzle clone with local statistics tracking.',
-    links: [{ label: 'Repo', href: 'https://github.com/NagelDylan/Wordle', verified: false }],
+    links: [{ label: 'Repo', href: 'https://github.com/NagelDylan/Wordle' }],
   },
   {
     name: 'Recipe Finder',
     stack: ['HTML', 'JavaScript', 'REST API', 'Cloudflare'],
     oneLiner: 'Recipe search by available ingredients and dietary restrictions.',
-    links: [{ label: 'Repo', href: 'https://github.com/NagelDylan/RecipeFinder', verified: false }],
+    links: [{ label: 'Repo', href: 'https://github.com/NagelDylan/RecipeFinder' }],
   },
   {
     name: 'Whitby Medical Clinic',
     stack: ['JavaScript', 'HTML', 'CSS'],
     oneLiner: 'Responsive clinic site — freelance client work, 2023.',
     /**
-     * Repo ONLY (§6). Do not link or embed the live clinic site: the
+     * Repo only. Do not link or embed the live clinic site: the
      * nageldylan.github.io/WhitbyMedical/ URL is registered on a different repo
      * (MedicalClinic) and must not be surfaced.
      */
-    links: [{ label: 'Repo', href: 'https://github.com/NagelDylan/WhitbyMedical', verified: true }],
+    links: [{ label: 'Repo', href: 'https://github.com/NagelDylan/WhitbyMedical' }],
   },
 ];
 
 /**
- * Excluded entirely (§6): SpotifAI, SpeakType, AdhdDoctor, TicTacToe,
- * MedicalClinic, and the old portfolio repo.
- *
- * These four — and ONLY these four — appear in the Y2K Recycle Bin as a joke
- * (§10, §19.9). MedicalClinic and the old portfolio repo must not be surfaced
- * anywhere, including the gag.
+ * These four, and only these four, show up in the Recycle Bin as a joke.
+ * MedicalClinic and the old portfolio repo stay out of it.
  */
 export const RECYCLE_BIN = ['SpotifAI', 'SpeakType', 'AdhdDoctor', 'TicTacToe'] as const;
 
 /**
- * BlinkTrack and ContextAI are omitted (§6): both are announced on Dylan's
- * GitHub README with no repos behind them, and a "currently building" section
- * that links nowhere reads as vapour. Ship one and it becomes a featured
- * project. Do not add a "coming soon" section.
+ * BlinkTrack and ContextAI are left out: both are announced on my GitHub profile
+ * with no repos behind them, and a "currently building" section that links
+ * nowhere reads as vapour. Ship one and it becomes a featured project.
  */

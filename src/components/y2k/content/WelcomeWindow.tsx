@@ -1,27 +1,18 @@
-/**
- * Welcome.htm — the hero, framed as a Netscape window.
- *
- * Copy comes from VOICES.y2k (already written in this voice, §8 layer 2) and the
- * fact layer. Nothing here is rewritten locally: the greeting, sub-line and CTA
- * labels are the voice layer's, and the availability line is IDENTITY's.
- */
+/** Welcome.htm — the hero, framed as a Netscape window. */
 import { IDENTITY, SOCIALS } from '../../../data';
-import { VOICES } from '../../../data/voice';
-import { Blink, RainbowRule, UnderConstruction, WebRing } from '../deco';
+import { COPY } from '../../../data/copy';
+import { Blink, RainbowRule, UnderConstruction } from '../deco';
 import type { Resume } from '../wm';
-
-const voice = VOICES.y2k;
 
 type Props = {
   onOpen: (kind: 'projects' | 'contact' | 'about' | 'experience' | 'guestbook' | 'resume') => void;
-  onTheme: (theme: 'paper' | 'mac') => void;
   resume: Resume;
 };
 
-const WelcomeWindow = ({ onOpen, onTheme, resume }: Props) => (
+const WelcomeWindow = ({ onOpen, resume }: Props) => (
   <div className="y2k-client">
     <p style={{ textAlign: 'center', fontWeight: 700 }} className="y2k-rainbow">
-      {voice.greeting}
+      {COPY.greeting}
     </p>
     <h2 style={{ textAlign: 'center' }}>{IDENTITY.name}</h2>
     <p style={{ textAlign: 'center' }}>
@@ -37,29 +28,25 @@ const WelcomeWindow = ({ onOpen, onTheme, resume }: Props) => (
 
     <RainbowRule />
 
-    <p>{voice.heroSub}</p>
+    <p>{COPY.heroSub}</p>
 
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
       <button type="button" className="y2k-btn y2k-btn-lg" onClick={() => onOpen('projects')}>
-        {voice.ctaPrimary}
+        {COPY.ctaPrimary}
       </button>
       <button type="button" className="y2k-btn y2k-btn-lg" onClick={() => onOpen('contact')}>
-        {voice.ctaSecondary}
+        {COPY.ctaSecondary}
       </button>
       <button type="button" className="y2k-btn" onClick={() => onOpen('experience')}>
-        {voice.headings.experience}
+        {COPY.headings.experience}
       </button>
       <button type="button" className="y2k-btn" onClick={() => onOpen('about')}>
-        {voice.headings.about}
+        {COPY.headings.about}
       </button>
     </div>
 
-    {/*
-     * §13: both of these exist only when the file does. Reading and saving are
-     * separate offers on purpose — VIEW opens the Acrobat window on this desktop,
-     * which is a bit; the download is not, and a visitor who wants the file and
-     * not the bit should not have to find the bit first.
-     */}
+    {/* Both buttons only exist when the PDF does. Read opens the in-desktop
+        viewer; download is the plain escape hatch for anyone who just wants the file. */}
     {resume.available ? (
       <p style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         <button type="button" className="y2k-btn" onClick={() => onOpen('resume')}>
@@ -92,8 +79,6 @@ const WelcomeWindow = ({ onOpen, onTheme, resume }: Props) => (
     <p style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
       <UnderConstruction label="THIS PAGE IS ETERNALLY UNDER CONSTRUCTION" />
     </p>
-
-    <WebRing onTheme={onTheme} />
   </div>
 );
 

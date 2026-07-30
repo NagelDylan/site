@@ -1,31 +1,20 @@
 /**
  * JOBS I HAVE HAD — the experience window.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * NO Y2K VOICE IN THIS WINDOW'S DATA. Every role title, date, bullet and note is
- * rendered verbatim from src/data/experience.ts. Spec §2 scopes the three voices
- * to hero / about / project blurbs precisely so a job history cannot drift, and
- * the only liberty taken here is the window's own heading.
- *
- * R3: the Apple role renders APPLE_DESCRIPTION and nothing else — no added
- * exclamation marks, no glow, no speculation, no logo. It gets .y2k-role--plain,
- * which strips the pixel-font/neon treatment the other roles get. The logo field
- * is null in the fact layer for exactly this reason (trademark) and is never used
- * here even if it were populated.
- * ─────────────────────────────────────────────────────────────────────────────
+ * Titles, dates, bullets and notes render verbatim from src/data/experience.ts —
+ * only the heading is styled, so a job history cannot pick up an exclamation mark.
+ * The Apple role gets .y2k-role--plain: no pixel font, no neon, no logo (trademark).
  */
 import { COOP_TERMS, EDUCATION, ROLES } from '../../../data';
-import { VOICES } from '../../../data/voice';
+import { COPY } from '../../../data/copy';
 import { RainbowRule } from '../deco';
-
-const voice = VOICES.y2k;
 
 const ExperienceWindow = () => (
   <div className="y2k-client">
-    <h2>{voice.headings.experience}</h2>
+    <h2>{COPY.headings.experience}</h2>
     <p style={{ fontSize: 11 }}>
-      Four co-op terms, in reverse order. Dates and descriptions below are the same
-      words on every version of this site — that part does not get a costume.
+      Four co-op terms, in reverse order. The dates and descriptions below are
+      straight off my résumé — that part does not get a costume.
     </p>
     <RainbowRule />
 
@@ -53,7 +42,6 @@ const ExperienceWindow = () => (
             </ul>
           ) : null}
 
-          {/* §4.4 requires every theme to render this note. */}
           {role.note ? <p className="y2k-note">{role.note}</p> : null}
 
           <ul className="y2k-tags">

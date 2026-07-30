@@ -1,19 +1,11 @@
 /**
  * Taskbar and Start menu.
  *
- * The Start menu is the primary navigation (§10): every window on this desktop is
- * reachable from it, including the ones with no desktop icon.
- *
- * G8 — the theme switcher is here twice on purpose. Once in the Start menu under
- * "🎨 Themes", where a visitor looking for settings will look, and once in the
- * system tray, which is always visible without opening anything. Both are real
- * <button>s in the tab order: nobody may be trapped in this theme, including
- * someone navigating by keyboard.
+ * The Start menu is the primary navigation: every window on this desktop is
+ * reachable from it, including the ones with no desktop icon. Everything in it
+ * is a real <button> in the tab order.
  */
 import { useEffect, useId, useRef, useState } from 'react';
-import type { ThemeId } from '../../data/voice';
-import { THEMES } from '../../config';
-import { THEME_LABELS, returnToChooser } from '../../lib/theme';
 import { FEATURED } from '../../data';
 import Icon, { StartFlag } from './Icon';
 import { useClock } from './hooks';
@@ -60,7 +52,6 @@ type Props = {
   activeId: string | null;
   onOpen: (req: OpenRequest) => void;
   onTaskClick: (id: string) => void;
-  onTheme: (theme: ThemeId) => void;
   onToggleMode: () => void;
   mode: 'light' | 'dark';
   onShutDown: () => void;
@@ -73,7 +64,6 @@ const Taskbar = ({
   activeId,
   onOpen,
   onTaskClick,
-  onTheme,
   onToggleMode,
   mode,
   onShutDown,
@@ -146,11 +136,6 @@ const Taskbar = ({
                   <Icon name="book" /> Guestbook
                 </button>
               </li>
-              <li>
-                <button type="button" className="y2k-mi" onClick={() => go({ kind: 'webring' })}>
-                  <Icon name="star" /> The Web Ring
-                </button>
-              </li>
             </Sub>
 
             <Sub {...subProps('documents')} label="📄 Documents">
@@ -174,7 +159,7 @@ const Taskbar = ({
                   <Icon name="gear" /> MY SKILLZ
                 </button>
               </li>
-              {/* §13: only offered when the file actually exists. */}
+              {/* Only offered when the file actually exists. */}
               {resumeAvailable ? (
                 <li>
                   <button type="button" className="y2k-mi" onClick={() => go({ kind: 'resume' })}>
@@ -184,57 +169,18 @@ const Taskbar = ({
               ) : null}
             </Sub>
 
-            <Sub {...subProps('themes')} label="🎨 Themes">
-              {/*
-                From THEMES in config.ts, not a local literal. The literal that
-                used to be here read ['paper', 'y2k', 'chat'] and had gone stale —
-                it never offered the Classic Mac theme — which is the argument for
-                reading the shared list even in a menu that only ever holds a few.
-              */}
-              {THEMES.map((theme) => (
-                <li key={theme}>
-                  <button
-                    type="button"
-                    className="y2k-mi"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onTheme(theme);
-                    }}
-                    aria-current={theme === 'y2k'}
-                  >
-                    <Icon name="palette" /> {THEME_LABELS[theme]}
-                    {theme === 'y2k' ? ' ✓' : ''}
-                  </button>
-                </li>
-              ))}
-              <li className="y2k-mi-sep" />
-              <li>
-                {/* Back to the splash, which is the only screen showing all three. */}
-                <button
-                  type="button"
-                  className="y2k-mi"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    returnToChooser();
-                  }}
-                >
-                  <Icon name="globe" /> Back to chooser…
-                </button>
-              </li>
-              <li className="y2k-mi-sep" />
-              <li>
-                <button
-                  type="button"
-                  className="y2k-mi"
-                  onClick={() => {
-                    onToggleMode();
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Icon name="flag" /> {mode === 'dark' ? 'Teal desktop (light)' : 'CRT desktop (dark)'}
-                </button>
-              </li>
-            </Sub>
+            <li>
+              <button
+                type="button"
+                className="y2k-mi"
+                onClick={() => {
+                  onToggleMode();
+                  setMenuOpen(false);
+                }}
+              >
+                <Icon name="palette" /> {mode === 'dark' ? 'Teal desktop (light)' : 'CRT desktop (dark)'}
+              </button>
+            </li>
 
             <li>
               <button type="button" className="y2k-mi" onClick={() => go({ kind: 'contact' })}>
@@ -303,46 +249,6 @@ const Taskbar = ({
         </div>
 
         <div className="y2k-tray">
-          {/*
-            Always-visible theme switcher (G8). Keyboard-reachable, like everything
-            else. Two tray buttons rather than a loop over THEMES on purpose: each
-            one is a hand-picked emoji and a hand-written label, and the Start menu's
-            Themes submenu above is the exhaustive list. The 💬 chatbot button that
-            used to sit here was removed when that theme was hidden.
-          */}
-          <button
-            type="button"
-            className="y2k-tray-btn"
-            title="Switch to the Paper theme"
-            aria-label="Switch to the Paper theme"
-            onClick={() => onTheme('paper')}
-          >
-            📄
-          </button>
-          <button
-            type="button"
-            className="y2k-tray-btn"
-            title="Switch to the Classic Mac theme"
-            aria-label="Switch to the Classic Mac theme"
-            onClick={() => onTheme('mac')}
-          >
-            🖥
-          </button>
-          {/*
-            Back to the theme chooser, sitting with the theme buttons because that
-            is where someone looking for "how do I get out of here" will look.
-            Start → Shut Down reaches the same screen the long way round, as a gag;
-            this is the direct route.
-          */}
-          <button
-            type="button"
-            className="y2k-tray-btn"
-            title="Back to the theme chooser"
-            aria-label="Back to the theme chooser"
-            onClick={returnToChooser}
-          >
-            ⌂
-          </button>
           <button
             type="button"
             className="y2k-tray-btn"

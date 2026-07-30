@@ -1,0 +1,120 @@
+---
+/**
+ * The document: head metadata plus a mount point for the desktop.
+ */
+import { SITE, SITE_URL } from '../config';
+import { CANONICAL } from '../data/copy';
+import { EDUCATION } from '../data/education';
+import { IDENTITY, PHOTO, SOCIALS } from '../data/identity';
+import { ROLES } from '../data/experience';
+import { NO_FLASH_SCRIPT } from '../lib/mode';
+import '../styles/base.css';
+import '../styles/print.css';
+
+type Props = {
+  title?: string;
+  description?: string;
+};
+
+const { title = SITE.title, description = CANONICAL.metaDescription } = Astro.props;
+
+const ogImageUrl = new URL(SITE.ogImage, SITE_URL).href;
+const currentRole = ROLES.find((r) => r.current);
+
+/** Structured data, mostly for recruiters searching by name. */
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: IDENTITY.name,
+  url: SITE_URL,
+  image: new URL(PHOTO.src, SITE_URL).href,
+  email: `mailto:${IDENTITY.email}`,
+  jobTitle: currentRole?.title,
+  description: CANONICAL.bioShort,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Waterloo',
+    addressRegion: 'ON',
+    addressCountry: 'CA',
+  },
+  alumniOf: {
+    '@type': 'CollegeOrUniversity',
+    name: EDUCATION.school,
+    sameAs: 'https://uwaterloo.ca/',
+  },
+  ...(currentRole ? { worksFor: { '@type': 'Organization', name: currentRole.company } } : {}),
+  sameAs: [SOCIALS.linkedin, SOCIALS.github],
+  knowsAbout: [
+    'Full-stack development',
+    'Large language model evaluation',
+    'Retrieval-augmented generation',
+    'Python',
+    'TypeScript',
+    'React',
+    'Django',
+  ],
+  seeks: {
+    '@type': 'Demand',
+    name: IDENTITY.availability,
+  },
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={SITE_URL} />
+
+    <meta name="author" content={IDENTITY.name} />
+    <meta name="generator" content={Astro.generator} />
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <meta property="og:type" content="profile" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={SITE_URL} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:alt" content={`${IDENTITY.name} — ${IDENTITY.headline}`} />
+    <meta property="og:site_name" content={IDENTITY.name} />
+    <meta property="og:locale" content={SITE.locale} />
+    <meta property="profile:first_name" content="Dylan" />
+    <meta property="profile:last_name" content="Nagel" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+
+    <script is:inline set:html={NO_FLASH_SCRIPT} />
+
+    {/*
+      The desktop mounts from a module script, which runs after first paint, so
+      the background has to be correct in the first style resolution or there is
+      a white flash. Inline so it can't depend on stylesheet ordering or on the
+      dev server's injection timing.
+    */}
+    <style is:inline>
+      html {
+        background: #008080;
+      }
+      html[data-mode='dark'] {
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot />
+  </body>
+</html>

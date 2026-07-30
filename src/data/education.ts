@@ -1,15 +1,11 @@
 /**
- * Education (spec §3) and skills (spec §7).
+ * Education and skills.
  */
 import type { Education, SkillGroup } from './types';
 
 /**
- * R4: graduation year is 2028. Never write 2027 here.
- *
- * 2027 appears on this site in exactly one context — the Summer 2027 co-op
- * availability line — and that is a term, not a degree date. A false degree
- * date on a public page is not acceptable, and co-op recruiters screen on term
- * availability anyway.
+ * Graduation is 2028. The Summer 2027 in the availability line is a work term, not
+ * a degree date, and the two are easy to conflate.
  */
 export const EDUCATION: Education = {
   school: 'University of Waterloo',
@@ -27,10 +23,8 @@ export const EDUCATION: Education = {
 };
 
 /**
- * No proficiency tiers (§7) — grouped lists, ordered by centrality to actual
- * work. Do not add star ratings, percentages, or "expert/intermediate" labels.
- *
- * Cut by Dylan's decision — DO NOT REINSTATE: Kafka, Java, C, C++.
+ * Grouped by how central each thing is to real work, and with no proficiency
+ * tiers — no stars, no percentages, no "expert/intermediate".
  */
 export const SKILLS: SkillGroup[] = [
   { label: 'Languages', items: ['Python', 'TypeScript', 'JavaScript', 'C#', 'SQL', 'Bash'] },

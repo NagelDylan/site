@@ -1,17 +1,9 @@
 /*
- * Print stylesheet (G15).
+ * Print stylesheet. Printing the desktop should produce a readable document, not
+ * a screenshot: black on white, no window chrome, no decoration, and link URLs
+ * written out because a printed link is otherwise useless.
  *
- * A recruiter who prints this page should get something that reads like a
- * document, not a screenshot of a corkboard or a Win98 desktop. So print
- * collapses all three themes to the same clean typographic output: black on
- * white, no textures, no window chrome, no decorative craft, and URLs spelled
- * out after their links because a printed link is otherwise useless.
- *
- * Themes contribute to this by marking decoration with data-decorative and
- * chrome with data-chrome, both of which are hidden below. Two more hooks in the
- * same idiom handle content that only makes sense in one medium:
- * data-print-hide (real on screen, meaningless on paper) and data-print-only
- * (the paper substitute for it, hidden on screen by each theme's stylesheet).
+ * The markup marks decoration with data-decorative and chrome with data-chrome.
  */
 @media print {
   :root {
@@ -27,16 +19,12 @@
     line-height: 1.45;
   }
 
-  /* Kill every theme's atmosphere in one pass. */
+  /* Drop the atmosphere in one pass. */
   body::before,
   body::after,
   [data-decorative],
   [data-chrome],
-  [data-grain],
-  [data-halftone],
-  [data-cursor-trail],
   [data-motion-control],
-  [data-print-hide],
   .skip-link,
   nav,
   footer nav,
@@ -49,28 +37,16 @@
   }
 
   /*
-   * An embedded PDF cannot be printed with the page around it. Depending on the
-   * browser you get a blank rectangle, a screenshot of somebody's viewer chrome
-   * complete with toolbar, or the first page cropped to the box height — never the
-   * document. So the object goes, and the /resume page prints a data-print-only
-   * line naming the file and its URL instead, which is the only thing that is
-   * actually useful on paper.
+   * An embedded PDF cannot be printed with the page around it. Browsers give you
+   * a blank rectangle, a shot of their own viewer toolbar, or the first page
+   * cropped to the box height — never the document.
    */
   object,
   embed {
     display: none !important;
   }
 
-  /*
-   * The other half of that pair: content written for the printed page only. It is
-   * display:none on screen in the theme stylesheets, so this has to be !important
-   * to win — the screen rule is more specific than a bare attribute selector.
-   */
-  [data-print-only] {
-    display: block !important;
-  }
-
-  /* Flatten the craft: no rotation, no shadows, no overlap. */
+  /* No rotation, shadows or overlap on paper. */
   * {
     transform: none !important;
     box-shadow: none !important;
@@ -156,7 +132,7 @@
     page-break-inside: avoid;
   }
 
-  /* Media is decorative on paper; the poster still is enough. */
+  /* Media is decorative on paper; the poster frame is enough. */
   [data-motion-media] img {
     max-width: 60mm !important;
   }

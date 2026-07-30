@@ -1,9 +1,8 @@
 /**
  * Starfield screensaver, and the sparkle cursor trail.
  *
- * Both are motion-only decoration, so both are switched off entirely under
- * prefers-reduced-motion (G17) — the caller does not render them at all rather
- * than rendering them frozen.
+ * Both are motion-only decoration, so the caller skips rendering them entirely
+ * under prefers-reduced-motion rather than rendering them frozen.
  *
  * The trail is JS-tracked because CSS caps cursor images at about 32px and a
  * cursor image cannot leave a wake behind it. Every sparkle is a fixed-position

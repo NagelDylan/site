@@ -1,10 +1,9 @@
 /**
  * Modal-ish dialog, and the blue screen.
  *
- * ─── WHY THE BSOD IS SAFE ────────────────────────────────────────────────────
- * It is only ever reachable from Start → Shut Down, so it can never read as a
- * real crash — the visitor asked for it. It says so in the middle of the stop
- * message, and it recovers into the boot sequence rather than dead-ending.
+ * The BSOD is only reachable from Start → Shut Down, so it can never read as a
+ * real crash. It says so in the stop message, and it reboots into the boot
+ * sequence rather than dead-ending.
  */
 import { useEffect } from 'react';
 import Icon, { type IconName } from './Icon';

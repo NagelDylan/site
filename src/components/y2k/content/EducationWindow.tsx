@@ -1,20 +1,15 @@
 /**
  * SCHOOL, dressed as the System Properties dialog.
  *
- * R4: the graduation year rendered here is whatever EDUCATION.dates says, which
- * is "Sep 2023 – Expected 2028". 2028. The only 2027 anywhere on this site is the
- * Summer 2027 co-op *term* line, which is a work term and not a degree date.
- *
- * GPA 3.9 is approved copy (§3) and is not a performance metric under R1.
+ * The graduation year is whatever EDUCATION.dates says (2028). The Summer 2027
+ * line elsewhere is a co-op work term, not a degree date.
  */
 import { EDUCATION, IDENTITY } from '../../../data';
-import { VOICES } from '../../../data/voice';
-
-const voice = VOICES.y2k;
+import { COPY } from '../../../data/copy';
 
 const EducationWindow = () => (
   <div className="y2k-client y2k-client--face">
-    <h2>{voice.headings.education}</h2>
+    <h2>{COPY.headings.education}</h2>
     <div className="y2k-in" style={{ padding: '10px 12px', marginBottom: 10 }}>
       <p style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, lineHeight: 1.7 }}>
         System:

@@ -1,22 +1,15 @@
 /**
  * CONTACT, dressed as an MSN Messenger conversation window.
  *
- * ─── ON HONESTY ──────────────────────────────────────────────────────────────
- * This window really sends now. `submitContact` relays the message to Dylan's
- * inbox through Web3Forms (src/lib/contact.ts explains why a third party and not
- * a server of ours).
- *
- * The rule that produced the old "⚠ NOT SENT" is unchanged: the log says
- * delivered only when delivery was confirmed. A failure gets its own loud line
- * and the address that needs no server. The Messenger costume is a joke about the
- * *interface* — it was never a licence to claim a delivery that did not happen
- * (§18.5), and a confirmed one still has to be earned.
+ * `submitContact` relays the message through Web3Forms (src/lib/contact.ts covers
+ * why a third party). The log only says delivered when the relay confirmed it; a
+ * failure gets a loud line and the mailto fallback.
  */
 import { useState } from "react";
 import { FEATURES, TURNSTILE_SITE_KEY } from "../../../config";
 import { IDENTITY, SOCIALS } from "../../../data";
 import { contactMailto, submitContact } from "../../../lib/contact";
-import { useHoneypot } from "../../shared/Honeypot";
+import { useHoneypot } from "../Honeypot";
 
 /** What came back, in the register of a chat log. */
 type Outcome =
@@ -47,7 +40,6 @@ const ContactWindow = () => {
       name,
       email,
       message,
-      source: "y2k",
       botcheck: honeypot.tripped,
     });
     setSending(false);
@@ -65,7 +57,7 @@ const ContactWindow = () => {
   };
 
   /** Rebuilt from current state, so it stays right if they edit and retry. */
-  const fallback = contactMailto({ name, email, message, source: "y2k" });
+  const fallback = contactMailto({ name, email, message });
 
   return (
     <div className="y2k-client y2k-client--face" style={{ padding: 4 }}>
@@ -187,11 +179,9 @@ const ContactWindow = () => {
           {honeypot.field}
 
           {/*
-            Turnstile mounts here once a site key exists and its secret is in the
+            Turnstile mounts once a site key exists and its secret is in the
             Web3Forms dashboard, which is what actually verifies the token. While
-            the key is null nothing renders — the old placeholder announced a
-            widget that was never coming, and the honeypot is the real defence in
-            the meantime.
+            the key is null nothing renders and the honeypot is the only defence.
           */}
           {FEATURES.turnstile && TURNSTILE_SITE_KEY ? (
             <div

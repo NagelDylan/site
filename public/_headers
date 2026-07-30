@@ -1,7 +1,17 @@
-# Cloudflare Pages headers. Copied verbatim from public/ into dist/ at build time.
+# INERT ON GITHUB PAGES. Kept because it is the whole header policy in one file:
+# if this site ever moves back to Cloudflare Pages (or to Netlify, which reads the
+# same format) it starts working again untouched.
 #
-# Kept minimal on purpose (§18.4: no deploy config beyond the Pages build script).
-# These are static-hosting concerns only — nothing here depends on an account.
+# GitHub Pages serves no custom headers at all and offers no way to add them, so
+# on the current host none of the rules below apply. What is actually lost:
+#   - X-Frame-Options / Referrer-Policy / Permissions-Policy — no equivalent.
+#     A <meta http-equiv> tag cannot set them; only CSP works that way.
+#   - The Cache-Control tuning. Pages sends a short max-age with an ETag for
+#     everything, so hashed /_astro/ assets get revalidated instead of served
+#     from cache for a year. Correct, just slower than it needs to be.
+#
+# Cloudflare Pages headers. Copied verbatim from public/ into dist/ at build time.
+# Static-hosting concerns only; nothing here depends on an account.
 
 /*
   X-Content-Type-Options: nosniff
@@ -14,8 +24,7 @@
   Cache-Control: public, max-age=31536000, immutable
 
 # Media filenames are stable rather than hashed, so revalidate daily. The heavy
-# animated WebPs are only fetched on user intent (see MotionMedia), which matters
-# more here than the cache policy.
+# animated WebPs are only fetched on user intent anyway (see MotionMedia).
 /media/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
