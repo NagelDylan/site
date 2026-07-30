@@ -20,7 +20,7 @@ import {
   SOCIALS,
 } from '../../data';
 import { COPY } from '../../data/copy';
-import { MARQUEE_TEXT, Marquee, RainbowRule, UnderConstruction } from './deco';
+import { MARQUEE_TEXT, Marquee, RainbowRule } from './deco';
 import type { Resume } from './wm';
 
 type Props = {
@@ -79,9 +79,6 @@ const MobileY2k = ({ onToggleMode, mode, resume }: Props) => (
             </a>
           </>
         ) : null}
-      </p>
-      <p>
-        <UnderConstruction label="MOBILE EDITION — NO WINDOWS TO DRAG, SORRY" />
       </p>
     </header>
 

@@ -440,9 +440,15 @@ html[data-mode='dark'] .y2k-tb-btn {
   border: 2px outset #fff;
 }
 
+/*
+ * Literal, not var(--y2k-accent-2): the mobile tree renders as a sibling of
+ * .y2k-root (see App.tsx), so none of the palette tokens are in scope there. A
+ * var() that resolves to nothing drops the whole background declaration, which
+ * left this badge's black text sitting on the dark mobile background.
+ */
 html[data-mode='dark'] .y2k-avail {
   color: #000;
-  background: var(--y2k-accent-2);
+  background: #b6ff00;
 }
 
 .y2k-banner-row {
