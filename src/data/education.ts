@@ -15,10 +15,12 @@ export const EDUCATION: Education = {
   dates: 'Sep 2023 – Expected 2028',
   gpa: '3.9',
   coursework: [
-    'Object-Oriented Software Engineering',
-    'Logic and Computation',
-    'Tools for Software Engineering',
-    'Algorithms and Data Abstraction',
+    'Application Development',
+    'Algorithms',
+    'Data Structures and Data Management',
+    'User Interfaces',
+    'Operating Systems',
+    'Object-Oriented Software Development',
   ],
 };
 
@@ -48,7 +50,7 @@ export const SKILLS: SkillGroup[] = [
   },
   {
     label: 'Data & Cloud',
-    items: ['PostgreSQL', 'MongoDB', 'MySQL', 'SQLite', 'Redis', 'AWS (S3)', 'GCP'],
+    items: ['PostgreSQL', 'MongoDB', 'SQLite', 'Redis/Valkey', 'AWS (S3)'],
   },
   {
     label: 'Infrastructure & Tooling',
@@ -56,10 +58,8 @@ export const SKILLS: SkillGroup[] = [
       'Docker',
       'Kubernetes',
       'Celery',
-      'Redis',
       'Git',
       'GitHub Actions',
-      'Jenkins',
       'Jira',
       'Figma',
       'Cloudflare',

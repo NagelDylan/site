@@ -15,21 +15,7 @@ OUT="public"
 mkdir -p "$OUT/media"
 
 need() { command -v "$1" >/dev/null || { echo "missing tool: $1" >&2; exit 1; }; }
-need sips; need cwebp; need gif2webp; need webpmux; need node
-
-echo "==> favicon set"
-# The source is a 1024x1024 transparent PNG already composed as an icon: one
-# centred circular badge inside ~190px of empty glow margin. It is trimmed to
-# 700x700 once and every size is that same square scaled down, so the 16px tab
-# icon and the 512px install icon read identically.
-sips -c 700 700 "$SRC/favicon.png" --out /tmp/favicon-trim.png >/dev/null
-for s in 16 32 48 180 512; do
-  sips -z $s $s /tmp/favicon-trim.png --out "$OUT/favicon-$s.png" >/dev/null
-done
-mv "$OUT/favicon-180.png" "$OUT/apple-touch-icon.png"
-node scripts/make-ico.mjs "$OUT/favicon.ico" \
-  "$OUT/favicon-16.png" "$OUT/favicon-32.png" "$OUT/favicon-48.png"
-rm -f /tmp/favicon-trim.png "$OUT/favicon-48.png"
+need sips; need cwebp; need gif2webp; need webpmux
 
 echo "==> project media (animated GIF -> animated WebP + static poster)"
 # -mixed lets the encoder pick lossy or lossless per frame, which is a big win
