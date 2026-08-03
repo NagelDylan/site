@@ -24,6 +24,9 @@ export const ROLES: Role[] = [
       'Built the LLM assistant layer for an internal security dashboard, where a plain-English request rewrites filters, rearranges panels, or updates records through typed tools, each one confirmed by the user and permission-checked before it runs.',
       "Contributed to the security organization's work on Project Glasswing, Anthropic's early-access program for its Mythos model.",
       'Automated recurring leadership reporting, from the data model through server-side chart rendering to scheduled digest emails.',
+      // Self-directed work, not assigned — that framing is the point of the bullet.
+      // Timings stay on the résumé; 14 endpoints and 7 apps are scope, not results.
+      'Found and fixed an unreported pagination bottleneck: 14 list endpoints across 7 Django apps were loading entire tables into memory before paging them. Moved paging into Postgres and added deterministic ordering so page boundaries stay stable.',
     ],
     description: null,
     tags: [
@@ -31,6 +34,7 @@ export const ROLES: Role[] = [
       'Django',
       'Django Ninja',
       'Celery',
+      'PostgreSQL',
       'React',
       'TypeScript',
       'LLM Evaluation',
