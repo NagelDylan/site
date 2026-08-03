@@ -36,19 +36,6 @@ export const SKILLS: SkillGroup[] = [
     items: ['Django', 'Django Ninja', 'FastAPI', 'Flask', 'Node.js', 'Express', 'Celery', '.NET'],
   },
   {
-    label: 'AI & LLM',
-    items: [
-      'RAG',
-      'prompt engineering',
-      'LLM evaluation',
-      'agentic AI and tool-use harnesses',
-      'OpenAI API',
-      'GPT-4o',
-      'Braintrust',
-      'sentence transformers',
-    ],
-  },
-  {
     label: 'Data & Cloud',
     items: ['PostgreSQL', 'MongoDB', 'SQLite', 'Redis/Valkey', 'AWS (S3)'],
   },
