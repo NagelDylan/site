@@ -354,6 +354,9 @@ const App = ({ resume }: Props) => {
              * the desktop, and reopen Welcome.htm behind it.
              */
             setBooting(true);
+            /* A reboot is a fresh machine, so the paperclip gets to introduce
+               himself again. */
+            introduced.current = false;
             open({ kind: 'welcome' });
           }}
         />
