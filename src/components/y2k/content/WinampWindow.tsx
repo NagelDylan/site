@@ -12,9 +12,9 @@
  * The playlist is a real listbox (arrows, Home/End) and moving the selection is
  * loading the track — there is no separate confirm step.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ALBUM, TRACKS, formatTime, trackAt } from '../../../lib/music';
-import { useReducedMotion } from '../hooks';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ALBUM, TRACKS, formatTime, trackAt } from "../../../lib/music";
+import { useReducedMotion } from "../hooks";
 
 /** Analyser resolution. 32 bins in, twelve bars out. */
 const FFT_SIZE = 64;
@@ -45,7 +45,9 @@ const WinampWindow = () => {
 
   const track = trackAt(index);
   /** The manifest's rounded time until the real one arrives. */
-  const shownDuration = Number.isFinite(duration) ? duration : track.durationSec;
+  const shownDuration = Number.isFinite(duration)
+    ? duration
+    : track.durationSec;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -62,7 +64,8 @@ const WinampWindow = () => {
     if (!audio || ctxRef.current) return;
     const Ctor: typeof AudioContext | undefined =
       window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
     // No WebAudio: the element still plays, only the bars are lost, and they stay
     // flat.
     if (!Ctor) return;
@@ -88,7 +91,7 @@ const WinampWindow = () => {
    */
   useEffect(() => {
     const flatten = () => {
-      for (const bar of barsRef.current) if (bar) bar.style.height = '3px';
+      for (const bar of barsRef.current) if (bar) bar.style.height = "3px";
     };
     if (!playing || reducedMotion) {
       flatten();
@@ -178,14 +181,15 @@ const WinampWindow = () => {
    * how a keyboard visitor gets stuck.
    */
   const onListKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
-    const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
+    const step =
+      event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
     if (step !== 0) {
       event.preventDefault();
       load(index + step, playing);
-    } else if (event.key === 'Home') {
+    } else if (event.key === "Home") {
       event.preventDefault();
       load(0, playing);
-    } else if (event.key === 'End') {
+    } else if (event.key === "End") {
       event.preventDefault();
       load(TRACKS.length - 1, playing);
     }
@@ -219,9 +223,10 @@ const WinampWindow = () => {
 
         <div className="y2k-winamp-lcd">
           <span className="y2k-winamp-title">
-            {failed ? '!' : playing ? '▶' : '■'} {String(index + 1).padStart(2, '0')}.{' '}
+            {failed ? "!" : playing ? "▶" : "■"}{" "}
+            {String(index + 1).padStart(2, "0")}.{" "}
             {failed
-              ? 'file would not play'
+              ? "file would not play"
               : `${track.artist} — ${track.title}`}
           </span>
           <span className="y2k-winamp-clock">
@@ -235,8 +240,8 @@ const WinampWindow = () => {
                   barsRef.current[i] = node;
                 }}
                 style={{
-                  height: '3px',
-                  transition: reducedMotion ? 'none' : 'height 70ms linear',
+                  height: "3px",
+                  transition: reducedMotion ? "none" : "height 70ms linear",
                 }}
               />
             ))}
@@ -264,25 +269,37 @@ const WinampWindow = () => {
         />
 
         <div className="y2k-winamp-row">
-          <button type="button" onClick={() => load(index - 1, playing)} aria-label="Previous track">
+          <button
+            type="button"
+            onClick={() => load(index - 1, playing)}
+            aria-label="Previous track"
+          >
             ◀◀
           </button>
-          <button type="button" onClick={toggle} data-pressed={playing || undefined}>
-            {playing ? '▮▮ PAUSE' : '▶ PLAY'}
+          <button
+            type="button"
+            onClick={toggle}
+            data-pressed={playing || undefined}
+          >
+            {playing ? "▮▮ PAUSE" : "▶ PLAY"}
           </button>
           <button type="button" onClick={stop} aria-label="Stop">
             ■
           </button>
-          <button type="button" onClick={() => load(index + 1, playing)} aria-label="Next track">
+          <button
+            type="button"
+            onClick={() => load(index + 1, playing)}
+            aria-label="Next track"
+          >
             ▶▶
           </button>
           <button
             type="button"
             onClick={() => setMuted((m) => !m)}
             data-pressed={muted || undefined}
-            aria-label={muted ? 'Unmute' : 'Mute'}
+            aria-label={muted ? "Unmute" : "Mute"}
           >
-            {muted ? '🔇' : '🔊'}
+            {muted ? "🔇" : "🔊"}
           </button>
           <input
             type="range"
@@ -317,23 +334,26 @@ const WinampWindow = () => {
                 data-current={i === index || undefined}
                 onClick={() => load(i, true)}
               >
-                <span className="y2k-winamp-pl-num">{String(i + 1).padStart(2, '0')}.</span>
+                <span className="y2k-winamp-pl-num">
+                  {String(i + 1).padStart(2, "0")}.
+                </span>
                 <span className="y2k-winamp-pl-name">
                   {item.artist} — {item.title}
                 </span>
-                <span className="y2k-winamp-pl-time">{formatTime(item.durationSec)}</span>
+                <span className="y2k-winamp-pl-time">
+                  {formatTime(item.durationSec)}
+                </span>
               </li>
             ))}
           </ul>
         </div>
 
         <p className="y2k-winamp-note">
-          {ALBUM.title} —{' '}
+          {ALBUM.title} —{" "}
           <a href={ALBUM.labelUrl} target="_blank" rel="noopener noreferrer">
             {ALBUM.label}
           </a>
-          , {ALBUM.year}. A free netlabel compilation, not my music. Nothing plays until you
-          press play.
+          , {ALBUM.year}. A free netlabel compilation, not my music.
         </p>
       </div>
     </div>
