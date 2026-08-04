@@ -38,12 +38,12 @@ export type Track = {
 
 /** The compilation itself, for the credit line the player renders. */
 export const ALBUM = {
-  title: 'netBloc Vol. 24: tiuqottigeloot',
-  label: 'blocSonic',
+  title: "netBloc Vol. 24: tiuqottigeloot",
+  label: "blocSonic",
   year: 2009,
   /** Cover art, 300 px — the era's own artwork. */
-  cover: '/media/music/netbloc24-cover.webp',
-  labelUrl: 'https://blocsonic.com',
+  cover: "/media/music/netbloc24-cover.webp",
+  labelUrl: "https://blocsonic.com",
 } as const;
 
 /**
@@ -52,91 +52,91 @@ export const ALBUM = {
  * computed index.
  */
 const OPENING_TRACK: Track = {
-  id: '01-diablo-swing-orchestra-heroines',
-  title: 'Heroines',
-  artist: 'Diablo Swing Orchestra',
-  src: '/media/music/01-diablo-swing-orchestra-heroines.m4a',
-  durationSec: 323,
+  id: "01-paper-navy-tongue-tied",
+  title: "Tongue Tied",
+  artist: "Paper Navy",
+  src: "/media/music/01-paper-navy-tongue-tied.m4a",
+  durationSec: 201,
 };
 
 /** Track order is the compilation's order. Do not sort these alphabetically. */
 export const TRACKS: Track[] = [
   OPENING_TRACK,
   {
-    id: '02-eclectek-we-are-going-to-eclecfunk-your-ass',
-    title: 'We Are Going To Eclecfunk Your Ass',
-    artist: 'Eclectek',
-    src: '/media/music/02-eclectek-we-are-going-to-eclecfunk-your-ass.m4a',
+    id: "02-eclectek-we-are-going-to-eclecfunk-your-ass",
+    title: "We Are Going To Eclecfunk Your Ass",
+    artist: "Eclectek",
+    src: "/media/music/02-eclectek-we-are-going-to-eclecfunk-your-ass.m4a",
     durationSec: 190,
   },
   {
-    id: '03-auto-pilot-seventeen',
-    title: 'Seventeen',
-    artist: 'Auto-Pilot',
-    src: '/media/music/03-auto-pilot-seventeen.m4a',
+    id: "03-auto-pilot-seventeen",
+    title: "Seventeen",
+    artist: "Auto-Pilot",
+    src: "/media/music/03-auto-pilot-seventeen.m4a",
     durationSec: 215,
   },
   {
-    id: '04-muha-microphone',
-    title: 'Microphone',
-    artist: 'Muha',
-    src: '/media/music/04-muha-microphone.m4a',
+    id: "04-muha-microphone",
+    title: "Microphone",
+    artist: "Muha",
+    src: "/media/music/04-muha-microphone.m4a",
     durationSec: 182,
   },
   {
-    id: '05-just-plain-ant-stumble',
-    title: 'Stumble',
-    artist: 'Just Plain Ant',
-    src: '/media/music/05-just-plain-ant-stumble.m4a',
+    id: "05-just-plain-ant-stumble",
+    title: "Stumble",
+    artist: "Just Plain Ant",
+    src: "/media/music/05-just-plain-ant-stumble.m4a",
     durationSec: 86,
   },
   {
-    id: '06-sleaze-god-damn',
-    title: 'God Damn',
-    artist: 'Sleaze',
-    src: '/media/music/06-sleaze-god-damn.m4a',
+    id: "06-sleaze-god-damn",
+    title: "God Damn",
+    artist: "Sleaze",
+    src: "/media/music/06-sleaze-god-damn.m4a",
     durationSec: 227,
   },
   {
-    id: '07-juanitos-hola-hola-bossa-nova',
-    title: 'Hola Hola Bossa Nova',
-    artist: 'Juanitos',
-    src: '/media/music/07-juanitos-hola-hola-bossa-nova.m4a',
+    id: "07-juanitos-hola-hola-bossa-nova",
+    title: "Hola Hola Bossa Nova",
+    artist: "Juanitos",
+    src: "/media/music/07-juanitos-hola-hola-bossa-nova.m4a",
     durationSec: 207,
   },
   {
-    id: '08-entertainment-for-the-braindead-resolutions-chris-summer-remix',
-    title: 'Resolutions (Chris Summer Remix)',
-    artist: 'Entertainment For The Braindead',
-    src: '/media/music/08-entertainment-for-the-braindead-resolutions-chris-summer-remix.m4a',
+    id: "08-entertainment-for-the-braindead-resolutions-chris-summer-remix",
+    title: "Resolutions (Chris Summer Remix)",
+    artist: "Entertainment For The Braindead",
+    src: "/media/music/08-entertainment-for-the-braindead-resolutions-chris-summer-remix.m4a",
     durationSec: 314,
   },
   {
-    id: '09-nobara-hayakawa-trail',
-    title: 'Trail',
-    artist: 'Nobara Hayakawa',
-    src: '/media/music/09-nobara-hayakawa-trail.m4a',
+    id: "09-nobara-hayakawa-trail",
+    title: "Trail",
+    artist: "Nobara Hayakawa",
+    src: "/media/music/09-nobara-hayakawa-trail.m4a",
     durationSec: 204,
   },
   {
-    id: '10-paper-navy-tongue-tied',
-    title: 'Tongue Tied',
-    artist: 'Paper Navy',
-    src: '/media/music/10-paper-navy-tongue-tied.m4a',
-    durationSec: 201,
+    id: "10-diablo-swing-orchestra-heroines",
+    title: "Heroines",
+    artist: "Diablo Swing Orchestra",
+    src: "/media/music/10-diablo-swing-orchestra-heroines.m4a",
+    durationSec: 323,
   },
   {
-    id: '11-60-tigres-garage',
-    title: 'Garage',
-    artist: '60 Tigres',
-    src: '/media/music/11-60-tigres-garage.m4a',
+    id: "11-60-tigres-garage",
+    title: "Garage",
+    artist: "60 Tigres",
+    src: "/media/music/11-60-tigres-garage.m4a",
     durationSec: 245,
   },
   {
-    id: '12-cm-aka-creative-the-cycle-featuring-mista-mista',
-    title: 'The Cycle (Featuring Mista Mista)',
-    artist: 'CM aka Creative',
-    src: '/media/music/12-cm-aka-creative-the-cycle-featuring-mista-mista.m4a',
+    id: "12-cm-aka-creative-the-cycle-featuring-mista-mista",
+    title: "The Cycle (Featuring Mista Mista)",
+    artist: "CM aka Creative",
+    src: "/media/music/12-cm-aka-creative-the-cycle-featuring-mista-mista.m4a",
     durationSec: 221,
   },
 ];
@@ -163,7 +163,7 @@ export function trackLabel(track: Track): string {
  * because `audio.duration` is NaN until the metadata event fires.
  */
 export function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return '--:--';
+  if (!Number.isFinite(seconds) || seconds < 0) return "--:--";
   const total = Math.floor(seconds);
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
