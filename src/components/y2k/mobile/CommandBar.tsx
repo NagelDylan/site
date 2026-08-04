@@ -149,6 +149,7 @@ const CommandBar = ({ shell, menu, onAssistant }: CommandBarProps) => {
                 <button
                   type="button"
                   className="y2k-ce-pop-item"
+                  data-summons-assistant
                   onClick={() => run(onAssistant)}
                 >
                   <Icon name="info" /> Summon the paperclip

@@ -18,6 +18,7 @@ import Boot from './Boot';
 import { Bsod, Dialog, GUESTBOOK_FULL, type DialogSpec } from './Dialog';
 import { Screensaver, SparkleTrail } from './effects';
 import MobileApp from './mobile/MobileApp';
+import { useShell } from './mobile/shell';
 import { MARQUEE_TEXT, Marquee } from './deco';
 import { useIdle, useNarrow, useReducedMotion } from './hooks';
 import {
@@ -63,7 +64,10 @@ type Props = {
 };
 
 const App = ({ resume }: Props) => {
-  const narrow = useNarrow();
+  /* null until measured — see useNarrow. `narrow` is the branch; `measured` is
+     what tells a resize apart from the first paint. */
+  const measured = useNarrow();
+  const narrow = measured === true;
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>(
     () => (document.documentElement.dataset.mode as Mode) ?? 'light',
@@ -71,15 +75,38 @@ const App = ({ resume }: Props) => {
   /*
    * The BIOS post is the opening joke, so it plays on every visit rather than
    * once per session. Skippable with any key, click or tap.
+   *
+   * It lives here rather than in either shell because a resize across the
+   * breakpoint swaps machines, and a swap must not read as a reboot: DYLAN CE
+   * mounting fresh would replay its own POST every time the window narrowed. The
+   * assistant is here for the same reason — dismissing him once should stick.
    */
   const [booting, setBooting] = useState(true);
   const [crashed, setCrashed] = useState(false);
   const [assistant, setAssistant] = useState(false);
   const [dialog, setDialog] = useState<DialogSpec | null>(null);
   const wm = useWindowManager();
+  /* Held here, not in MobileApp, so the handheld's running programs survive a
+     trip through the desktop and back. */
+  const shell = useShell();
+
+  /*
+   * Both shells' live state, readable from an effect that must not re-run every
+   * time a window moves. Its own effect, declared ahead of the consumers below,
+   * so they read the render they fired on.
+   */
+  const latest = useRef({ wm, shell });
+  useEffect(() => {
+    latest.current = { wm, shell };
+  });
 
   /** The screensaver only exists when motion is welcome, and never mid-boot. */
   const { idle, wake } = useIdle(70_000, !reducedMotion && !booting && !crashed && !narrow);
+
+  const endBoot = useCallback(() => setBooting(false), []);
+  const restartBoot = useCallback(() => setBooting(true), []);
+  const summonAssistant = useCallback(() => setAssistant(true), []);
+  const dismissAssistant = useCallback(() => setAssistant(false), []);
 
   const toggleMode = useCallback(() => {
     setMode((current) => {
@@ -105,20 +132,79 @@ const App = ({ resume }: Props) => {
   const { open } = wm;
   const greeted = useRef(false);
   useEffect(() => {
-    if (narrow || greeted.current) return;
+    if (measured === null || narrow || greeted.current) return;
     greeted.current = true;
+    /* Arriving from the handheld is not an arrival: the handover below has
+       already carried whatever was running over, and Welcome.htm landing on top
+       of it is the pop-up this site promises not to do. */
+    if (latest.current.shell.running.length) return;
     open({ kind: 'welcome' });
-  }, [narrow, open]);
+  }, [measured, narrow, open]);
 
   /** The paperclip introduces himself once the boot is out of the way. */
   useEffect(() => {
-    if (booting || narrow) return;
+    if (booting) return;
     const timer = window.setTimeout(() => setAssistant(true), 1200);
     return () => window.clearTimeout(timer);
-  }, [booting, narrow]);
+  }, [booting]);
+
+  /*
+   * Crossing the breakpoint swaps machines, so carry the view across. Without
+   * this you land back on Today (or on a bare desktop) every time the window
+   * changes width, which reads as the site having reloaded itself.
+   *
+   * The two id schemes are deliberately identical — `kind`, or `kind:arg` — so a
+   * window and a program refer to each other without a translation table.
+   */
+  const wasNarrow = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (measured === null) return;
+    const previous = wasNarrow.current;
+    wasNarrow.current = narrow;
+    if (previous === null || previous === narrow) return;
+
+    const { wm: windows, shell: ce } = latest.current;
+    if (narrow) {
+      /* Windows become running programs in z-order, so the focused one ends up on
+         screen and the rest land in Start → Running Programs. */
+      for (const win of [...windows.windows].sort((a, b) => a.z - b.z)) {
+        ce.open(win.kind, win.arg);
+      }
+      const active = windows.windows.find((win) => win.id === windows.activeId);
+      if (active) {
+        ce.open(active.kind, active.arg);
+      } else {
+        /* Nothing focused means every window is minimised, and the handheld's
+           equivalent of that is Today. */
+        ce.home();
+      }
+    } else {
+      for (const app of ce.running) windows.open({ kind: app.kind, arg: app.arg });
+      if (ce.current) {
+        windows.focus(ce.current.id);
+      } else {
+        /* Today owns no window, so it maps to a desktop with everything
+           minimised rather than to programs the visitor had already put away. */
+        for (const app of ce.running) windows.minimize(app.id);
+      }
+    }
+  }, [measured, narrow]);
 
   if (narrow) {
-    return <MobileApp onToggleMode={toggleMode} mode={mode} resume={resume} />;
+    return (
+      <MobileApp
+        onToggleMode={toggleMode}
+        mode={mode}
+        resume={resume}
+        shell={shell}
+        booting={booting}
+        onBooted={endBoot}
+        onReboot={restartBoot}
+        assistant={assistant}
+        onSummonAssistant={summonAssistant}
+        onDismissAssistant={dismissAssistant}
+      />
+    );
   }
 
   const openKind = (kind: WindowKind, arg?: string) => open({ kind, arg: arg ?? null });

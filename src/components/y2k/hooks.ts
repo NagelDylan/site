@@ -21,8 +21,15 @@ export function useReducedMotion(): boolean {
  * manager, since dragging title bars with a thumb is miserable. Coarse pointers
  * count as narrow up to a larger width: a tablet in portrait has the pixels for
  * windows but not the input for them.
+ *
+ * null until the query has actually been measured, which callers have to
+ * distinguish from false. The two shells hand their state to each other across a
+ * resize (see App.tsx), and that handover must be able to tell a first
+ * measurement from a real change of width — a phone's first paint is always the
+ * wide branch, and reading that as a resize hands the handheld a window nobody
+ * opened.
  */
-export function useNarrow(breakpoint = 860): boolean {
+export function useNarrow(breakpoint = 860): boolean | null {
   const [narrow, setNarrow] = useState<boolean | null>(null);
   useEffect(() => {
     const query = window.matchMedia(
@@ -33,7 +40,7 @@ export function useNarrow(breakpoint = 860): boolean {
     query.addEventListener('change', onChange);
     return () => query.removeEventListener('change', onChange);
   }, [breakpoint]);
-  return narrow ?? false;
+  return narrow;
 }
 
 /** Taskbar clock. Ticks on the minute boundary rather than every second. */

@@ -148,6 +148,7 @@ const TopBar = ({
               type="button"
               className="y2k-ce-tray-btn"
               aria-label="Summon the assistant"
+              data-summons-assistant
               onClick={onAssistant}
             >
               ☻
@@ -339,7 +340,12 @@ const TopBar = ({
                 </button>
               </li>
               <li>
-                <button type="button" className="y2k-ce-mi" onClick={() => run(onAssistant)}>
+                <button
+                  type="button"
+                  className="y2k-ce-mi"
+                  data-summons-assistant
+                  onClick={() => run(onAssistant)}
+                >
                   <Icon name="info" /> Summon the paperclip
                 </button>
               </li>

@@ -9,7 +9,7 @@
  * sentences that describe the machine he is standing on — where C:\Projects\
  * lives, and whether you click or tap — and never a fact.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COOP_TERMS, IDENTITY } from "../../data";
 import { ClippyFigure } from "./Icon";
 
@@ -25,9 +25,41 @@ type Props = {
 const Clippy = ({ onOpen, onDismiss, platform = "desktop" }: Props) => {
   const [says, setSays] = useState<Says>("intro");
   const handheld = platform === "mobile";
+  const rootRef = useRef<HTMLElement | null>(null);
+
+  /*
+   * On the handheld he is a sheet covering the bottom of the screen, so a tap
+   * anywhere else is how you put him away — the same gesture every sheet on a
+   * phone answers to. The desktop keeps its own rule: he floats in a corner over
+   * nothing, and "Go away, paperclip" is already next to him, so dismissing him
+   * on any stray click would fight the windows he is sitting on top of.
+   */
+  useEffect(() => {
+    if (!handheld) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (rootRef.current?.contains(target)) return;
+      /* The three controls that summon him are not "outside": dismissing on the
+         pointerdown and re-summoning on the click that follows would remount him
+         mid-conversation and drop him back to his opening line. */
+      if (target.closest("[data-summons-assistant]")) return;
+      onDismiss();
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onDismiss();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [handheld, onDismiss]);
 
   return (
     <aside
+      ref={rootRef}
       className="y2k-clippy"
       data-decorative
       aria-label={handheld ? "Handheld assistant" : "Desktop assistant"}

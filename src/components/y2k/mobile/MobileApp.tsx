@@ -30,25 +30,44 @@ import Reset from './Reset';
 import TapSparkle from './TapSparkle';
 import Today from './Today';
 import TopBar from './TopBar';
-import { useShell } from './shell';
+import type { Shell } from './shell';
 
 type Props = {
   onToggleMode: () => void;
   mode: 'light' | 'dark';
   resume: Resume;
+  /*
+   * Boot, the assistant and the navigation stack all live in App.tsx, because a
+   * resize across the breakpoint unmounts this component and owning them here
+   * would mean the POST replays, the paperclip comes back and every running
+   * program is lost every time the window changes width.
+   */
+  shell: Shell;
+  booting: boolean;
+  onBooted: () => void;
+  onReboot: () => void;
+  assistant: boolean;
+  onSummonAssistant: () => void;
+  onDismissAssistant: () => void;
 };
 
-const MobileApp = ({ onToggleMode, mode, resume }: Props) => {
+const MobileApp = ({
+  onToggleMode,
+  mode,
+  resume,
+  shell,
+  booting,
+  onBooted,
+  onReboot,
+  assistant,
+  onSummonAssistant,
+  onDismissAssistant,
+}: Props) => {
   const reducedMotion = useReducedMotion();
-  const shell = useShell();
-  /* The BIOS post is the opening joke on both machines, so it plays on every
-     visit rather than once per session. Skippable with a tap. */
-  const [booting, setBooting] = useState(true);
   const [crashed, setCrashed] = useState(false);
   /* The desktop's screensaver arms itself on idle; a handheld's is a menu item,
      because a phone that has been idle has usually locked itself already. */
   const [suspended, setSuspended] = useState(false);
-  const [assistant, setAssistant] = useState(false);
   const [dialog, setDialog] = useState<DialogSpec | null>(null);
 
   const { open, quitAll } = shell;
@@ -56,13 +75,6 @@ const MobileApp = ({ onToggleMode, mode, resume }: Props) => {
     (kind: WindowKind, arg?: string | null) => open(kind, arg ?? null),
     [open],
   );
-
-  /** The paperclip introduces himself once the boot is out of the way. */
-  useEffect(() => {
-    if (booting) return;
-    const timer = window.setTimeout(() => setAssistant(true), 1200);
-    return () => window.clearTimeout(timer);
-  }, [booting]);
 
   /*
    * No program opens on arrival, unlike the desktop: there, Welcome.htm exists so
@@ -105,7 +117,7 @@ const MobileApp = ({ onToggleMode, mode, resume }: Props) => {
         resumeAvailable={resume.available}
         onSuspend={() => setSuspended(true)}
         onShutDown={() => setCrashed(true)}
-        onAssistant={() => setAssistant(true)}
+        onAssistant={onSummonAssistant}
       />
 
       <div className="y2k-ce-screen">
@@ -134,13 +146,13 @@ const MobileApp = ({ onToggleMode, mode, resume }: Props) => {
         {current ? null : <Today resume={resume} onOpen={openKind} />}
       </div>
 
-      <CommandBar shell={shell} menu={menu} onAssistant={() => setAssistant(true)} />
+      <CommandBar shell={shell} menu={menu} onAssistant={onSummonAssistant} />
 
       {/* Sparkles are motion-only decoration, so reduced motion removes them
           outright rather than freezing them mid-burst. */}
       {!reducedMotion ? <TapSparkle /> : null}
 
-      {booting ? <Post resumeAvailable={resume.available} onDone={() => setBooting(false)} /> : null}
+      {booting ? <Post resumeAvailable={resume.available} onDone={onBooted} /> : null}
 
       {suspended ? <Screensaver onWake={() => setSuspended(false)} /> : null}
 
@@ -156,7 +168,7 @@ const MobileApp = ({ onToggleMode, mode, resume }: Props) => {
           onReboot={() => {
             setCrashed(false);
             quitAll();
-            setBooting(true);
+            onReboot();
           }}
         />
       ) : null}
@@ -164,7 +176,7 @@ const MobileApp = ({ onToggleMode, mode, resume }: Props) => {
       {dialog ? <Dialog spec={dialog} onClose={() => setDialog(null)} /> : null}
 
       {assistant ? (
-        <Clippy platform="mobile" onDismiss={() => setAssistant(false)} onOpen={openKind} />
+        <Clippy platform="mobile" onDismiss={onDismissAssistant} onOpen={openKind} />
       ) : null}
     </div>
   );
