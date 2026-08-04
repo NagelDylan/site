@@ -12,7 +12,14 @@
    this site's copy can never use. */
 @import '@fontsource/press-start-2p/latin-400.css';
 
-.y2k-root {
+/*
+ * Both shells declare the same tokens, and that is the whole reason DYLAN CE can
+ * render the desktop's content components unchanged: WelcomeWindow and friends
+ * only ever ask for var(--y2k-*), so mounting them inside .y2k-ce resolves every
+ * colour without a fork of the JSX. Chrome that only the desktop has — the
+ * viewport lock and the arrow cursor below — stays on .y2k-root alone.
+ */
+:is(.y2k-root, .y2k-ce) {
   /* A web-safe stack is more period-accurate here than any webfont. */
   --y2k-font: Tahoma, 'MS Sans Serif', Geneva, Verdana, sans-serif;
   --y2k-pixel: 'Press Start 2P', 'Courier New', monospace;
@@ -51,7 +58,7 @@
   color: var(--y2k-text);
 }
 
-html[data-mode='dark'] .y2k-root {
+html[data-mode='dark'] :is(.y2k-root, .y2k-ce) {
   --y2k-desktop: #000;
   --y2k-desktop-2: #08060c;
   --y2k-face: #23202b;
@@ -436,19 +443,11 @@ html[data-mode='dark'] .y2k-tb-btn {
   font-weight: 700;
   font-size: 12px;
   color: #000;
-  background: #ffff00;
+  /* Yellow in light, phosphor green in dark — which is exactly what this token is,
+     so the badge needs no per-mode rule. It renders in the desktop's banner and in
+     DYLAN CE's hero, and both scopes declare the palette. */
+  background: var(--y2k-banner-text);
   border: 2px outset #fff;
-}
-
-/*
- * Literal, not var(--y2k-accent-2): the mobile tree renders as a sibling of
- * .y2k-root (see App.tsx), so none of the palette tokens are in scope there. A
- * var() that resolves to nothing drops the whole background declaration, which
- * left this badge's black text sitting on the dark mobile background.
- */
-html[data-mode='dark'] .y2k-avail {
-  color: #000;
-  background: #b6ff00;
 }
 
 .y2k-banner-row {
@@ -916,23 +915,6 @@ html[data-mode='dark'] .y2k-avail {
     var(--y2k-accent-2) 8px 16px,
     var(--y2k-accent-3) 16px 24px
   );
-}
-
-.y2k-construction {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 700;
-  color: #000;
-  background: repeating-linear-gradient(45deg, #ffcc00 0 8px, #1a1a1a 8px 16px);
-  text-shadow: 0 0 3px #ffcc00;
-}
-
-.y2k-construction span {
-  padding: 1px 4px;
-  background: #ffcc00;
 }
 
 /* Guestbook */
@@ -1626,102 +1608,6 @@ html[data-mode='dark'] .y2k-progress i[data-on='true'] {
   gap: 8px;
 }
 
-/* Mobile: no window manager, just maximalism */
-
-.y2k-m {
-  min-height: 100vh;
-  padding: 0 0 34px;
-  font-family: var(--y2k-font);
-  font-size: 13px;
-  color: #fff;
-  background-color: #000080;
-  background-image:
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.06) 0 10px, transparent 10px 20px),
-    radial-gradient(circle at 50% 0%, #4a0080, #000080 60%);
-}
-
-html[data-mode='dark'] .y2k-m {
-  background-color: #000;
-  background-image:
-    repeating-linear-gradient(45deg, rgba(255, 47, 185, 0.09) 0 10px, transparent 10px 20px),
-    radial-gradient(circle at 50% 0%, #2a0033, #000 65%);
-}
-
-.y2k-m-marquee {
-  padding: 5px 0;
-  background: #000;
-  color: #b6ff00;
-  font-family: var(--y2k-mono);
-  font-size: 12px;
-  border-bottom: 2px solid var(--y2k-accent);
-}
-
-.y2k-m-hero {
-  padding: 18px 14px;
-  text-align: center;
-}
-
-.y2k-m-hero h1 {
-  font-family: var(--y2k-pixel);
-  font-size: 18px;
-  line-height: 1.5;
-  color: #ffff00;
-}
-
-.y2k-m-sec {
-  margin: 14px 10px;
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.45);
-  border: 3px ridge var(--y2k-accent);
-}
-
-.y2k-m-sec > h2 {
-  margin: 0 0 8px;
-  font-family: var(--y2k-pixel);
-  font-size: 12px;
-  line-height: 1.6;
-  color: #00f0ff;
-}
-
-.y2k-m-sec h3 {
-  margin: 12px 0 4px;
-  font-size: 13px;
-  color: #ffff00;
-}
-
-.y2k-m-sec p {
-  margin: 0 0 8px;
-  line-height: 1.5;
-}
-
-.y2k-m-sec ul {
-  margin: 0 0 10px;
-  padding-left: 18px;
-}
-
-.y2k-m-sec li {
-  margin-bottom: 5px;
-  line-height: 1.5;
-}
-
-.y2k-m-sec a {
-  color: #b6ff00;
-}
-
-.y2k-m-bar {
-  position: fixed;
-  inset: auto 0 0 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 3px 5px;
-  background: var(--y2k-face);
-  border-top: 2px solid var(--y2k-light);
-  color: var(--y2k-text);
-}
-
 /*
  * Print. print.css already strips [data-chrome]/[data-decorative] and flattens
  * transforms, but it cannot know that the desktop is position:fixed, the windows
@@ -1787,20 +1673,67 @@ html[data-mode='dark'] .y2k-m {
 
   .y2k-client h2,
   .y2k-client h3,
-  .y2k-m-sec > h2,
-  .y2k-m-sec h3 {
+  .y2k-ce-app h2,
+  .y2k-ce-app h3,
+  .y2k-ce-hero h1,
+  .y2k-ce-today h2 {
     font-family: Georgia, 'Times New Roman', serif !important;
     color: #111 !important;
   }
 
-  .y2k-m,
-  .y2k-m-sec,
-  .y2k-m-hero {
+  /*
+   * DYLAN CE prints as the document it is showing. Its two bars are fixed and
+   * carry data-chrome, and the app frame scrolls inside a capped column — left
+   * alone the printout is one letterbox of content between a title bar and a row
+   * of soft keys.
+   */
+  .y2k-ce-top,
+  .y2k-ce-cmd,
+  .y2k-ce-menu,
+  .y2k-ce-menu-scrim,
+  .y2k-ce-pop,
+  .y2k-ce-post,
+  .y2k-ce-reset,
+  .y2k-ce-sparkle {
+    display: none !important;
+  }
+
+  .y2k-ce,
+  .y2k-ce-screen,
+  .y2k-ce-app,
+  .y2k-ce-today {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: none !important;
     padding: 0 !important;
     margin: 0 0 1em !important;
     background: #fff !important;
     color: #111 !important;
     border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /*
+   * Today's panels are tinted boxes carrying light text, and print.css only drops
+   * background *images* — a panel keeps its colour while the ink around it turns
+   * black, so the glance rows would print white on dark grey. Flatten the boxes
+   * and put every label back to ink.
+   */
+  .y2k-ce-hero h1,
+  .y2k-ce-glance,
+  .y2k-ce-glance-row,
+  .y2k-ce-glance-label,
+  .y2k-ce-glance-val span,
+  .y2k-ce-glance-go,
+  .y2k-ce-social,
+  .y2k-ce-today .y2k-ce-cta-btn,
+  .y2k-ce-today .y2k-ce-prog {
+    background: none !important;
+    color: #111 !important;
+    border-color: #999 !important;
   }
 
   .y2k-note,
@@ -1829,13 +1762,13 @@ html[data-mode='dark'] .y2k-m {
 /* Accessibility floor */
 
 .y2k-root :focus-visible,
-.y2k-m :focus-visible {
+.y2k-ce :focus-visible {
   outline: 2px solid #ffff00;
   outline-offset: 1px;
 }
 
 html[data-mode='light'] .y2k-root :focus-visible,
-html[data-mode='light'] .y2k-m :focus-visible {
+html[data-mode='light'] .y2k-ce :focus-visible {
   outline-color: #ff00a0;
 }
 

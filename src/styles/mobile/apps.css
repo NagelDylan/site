@@ -1,0 +1,657 @@
+/*
+ * DYLAN CE, layer 4: the programs.
+ *
+ * Not one line of content lives here. Every program on the handheld renders the
+ * exact component the desktop window renders (see mobile/AppFrame.tsx), which is
+ * what keeps a single copy of every fact on the site — and it means this file
+ * carries the whole cost of that decision. The desktop lays those components out
+ * inside a window it sized itself: fixed heights, inner scrollers, a 150px folder
+ * tree, 22px buttons, 10px type. All of that has to be re-tuned for a 320px screen
+ * and a thumb, from the outside, without touching the components.
+ *
+ * Three rules held throughout:
+ *   1. Everything is scoped under .y2k-ce, so the desktop never sees any of it.
+ *   2. Heights come off. The desktop's windows are boxes with scrollbars inside
+ *      them; here the document is the scroller, so a program flows to its natural
+ *      height. There are three exceptions, all places where a cap is the point:
+ *      the playlist, the chat log and the PDF frame.
+ *   3. Nothing scrolls sideways. The one deliberate horizontal scroller is the
+ *      explorer's folder strip.
+ *
+ * Motion: base.css's reduced-motion floor kills animation, transition and
+ * scroll-behavior globally with !important, so the smooth scroll on the folder
+ * strip below needs no separate guard.
+ */
+
+/* ---------------------------------------------------------------- the frame */
+
+/*
+ * Fills the screen even when the program is two paragraphs long, because a
+ * Pocket PC program owned the whole display — wallpaper showing under a short
+ * document would read as a web page, not an app. .y2k-client already carries
+ * `flex: 1 1 auto` for the desktop's window body, so it takes the slack here for
+ * free, which is also what puts the explorer's status bar on the bottom edge.
+ */
+.y2k-ce-app {
+  display: flex;
+  flex-direction: column;
+  /* vh first, dvh second: a browser without dvh drops the second line and keeps a
+     working height instead of falling back to `auto`. */
+  min-height: calc(
+    100vh - var(--ce-top-h) - var(--ce-cmd-h) - env(safe-area-inset-top) -
+      env(safe-area-inset-bottom)
+  );
+  min-height: calc(
+    100dvh - var(--ce-top-h) - var(--ce-cmd-h) - env(safe-area-inset-top) -
+      env(safe-area-inset-bottom)
+  );
+  /* Backstop for rule 3: a long unbroken string in content should never be able
+     to give the whole device a horizontal scrollbar. `clip` rather than `hidden`
+     so it does not turn into a scroll container on the other axis. */
+  overflow-x: clip;
+}
+
+/*
+ * The caption band. Small pixel type, because the top bar is already saying the
+ * program's name in full size and this is the quieter, document-level echo of it.
+ */
+.y2k-ce-app-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 6px 9px;
+  font-family: var(--y2k-pixel);
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--y2k-text);
+  background: var(--y2k-face-2);
+  border-bottom: 2px solid var(--y2k-shadow);
+  overflow-wrap: anywhere;
+}
+
+.y2k-ce-app-head svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* ------------------------------------------------------- the client area */
+
+/*
+ * The desktop's client area is a scroll box inside a sized window. Here it is the
+ * page: no inner scroller, no height, and enough padding that text is not against
+ * the glass. The extra bottom padding is breathing room above the command bar.
+ */
+.y2k-ce .y2k-client {
+  flex: 1 1 auto;
+  height: auto;
+  min-width: 0;
+  overflow: visible;
+  margin: 0;
+  padding: 12px 12px 20px;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+/* Content typography. The pixel font has no narrow forms and does not hyphenate,
+   so headings come down a step and are allowed to break mid-word rather than
+   push the screen sideways. */
+.y2k-ce .y2k-client h2 {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.y2k-ce .y2k-client h3 {
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 16px 0 7px;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The installer's heading is deliberately *not* a pixel-font display heading
+ * (y2k.css: Win98 headed its warnings in the system font), and the rule above
+ * outranks that opt-out. Restored, or a dialog warning ends up smaller than the
+ * body text under it.
+ */
+.y2k-ce .y2k-client .y2k-install h3 {
+  font-size: 13px;
+}
+
+.y2k-ce .y2k-client ul.y2k-bullets {
+  padding-left: 19px;
+}
+
+.y2k-ce .y2k-client ul.y2k-bullets li {
+  margin-bottom: 8px;
+}
+
+/* A repo URL or an e-mail address is one word to the line breaker, and the
+   longest of them is wider than the screen. */
+.y2k-ce .y2k-client a {
+  overflow-wrap: anywhere;
+}
+
+/*
+ * EducationWindow sets this panel's pixel font inline, so only the wrapping is
+ * available from here — and "Bachelor of Computer Science" at that size is within
+ * a few pixels of the screen width.
+ */
+.y2k-ce .y2k-client .y2k-in p {
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------- buttons */
+
+/* 34px is the in-content floor; the -lg variant is the one a thumb aims for. */
+.y2k-ce .y2k-btn {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Restores the 1px label nudge on press: y2k.css sets it on `.y2k-btn:active`,
+   which the rule above outranks by scope. Without it a press only swaps the
+   bevel, and on a screen with no cursor that is the whole feedback. */
+.y2k-ce .y2k-btn:active {
+  padding: 7px 11px 5px 13px;
+}
+
+.y2k-ce .y2k-btn-lg {
+  min-height: 44px;
+  padding: 9px 14px;
+  font-size: 14px;
+}
+
+/* Same nudge, measured off the larger resting padding. */
+.y2k-ce .y2k-btn-lg:active {
+  padding: 10px 13px 8px 15px;
+}
+
+/* An inline <a> ignores min-height, and several of these buttons are links. */
+.y2k-ce a.y2k-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* --------------------------------------------------- explorer: C:\Projects\ */
+
+/*
+ * The desktop explorer is a 150px folder tree beside a file pane. At 320px that
+ * leaves the files 160px, so the tree is restacked into a tab strip across the
+ * top. The nested <ul>/<li> from ProjectsExplorer.tsx become flex rows instead of
+ * indented lists, which flattens the tree into one line without touching the
+ * component — and the selected folder is still whatever data-selected says.
+ */
+.y2k-ce .y2k-explorer {
+  grid-template-columns: minmax(0, 1fr);
+  height: auto;
+}
+
+.y2k-ce .y2k-explorer > div {
+  /* The file pane, so an empty-looking folder still reads as a pane. */
+  min-height: 180px;
+}
+
+.y2k-ce .y2k-tree,
+.y2k-ce .y2k-tree ul,
+.y2k-ce .y2k-tree li {
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.y2k-ce .y2k-tree {
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-size: 12px;
+  /* Keyboard focus can land on a tab that is off the right edge; sliding to it is
+     easier to follow than a jump. base.css disables it under reduced motion. */
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.y2k-ce .y2k-tree button {
+  flex: none;
+  width: auto;
+  min-height: 44px;
+  padding: 0 11px;
+  white-space: nowrap;
+  border: 2px solid;
+  border-color: var(--y2k-light) var(--y2k-shadow) var(--y2k-shadow) var(--y2k-light);
+  background: var(--y2k-face);
+  color: var(--y2k-text);
+}
+
+/*
+ * Restated because the rule above matches at the same specificity as y2k.css's
+ * `.y2k-tree button[data-selected='true']` and lands later in the cascade, which
+ * would leave the selected tab looking exactly like the others.
+ */
+.y2k-ce .y2k-tree button[data-selected='true'] {
+  background: var(--y2k-select);
+  color: var(--y2k-select-text);
+  border-color: var(--y2k-shadow) var(--y2k-light) var(--y2k-light) var(--y2k-shadow);
+}
+
+.y2k-ce .y2k-tree button svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* Tiles a thumb can hit, and icons big enough to tell a document from a folder. */
+.y2k-ce .y2k-filegrid {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+  padding: 8px 6px;
+  overflow: visible;
+}
+
+.y2k-ce .y2k-file {
+  min-height: 92px;
+  gap: 5px;
+  padding: 10px 5px;
+  font-size: 12px;
+}
+
+.y2k-ce .y2k-file svg {
+  width: 40px;
+  height: 40px;
+}
+
+/* The explorer's footer, which .y2k-ce-app has pushed to the bottom edge of the
+   screen — so it has to be read at a glance rather than squinted at. */
+.y2k-ce .y2k-statusbar {
+  margin: 0;
+  font-size: 12px;
+  background: var(--y2k-face);
+}
+
+.y2k-ce .y2k-statusbar > * {
+  padding: 6px 8px;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------- experience */
+
+/*
+ * The role header is a company label beside a job title on a desktop; at 320px
+ * they stack, because a two-line title wrapping under a pixel-font company name
+ * reads as one run-on sentence.
+ */
+.y2k-ce .y2k-role {
+  padding: 10px 9px;
+}
+
+.y2k-ce .y2k-role-head {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.y2k-ce .y2k-role-co {
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.y2k-ce .y2k-role--plain .y2k-role-co {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+}
+
+.y2k-ce .y2k-role-meta {
+  font-size: 12px;
+  overflow-wrap: break-word;
+}
+
+.y2k-ce .y2k-note {
+  font-size: 12px;
+}
+
+.y2k-ce .y2k-tags {
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.y2k-ce .y2k-tags li {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+/* Two columns of definition list do not fit; the label sits above its value. */
+.y2k-ce .y2k-kv {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  font-size: 13px;
+}
+
+.y2k-ce .y2k-kv dt {
+  margin-top: 8px;
+}
+
+.y2k-ce .y2k-kv dt:first-of-type {
+  margin-top: 0;
+}
+
+.y2k-ce .y2k-kv dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------- guestbook */
+
+.y2k-ce .y2k-guest {
+  padding: 9px 10px;
+  overflow-wrap: anywhere;
+}
+
+.y2k-ce .y2k-guest-date {
+  font-size: 11px;
+}
+
+/* ----------------------------------------------------------------- media */
+
+/*
+ * The project demo, full width. Scoped by data-motion-media rather than by
+ * .y2k-media alone so it does not catch the About portrait, which AboutWindow
+ * floats at an inline 120px — a 320px pixel-art portrait would be the whole
+ * screen and the bio would start below the fold.
+ */
+.y2k-ce .y2k-media[data-motion-media] {
+  display: block;
+  width: 100%;
+}
+
+.y2k-ce .y2k-media[data-motion-media] img {
+  width: 100%;
+  height: auto;
+}
+
+.y2k-ce .y2k-media [data-motion-control] {
+  min-height: 44px;
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------- contact (MSN) */
+
+.y2k-ce .y2k-msn {
+  height: auto;
+  gap: 8px;
+}
+
+/*
+ * One of the three places a cap is right: the log is a transcript that grows as
+ * the visitor sends, and an uncapped one would push the form it belongs to off
+ * the bottom of the screen.
+ */
+.y2k-ce .y2k-msn-log {
+  flex: none;
+  max-height: 40vh;
+  min-height: 92px;
+  font-size: 13px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.y2k-ce .y2k-msn-toolbar {
+  gap: 8px;
+  padding: 6px 4px;
+  font-size: 12px;
+}
+
+.y2k-ce .y2k-form {
+  gap: 10px;
+}
+
+.y2k-ce .y2k-form label {
+  gap: 4px;
+  font-size: 12px;
+}
+
+/*
+ * 16px is load-bearing, not a size preference: iOS Safari zooms the viewport when
+ * a focused field is smaller, and it does not zoom back out. base.css sets the
+ * same floor on every field in the shell; it is restated here because these two
+ * classes carry their own 12px and the padding that goes with the larger text
+ * belongs in the same rule.
+ */
+.y2k-ce .y2k-input,
+.y2k-ce .y2k-textarea {
+  min-height: 44px;
+  padding: 9px 10px;
+  font-size: 16px;
+}
+
+.y2k-ce .y2k-textarea {
+  min-height: 112px;
+}
+
+/* Send is the one thing this program is for, so it gets the full width. */
+.y2k-ce .y2k-form .y2k-btn-lg {
+  width: 100%;
+  min-height: 44px;
+}
+
+/* ------------------------------------------------------------- résumé */
+
+.y2k-ce .y2k-pdf {
+  padding: 6px;
+  overflow: visible;
+}
+
+/*
+ * Mobile browsers refuse an inline <object type="application/pdf"> more often than
+ * they honour it, and ResumeWindow renders real fallback content for exactly that
+ * case. Bounded so a refusal is a panel with an explanation in it rather than a
+ * screen-tall grey void.
+ */
+.y2k-ce .y2k-pdf-frame {
+  flex: none;
+  height: 60vh;
+  min-height: 220px;
+}
+
+/* Which makes these two the path that always works, so they are unmissable:
+   stacked, full width, and the size of the primary action. */
+.y2k-ce .y2k-pdf-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.y2k-ce .y2k-pdf-actions .y2k-btn {
+  min-height: 44px;
+  font-weight: 700;
+}
+
+.y2k-ce .y2k-client .y2k-pdf-fallback {
+  padding: 12px;
+  font-size: 13px;
+}
+
+.y2k-ce .y2k-client .y2k-hazard {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+/* The fake plug-in install. 22 blocks is ResumeWindow's constant, so the bar has
+   to fit them at 300px rather than ask for fewer. */
+.y2k-ce .y2k-install {
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.y2k-ce .y2k-progress {
+  gap: 1px;
+  height: 22px;
+}
+
+.y2k-ce .y2k-progress i {
+  min-width: 2px;
+}
+
+.y2k-ce .y2k-client .y2k-progress-status {
+  font-size: 12px;
+  /* Taller than the desktop's: the same status lines wrap to three lines here,
+     and the panel must not resize under the finger mid-install. */
+  min-height: 4.2em;
+}
+
+.y2k-ce .y2k-install-actions .y2k-btn {
+  flex: 1 1 auto;
+  min-height: 44px;
+}
+
+/* ------------------------------------------------------------- Winamp */
+
+/*
+ * Winamp's colours are hardcoded in y2k.css rather than tokenised, because the
+ * player is a skin and not part of the system palette — the overrides below
+ * match those literals for the same reason.
+ *
+ * Block, not flex: the desktop stretches the player to fill a resizable window,
+ * and the two <input type="range"> carry `flex: 1 1 auto` for the transport row
+ * they usually sit in. Stretched into a column, that grow factor lands on the
+ * seek bar and turns it into a 200px-tall slider. Nothing resizes here, so the
+ * player simply sits at its content height.
+ */
+.y2k-ce .y2k-winamp-frame {
+  display: block;
+  padding: 4px;
+  overflow: visible;
+}
+
+/*
+ * The desktop version is a five-row grid that hands the slack to the playlist, so
+ * a resized window keeps its transport. Here there is no slack to hand out and the
+ * playlist caps itself instead.
+ */
+.y2k-ce .y2k-winamp {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+}
+
+/* The LCD truncates. It is one line of a fixed-height display, and letting the
+   title wrap would push the clock and the spectrum out of the panel. */
+.y2k-ce .y2k-winamp-lcd {
+  gap: 6px;
+  padding: 5px 6px;
+}
+
+/* Flex items refuse to shrink below their content by default, which is what turns
+   an ellipsis into a pushed-out clock. */
+.y2k-ce .y2k-winamp-title {
+  min-width: 0;
+}
+
+.y2k-ce .y2k-winamp-row {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.y2k-ce .y2k-winamp button {
+  flex: 1 1 auto;
+  min-width: 46px;
+  min-height: 40px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+/* Volume takes its own line rather than competing with five transport keys for
+   the last 40px of a 300px row. */
+.y2k-ce .y2k-winamp-row input[type='range'] {
+  flex: 1 0 100%;
+}
+
+/*
+ * Both sliders get a real thumb. A native range thumb is around 12px, which is
+ * under a third of a fingertip, and reaching the thumb means dropping the
+ * browser's default appearance — hence the track being drawn here too. The
+ * -webkit- and -moz- pseudo-elements cannot share a rule: one unknown selector
+ * drops the whole block.
+ */
+.y2k-ce .y2k-winamp input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 30px;
+  padding: 0;
+  background: none;
+}
+
+.y2k-ce .y2k-winamp input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  background: #101018;
+  border: 1px solid #6a6a80;
+}
+
+.y2k-ce .y2k-winamp input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 26px;
+  /* Centres a 26px thumb on a 6px track: -(26 - 6 - 2 borders) / 2. */
+  margin-top: -10px;
+  background: #3a3a4a;
+  border: 2px solid;
+  border-color: #6a6a80 #101018 #101018 #6a6a80;
+}
+
+.y2k-ce .y2k-winamp input[type='range']::-moz-range-track {
+  height: 6px;
+  background: #101018;
+  border: 1px solid #6a6a80;
+}
+
+.y2k-ce .y2k-winamp input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 26px;
+  border-radius: 0;
+  background: #3a3a4a;
+  border: 2px solid #101018;
+}
+
+.y2k-ce .y2k-winamp-pl {
+  display: block;
+}
+
+.y2k-ce .y2k-client .y2k-winamp-pl-head {
+  padding: 5px;
+  font-size: 11px;
+}
+
+/*
+ * The second place a cap is the point: twelve 40px rows is 480px of screen, and
+ * the playlist is the bottom of the program. Capped, it scrolls itself and the
+ * credit under it stays reachable.
+ */
+.y2k-ce .y2k-winamp-pl-list {
+  max-height: 244px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.y2k-ce .y2k-winamp-pl-list li {
+  align-items: center;
+  min-height: 40px;
+  padding: 4px 6px;
+}
+
+.y2k-ce .y2k-client .y2k-winamp-note {
+  font-size: 11px;
+}

@@ -68,9 +68,7 @@ const ContactWindow = () => {
           </div>
           <div>
             <strong>{IDENTITY.name}</strong>
-            <div className="y2k-msn-status">
-              &lt;Online — well, asynchronous. E-mail always arrives.&gt;
-            </div>
+            <div className="y2k-msn-status">&lt;Best reached by email&gt;</div>
           </div>
         </header>
 
@@ -106,8 +104,7 @@ const ContactWindow = () => {
 
               {outcome.kind === "sent" ? (
                 <p>
-                  <b>System:</b> ✓ DELIVERED. that is in his inbox — confirmed
-                  by the relay, not guessed at. he reads it and he replies.
+                  <b>System:</b> ✓ DELIVERED. It's in his inbox!
                 </p>
               ) : null}
 
@@ -119,7 +116,7 @@ const ContactWindow = () => {
                     loud font.
                   </p>
                   <p>
-                    <b>System:</b> nothing is lost —{" "}
+                    <b>System:</b> nothing is lost.{" "}
                     <a href={fallback}>
                       click here to send it as a real e-mail
                     </a>
@@ -138,7 +135,7 @@ const ContactWindow = () => {
                   </p>
                   <p>
                     <b>System:</b> everything you typed is in{" "}
-                    <a href={fallback}>this prefilled e-mail</a> — one click and
+                    <a href={fallback}>this prefilled e-mail</a>. one click and
                     it actually arrives.
                   </p>
                 </>

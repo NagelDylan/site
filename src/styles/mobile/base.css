@@ -1,0 +1,138 @@
+/*
+ * DYLAN CE, layer 1: the device.
+ *
+ * This file owns only the shell root and the column it centres. The bars live in
+ * chrome.css, the home screen in today.css, the programs in apps.css and the
+ * boot/BSOD overlays in states.css, and each of those loads after this one so it
+ * can raise a floor set here without a specificity fight.
+ *
+ * Two things are deliberate rather than incidental:
+ *   1. No fake phone bezel. On a phone the viewport *is* the device screen, and a
+ *      drawn bezel would spend the only pixels the content has. The device only
+ *      becomes visible at 620px, where there is wallpaper to spare.
+ *   2. The colours all come from the tokens y2k.css declares on
+ *      :is(.y2k-root, .y2k-ce), which is what lets the desktop's content
+ *      components render in here untouched. That block also carries the desktop's
+ *      12px default, so this file has to load after y2k.css to raise it — App.tsx
+ *      imports y2k.css before it imports MobileApp, which is what guarantees it.
+ */
+
+.y2k-ce {
+  /* Bar heights are shared: chrome.css draws to them, this file pads for them. */
+  --ce-top-h: 34px;
+  --ce-cmd-h: 46px;
+  /*
+   * The one wallpaper colour no token covers: the plum a 1999 machine put behind
+   * everything. Carried over from the page this shell replaces so the mobile look
+   * is continuous with what shipped.
+   */
+  --ce-wall-glow: #4a0080;
+
+  min-height: 100vh;
+  /* dvh second so browsers without it keep the vh line above. */
+  min-height: 100dvh;
+  /*
+   * Both bars are fixed, so the document has to start below one and end above the
+   * other — and clear the notch and the home bar while it is at it.
+   */
+  padding-top: calc(var(--ce-top-h) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--ce-cmd-h) + env(safe-area-inset-bottom));
+  font-family: var(--y2k-font);
+  /* 14px, not the desktop's 12 or the old mobile page's 13: this text is read at
+     arm's length on a screen held in one hand. */
+  font-size: 14px;
+  color: var(--y2k-title-text);
+  background-color: var(--y2k-banner-bg);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.06) 0 10px, transparent 10px 20px),
+    radial-gradient(circle at 50% 0%, var(--ce-wall-glow), var(--y2k-banner-bg) 60%);
+}
+
+html[data-mode='dark'] .y2k-ce {
+  --ce-wall-glow: #2a0033;
+
+  background-color: var(--y2k-desktop);
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--y2k-accent) 9%, transparent) 0 10px,
+      transparent 10px 20px
+    ),
+    radial-gradient(circle at 50% 0%, var(--ce-wall-glow), var(--y2k-desktop) 65%);
+}
+
+.y2k-ce-screen {
+  position: relative;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+/*
+ * 620px and up is a tablet reaching this UI through useNarrow's coarse-pointer
+ * branch. The column stops growing at 560px either way, so without an edge the
+ * page reads as a narrow site marooned in wallpaper. Give it the bevel of a
+ * handheld screen instead and let the wallpaper flank it.
+ */
+@media (min-width: 620px) {
+  .y2k-ce-screen {
+    /* The same subtraction .y2k-ce-app makes, insets included: a tablet in portrait
+       reaches this shell too, and one that reports a safe area would otherwise get
+       a column taller than the space left for it. vh first, dvh second, so a
+       browser without dvh keeps the line above rather than no height at all. */
+    min-height: calc(
+      100vh - var(--ce-top-h) - var(--ce-cmd-h) - env(safe-area-inset-top) -
+        env(safe-area-inset-bottom)
+    );
+    min-height: calc(
+      100dvh - var(--ce-top-h) - var(--ce-cmd-h) - env(safe-area-inset-top) -
+        env(safe-area-inset-bottom)
+    );
+    box-shadow:
+      0 0 0 2px var(--y2k-shadow),
+      0 0 0 4px var(--y2k-face),
+      0 12px 34px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/*
+ * Touch floors. 34px is the in-content minimum — the bars raise their own to 44px
+ * in chrome.css. touch-action kills the double-tap-to-zoom delay that otherwise
+ * makes every button feel 300ms late, and the tap highlight goes because the
+ * chrome draws its own pressed state.
+ */
+.y2k-ce button,
+.y2k-ce [role='button'],
+.y2k-ce a,
+.y2k-ce summary,
+.y2k-ce input,
+.y2k-ce select,
+.y2k-ce textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.y2k-ce button,
+.y2k-ce [role='button'] {
+  min-height: 34px;
+}
+
+/*
+ * 16px is not a taste decision: iOS Safari zooms the whole viewport when a
+ * focused field is smaller than that, and it does not zoom back out. The desktop
+ * form components are shared, so the override has to live on the shell.
+ */
+.y2k-ce input,
+.y2k-ce select,
+.y2k-ce textarea {
+  font-size: 16px;
+}
+
+/*
+ * The focus ring itself is y2k.css's accessibility floor (.y2k-ce :focus-visible),
+ * which now covers this shell. What it cannot know is that tabbing can scroll a
+ * control to the very top or bottom of the viewport, i.e. underneath a fixed bar.
+ */
+.y2k-ce :focus-visible {
+  scroll-margin-top: calc(var(--ce-top-h) + 12px);
+  scroll-margin-bottom: calc(var(--ce-cmd-h) + 12px);
+}

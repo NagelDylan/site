@@ -3,6 +3,11 @@
  *
  * Introduces Dylan and offers to open windows. Everything he says is pulled from
  * the data layer rather than hardcoded, since microcopy is still copy.
+ *
+ * Both shells render this same paperclip, because what he says about Dylan must
+ * not be able to diverge between them. `platform` therefore switches only the
+ * sentences that describe the machine he is standing on — where C:\Projects\
+ * lives, and whether you click or tap — and never a fact.
  */
 import { useState } from "react";
 import { COOP_TERMS, IDENTITY } from "../../data";
@@ -13,16 +18,19 @@ type Says = "intro" | "available" | "work" | "bye";
 type Props = {
   onOpen: (what: "projects" | "experience" | "contact" | "help") => void;
   onDismiss: () => void;
+  /** Defaults to the desktop, which is the caller that predates the handheld. */
+  platform?: "desktop" | "mobile";
 };
 
-const Clippy = ({ onOpen, onDismiss }: Props) => {
+const Clippy = ({ onOpen, onDismiss, platform = "desktop" }: Props) => {
   const [says, setSays] = useState<Says>("intro");
+  const handheld = platform === "mobile";
 
   return (
     <aside
       className="y2k-clippy"
       data-decorative
-      aria-label="Desktop assistant"
+      aria-label={handheld ? "Handheld assistant" : "Desktop assistant"}
     >
       <div className="y2k-clippy-bubble" aria-live="polite">
         {says === "intro" ? (
@@ -51,15 +59,17 @@ const Clippy = ({ onOpen, onDismiss }: Props) => {
           <p style={{ margin: 0 }}>
             Full-stack products and the AI infrastructure behind them —
             evaluation platforms, retrieval systems and LLM features.
-            C:\Projects\ is on the desktop; JOBS I HAVE HAD has the details, in
-            his employers&apos; own words rather than mine.
+            C:\Projects\{" "}
+            {handheld ? "is a program on the Today screen" : "is on the desktop"}
+            ; JOBS I HAVE HAD has the details, in his employers&apos; own words
+            rather than mine.
           </p>
         ) : null}
 
         {says === "bye" ? (
           <p style={{ margin: 0 }}>
-            Fine. I&apos;ll be in the tray, thinking about 1998. Click the ☻ if
-            you need me.
+            Fine. I&apos;ll be in the tray, thinking about 1998.{" "}
+            {handheld ? "Tap" : "Click"} the ☻ if you need me.
           </p>
         ) : null}
 
@@ -100,7 +110,7 @@ const Clippy = ({ onOpen, onDismiss }: Props) => {
               className="y2k-btn"
               onClick={() => onOpen("help")}
             >
-              How does this desktop work?
+              How does this {handheld ? "handheld" : "desktop"} work?
             </button>
             <button
               type="button"

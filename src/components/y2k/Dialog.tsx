@@ -16,6 +16,25 @@ export type DialogSpec = {
   okLabel?: string;
 };
 
+/**
+ * The one dialog both shells raise, so it lives next to the component that draws
+ * it rather than in either shell.
+ */
+export const GUESTBOOK_FULL: DialogSpec = {
+  title: 'guestbook.cgi',
+  icon: 'warn',
+  body: (
+    <>
+      <p style={{ margin: 0 }}>guestbook is full, sorry! (1999)</p>
+      <p style={{ margin: '6px 0 0', fontSize: 11 }}>
+        It is also read-only, and there is no database behind it. Nothing you type on this site is
+        stored anywhere.
+      </p>
+    </>
+  ),
+  okLabel: 'Aw, OK',
+};
+
 export const Dialog = ({ spec, onClose }: { spec: DialogSpec; onClose: () => void }) => {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

@@ -1,0 +1,340 @@
+/*
+ * DYLAN CE, layer 5: the states that are not a program.
+ *
+ * Power-on, hard reset, the sparkle burst — and the CE-scoped repositioning of the
+ * three widgets both shells share. Two rules shape the whole file:
+ *
+ *   1. A takeover has to take over. The title bar and the soft keys are
+ *      position: fixed, so anything that represents the device rather than a
+ *      program on it must be fixed too, and must sit above them. Hence the whole
+ *      ladder, in one place because no single file can see it: content is at
+ *      auto, the sparkles 50 and the assistant 55 (both above the program, both
+ *      below the chrome), chrome.css's two bars 60 with the Start menu and its
+ *      scrim at 61–63, then dialog 9700, suspend 9900, boot/reset 10000. The
+ *      three widgets are the ones that need saying twice — y2k.css gives them
+ *      desktop layers that would put them over this shell's bars.
+ *   2. The shared widgets are repositioned, never forked. Clippy, Dialog and
+ *      Screensaver are the desktop's components mounted inside .y2k-ce, and every
+ *      handheld difference below is a selector — no second copy of that JSX
+ *      exists, so their copy cannot drift.
+ *
+ * Loads after base.css, so plain class rules here beat its 34px/16px floors
+ * without !important.
+ */
+
+/* Power-on self test (mobile/Post.tsx) */
+
+/*
+ * Not themed, in either mode: a device that is powering on has not read a theme
+ * yet, which is exactly why the desktop's .y2k-boot hardcodes this same
+ * grey-on-black. Only the accents below follow the palette.
+ */
+.y2k-ce-post {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  overflow: hidden;
+  /* The overlay covers the notch as well as the bars, so it clears it itself. */
+  padding: calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom));
+  background: #000;
+  color: #d8d8d8;
+  font-family: var(--y2k-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/*
+ * Block, not the desktop's float: at 320px a floated badge narrows the console to
+ * about twenty columns and every padded line wraps, which is the whole reason this
+ * boot screen is written separately from Boot.tsx.
+ */
+.y2k-ce-post-logo {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 9px;
+  font-family: var(--y2k-pixel);
+  font-size: 9px;
+  line-height: 1.5;
+  color: #ffcc00;
+  border: 2px solid #555;
+}
+
+.y2k-ce-post-lines {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  /* pre-wrap, so a line that does overrun on a 280px screen still shows its tail. */
+  white-space: pre-wrap;
+}
+
+.y2k-ce-post-bar {
+  width: min(240px, 62vw);
+  height: 16px;
+  margin-top: 14px;
+  padding: 2px;
+  border: 2px solid;
+  border-color: #666 #eee #eee #666;
+  background: #111;
+}
+
+.y2k-ce-post-bar i {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #00c0ff 0 8px, transparent 8px 11px);
+}
+
+/*
+ * A tap anywhere skips, but the hint is a real button so keyboard users have the
+ * same exit — hence a 44px target, drawn as the plain grey text the console had.
+ */
+.y2k-ce-post-skip {
+  position: absolute;
+  right: calc(8px + env(safe-area-inset-right));
+  bottom: calc(6px + env(safe-area-inset-bottom));
+  min-height: 44px;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 11px;
+  color: #999;
+  background: none;
+  border: 0;
+}
+
+html[data-mode='dark'] .y2k-ce-post-logo {
+  color: var(--y2k-accent-2);
+  border-color: var(--y2k-accent-2);
+}
+
+html[data-mode='dark'] .y2k-ce-post-bar i {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--y2k-accent-3) 0 8px,
+    transparent 8px 11px
+  );
+}
+
+/* Hard reset (mobile/Reset.tsx) */
+
+.y2k-ce-reset {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  /* Top-aligned by default and centred only when there is room: centring a grid
+     that overflows would clip the first lines beyond reach of the scroller. */
+  align-content: start;
+  gap: 12px;
+  overflow-y: auto;
+  padding: calc(22px + env(safe-area-inset-top)) 16px calc(22px + env(safe-area-inset-bottom));
+  /* The stop-screen blue is the joke, and no token is that blue. */
+  background: #0000aa;
+  color: #fff;
+  font-family: var(--y2k-mono);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (min-height: 560px) {
+  .y2k-ce-reset {
+    align-content: center;
+  }
+}
+
+.y2k-ce-reset h2 {
+  justify-self: start;
+  margin: 0;
+  padding: 1px 10px;
+  font-family: var(--y2k-mono);
+  font-size: inherit;
+  color: #0000aa;
+  background: #aaa;
+}
+
+/* Dark mode keeps the inversion but in the CRT palette — a 1999 blue on a black
+   phosphor screen reads as a rendering bug rather than as a stop screen. */
+html[data-mode='dark'] .y2k-ce-reset {
+  background: var(--y2k-banner-bg);
+  color: var(--y2k-accent-2);
+}
+
+html[data-mode='dark'] .y2k-ce-reset h2 {
+  color: var(--y2k-banner-bg);
+  background: var(--y2k-accent-2);
+}
+
+.y2k-ce-reset .y2k-btn {
+  min-height: 44px;
+  min-width: 128px;
+  font-size: 13px;
+}
+
+/* Tap sparkles (mobile/TapSparkle.tsx) */
+
+/*
+ * Every burst node also carries .y2k-sparkle, so its fixed positioning and its
+ * reduced-motion kill switch both come from y2k.css. Two things differ: the count
+ * — seven at once, so each spark is a shade smaller than a lone trailing one —
+ * and the layer. The desktop puts sparkles at 9999, above everything, because a
+ * cursor trail follows a cursor and a cursor is over the chrome too. A tap burst
+ * is not: it belongs to the program under the finger, so it stops below the bars
+ * rather than spraying over the title bar, the Start menu and the boot screen.
+ */
+.y2k-ce-sparkle {
+  z-index: 50;
+  width: 7px;
+  height: 7px;
+}
+
+/* Shared widget: the assistant (Clippy.tsx) */
+
+/*
+ * On the desktop he is a floating aside pinned above the taskbar's right corner,
+ * where there is always empty teal to float over. Here there is no spare corner —
+ * one program owns the screen — so he becomes a bottom sheet docked directly above
+ * the soft keys, inside the same 560px column the content uses.
+ *
+ * He also drops out of y2k.css's 8000 to 55, below the bars. He is a program-level
+ * interruption, not part of the device: at 8000 the Start menu's scrim would darken
+ * everything except him and he would stay tappable through it, which is how a
+ * modal ends up with two things to tap.
+ */
+.y2k-ce .y2k-clippy {
+  position: fixed;
+  z-index: 55;
+  inset-inline: 0;
+  bottom: calc(var(--ce-cmd-h) + env(safe-area-inset-bottom) + 6px);
+  width: min(560px, 100% - 12px);
+  margin-inline: auto;
+}
+
+/* Tall bubbles scroll rather than run off the top of the screen, which on a
+   360x640 device is what four sentences plus five buttons would do. */
+.y2k-ce .y2k-clippy-bubble {
+  max-height: min(46vh, 340px);
+  overflow-y: auto;
+  padding: 11px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/*
+ * The bubble is a scroll container here, and a scroll container clips whatever is
+ * painted outside it — including the desktop's speech tail, which hangs 9px below
+ * the bottom edge. Rather than rebuild the tail somewhere else, the paperclip tucks
+ * up under the sheet's bottom-right corner and does the pointing himself.
+ */
+.y2k-ce .y2k-clippy-bubble::after {
+  display: none;
+}
+
+.y2k-ce .y2k-clippy-actions {
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.y2k-ce .y2k-clippy-actions button {
+  min-height: 44px;
+  font-size: 13px;
+  padding-inline: 10px;
+}
+
+/*
+ * Small enough that he cannot crowd the copy above him, still big enough to read as
+ * a paperclip with eyes. The <svg> has to be told as well as the span: ClippyFigure
+ * ships width/height attributes, so a smaller box on its own would just let him
+ * overflow it.
+ */
+.y2k-ce .y2k-clippy-guy {
+  width: 42px;
+  height: 45px;
+  margin: -3px 10px 0 0;
+}
+
+.y2k-ce .y2k-clippy-guy svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Shared widget: the dialog (Dialog.tsx) */
+
+/*
+ * The desktop layer is absolute inside .y2k-root, which is itself fixed. .y2k-ce
+ * scrolls, so absolute here would centre the dialog in the *document* and leave it
+ * off screen the moment the visitor has scrolled. Fixed, and inset for both bars,
+ * puts it in the middle of whatever the screen is currently showing.
+ */
+.y2k-ce .y2k-dialog-layer {
+  position: fixed;
+  z-index: 9700;
+  padding: calc(var(--ce-top-h) + env(safe-area-inset-top) + 12px) 12px
+    calc(var(--ce-cmd-h) + env(safe-area-inset-bottom) + 12px);
+}
+
+.y2k-ce .y2k-dialog {
+  /* Fits a 320px screen with a margin left over, and never exceeds the column. */
+  width: min(340px, 100% - 4px);
+}
+
+.y2k-ce .y2k-dialog-body {
+  /* The icon and the copy sit side by side until the copy needs the full width. */
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 11px;
+  font-size: 13px;
+  /* An address or a long unbroken token breaks rather than widening the dialog
+     past a 320px screen. */
+  overflow-wrap: anywhere;
+}
+
+.y2k-ce .y2k-dialog-body > * {
+  min-width: 0;
+}
+
+.y2k-ce .y2k-dialog-actions {
+  padding: 0 10px 12px;
+}
+
+.y2k-ce .y2k-dialog-actions .y2k-btn {
+  min-height: 44px;
+  min-width: 112px;
+}
+
+/*
+ * base.css raises every button in the shell to a 34px floor, which leaves this one
+ * 34px tall and 18px wide — a sliver. It is chrome, so it goes to 44px square, and
+ * the drag affordances go with it: nothing here can be dragged.
+ */
+.y2k-ce .y2k-dialog .y2k-tb-btn {
+  width: 44px;
+  height: auto;
+  min-height: 44px;
+  font-size: 12px;
+}
+
+.y2k-ce .y2k-dialog .y2k-titlebar {
+  padding: 3px 3px 3px 8px;
+  cursor: default;
+  touch-action: manipulation;
+}
+
+/* Shared widget: suspend (the Screensaver in effects.tsx) */
+
+/*
+ * Suspend means the screen is off, so it has to hide the two fixed bars as well as
+ * the content — hence a layer above the 9000–9500 band they occupy. The element is
+ * already fixed and inset: 0 with the wake handler on itself, so the whole screen
+ * is the tap target; touch-action stops a wake-drag from scrolling the page behind.
+ */
+.y2k-ce .y2k-screensaver {
+  z-index: 9900;
+  touch-action: none;
+}
+
+/*
+ * Reduced motion is handled by y2k.css's block and deliberately not restated here:
+ * the only moving parts on these states are the assistant's bob (.y2k-clippy-guy),
+ * the reset's cursor (.y2k-blink) and the tap sparks (.y2k-sparkle), all three of
+ * which that block already stops in both shells. The post's progress bar is a width
+ * set per tick in JS, not an animation — and a bar frozen at one block would tell a
+ * visitor less than a bar that fills.
+ */

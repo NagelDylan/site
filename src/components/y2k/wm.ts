@@ -31,11 +31,11 @@ export type WindowKind =
 /**
  * The résumé, resolved at build time and handed down as a prop.
  *
- * Declared here because three surfaces need it (the Acrobat window, Welcome.htm
- * and the mobile page) and hand-copying the fields is how one of them ends up
- * reading `undefined` into an <object data>. `viewHref` carries the PDF open
- * parameters; `href` stays clean for the download. Every surface gates on
- * `available` so nothing links to a PDF that 404s.
+ * Declared here because four surfaces need it (the Acrobat window, Welcome.htm,
+ * DYLAN CE's Today screen and its Start menu) and hand-copying the fields is how
+ * one of them ends up reading `undefined` into an <object data>. `viewHref`
+ * carries the PDF open parameters; `href` stays clean for the download. Every
+ * surface gates on `available` so nothing links to a PDF that 404s.
  */
 export type Resume = {
   available: boolean;
@@ -93,6 +93,24 @@ export const WINDOW_DEFS: Record<WindowKind, Def> = {
    */
   resume: { title: 'Résumé.pdf — Adobe Acrobat Reader 4.0', icon: 'floppy', w: 720, h: 560 },
   help: { title: 'Help — How this desktop works', icon: 'help', w: 460, h: 380 },
+};
+
+/**
+ * The menu strip each window wears, per kind. Purely era dressing — none of these
+ * menus drop down, which is why they are a list of labels and not a structure.
+ * A kind that is missing here gets no strip: Winamp, the Recycle Bin, the Acrobat
+ * window and the control panels never had a File menu worth faking.
+ *
+ * Lives here rather than in App.tsx because DYLAN CE renders the same labels in
+ * its command-bar Menu popup, and two copies of this map would drift.
+ */
+export const WINDOW_MENUS: Partial<Record<WindowKind, string[]>> = {
+  welcome: ['File', 'Edit', 'View', 'Go', 'Bookmarks'],
+  experience: ['File', 'Edit', 'View', 'Insert', 'Help'],
+  projects: ['File', 'Edit', 'View', 'Tools', 'Help'],
+  about: ['File', 'Edit', 'Search', 'Help'],
+  guestbook: ['File', 'Edit', 'View', 'Help'],
+  project: ['File', 'Edit', 'View'],
 };
 
 export type OpenRequest = { kind: WindowKind; arg?: string | null; title?: string };

@@ -37,7 +37,7 @@ export const CANONICAL = {
 export const COPY: Copy = {
   greeting: "★ WELCOME TO MY HOMEPAGE ★",
   heroSub:
-    "CS @ Waterloo. I build products AND the AI infrastructure behind them!! Evaluation platforms, retrieval systems, and LLM features that ship to REAL USERS. (Best viewed in any browser, honestly.)",
+    "CS @ Waterloo. I build products AND the AI infrastructure behind them!! Evaluation platforms, retrieval systems, and LLM features that ship to REAL USERS.",
   ctaPrimary: "SEE MY WORK!!",
   ctaSecondary: "E-MAIL ME",
   bioShort:

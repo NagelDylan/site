@@ -1,0 +1,582 @@
+/*
+ * DYLAN CE, layer 2: the two bars that never move.
+ *
+ * The title bar is at the top with Start inside it, and the soft keys are at the
+ * bottom. That is the Pocket PC 2002 arrangement, and the reason it is worth
+ * copying is the reason it existed: the thumb reaches the bottom edge and the eye
+ * reads the top one, so commands live where the hand is and status lives where the
+ * eye already looks. Both bars are position: fixed because base.css has already
+ * padded the document for them — they are hardware, not page furniture.
+ *
+ * Three things constrain every number in here:
+ *
+ *   1. The bar heights are base.css's --ce-top-h (34px) and --ce-cmd-h (46px), and
+ *      apps.css sizes the program viewport by subtracting both. They cannot drift.
+ *      34px is also why the top-bar controls are 34px tall and not the 44px the
+ *      soft keys get: the bar is the constraint, so those targets buy their area
+ *      back in width and by running to the screen edge, where there is no miss.
+ *   2. base.css sets `min-height: 34px` on `.y2k-ce button`, which is specificity
+ *      (0,1,1) — one class plus one type. A bare `.y2k-ce-cmd-btn` is (0,1,0) and
+ *      would LOSE to it however late this file loads. So every rule here that
+ *      raises or pins a button's height is written `.y2k-ce .y2k-ce-…`.
+ *   3. The bevels are y2k.css's: .y2k-out on the two panels, .y2k-btn on the keys,
+ *      including its :active inversion so a tap looks like a button going in. The
+ *      bars themselves draw the .y2k-out edges with box-shadow instead of the
+ *      class, because a 2px border would spend 2 of the top bar's 34 pixels.
+ *
+ * Nothing here hardcodes a colour that a token covers, so both modes come out of
+ * the same declarations; dark only adds the CRT glow that y2k.css gives .y2k-window.
+ */
+
+/* Top bar */
+
+.y2k-ce-top {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  height: calc(var(--ce-top-h) + env(safe-area-inset-top));
+  /* The notch eats into the bar, not into the page: the silver runs up under the
+     status area the way a real device's chrome does. */
+  padding-top: env(safe-area-inset-top);
+  background: var(--y2k-face);
+  /* The bar's own text is chrome text, not the white the wallpaper needs. */
+  color: var(--y2k-text);
+  box-shadow:
+    inset 0 1px 0 var(--y2k-light),
+    inset 0 -1px 0 var(--y2k-shadow),
+    0 2px 0 var(--y2k-dark);
+}
+
+html[data-mode='dark'] .y2k-ce-top {
+  box-shadow:
+    inset 0 1px 0 var(--y2k-light),
+    inset 0 -1px 0 var(--y2k-shadow),
+    0 2px 0 var(--y2k-dark),
+    0 3px 14px color-mix(in srgb, var(--y2k-accent) 35%, transparent);
+}
+
+/* Capped to the content column so the bar and the program share edges on a tablet. */
+.y2k-ce-top-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--ce-top-h);
+  max-width: 560px;
+  margin-inline: auto;
+  padding-inline: 3px;
+}
+
+.y2k-ce .y2k-ce-start {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  /* Pinned to the bar rather than to a number, so the two cannot drift apart. */
+  min-height: var(--ce-top-h);
+  padding: 0 9px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.y2k-ce-start svg {
+  display: block;
+  flex: none;
+  width: 17px;
+  height: 17px;
+}
+
+/* .y2k-btn:active would restore its own 3px/10px padding here, and the label would
+   resize as well as shift. Same shape, moved a pixel down and right. */
+.y2k-ce .y2k-ce-start:active,
+.y2k-ce .y2k-ce-start[aria-expanded='true'] {
+  padding: 2px 8px 0 10px;
+}
+
+.y2k-ce-top-title {
+  flex: 1 1 auto;
+  /* Without this a long program name refuses to shrink and pushes the tray off. */
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Tray */
+
+.y2k-ce-tray {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.y2k-ce-sig,
+.y2k-ce-batt {
+  display: block;
+  flex: none;
+  /* currentColor, so the meters are drawn in the chrome's ink in both modes. */
+  color: var(--y2k-text);
+}
+
+.y2k-ce-sig {
+  width: 15px;
+  height: 10px;
+}
+
+.y2k-ce-batt {
+  width: 22px;
+  height: 11px;
+}
+
+/*
+ * Under 360px the title is down to about six characters, and the signal meter is
+ * the one thing in the tray that carries no information at all — it goes first.
+ */
+@media (max-width: 359px) {
+  .y2k-ce-sig {
+    display: none;
+  }
+}
+
+.y2k-ce .y2k-ce-tray-btn {
+  display: grid;
+  place-items: center;
+  /* Full bar height and wider than it is tall: the smallest target in the chrome
+     and the only place where 34px is a ceiling rather than a floor. */
+  min-height: var(--ce-top-h);
+  min-width: 34px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  color: inherit;
+  background: none;
+  border: 1px solid transparent;
+}
+
+/* Pressed and hover-in states, the tray-icon idiom from y2k.css: a hairline well
+   appears under the pointer. Gated on hover so a tap does not leave one stuck. */
+.y2k-ce-tray-btn:active {
+  border-color: var(--y2k-shadow) var(--y2k-light) var(--y2k-light) var(--y2k-shadow);
+}
+
+@media (hover: hover) {
+  .y2k-ce-tray-btn:hover {
+    border-color: var(--y2k-shadow) var(--y2k-light) var(--y2k-light) var(--y2k-shadow);
+  }
+}
+
+.y2k-ce-clock {
+  display: grid;
+  place-items: center;
+  min-height: 24px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  border: 1px solid;
+  border-color: var(--y2k-shadow) var(--y2k-light) var(--y2k-light) var(--y2k-shadow);
+}
+
+/* Start menu */
+
+/*
+ * The scrim starts below the top bar and covers everything else, the command bar
+ * included: while the menu is open it is the only thing to tap. Start stays clear
+ * of it so the button that opened the menu is also the button that shuts it.
+ */
+.y2k-ce-menu-scrim {
+  position: fixed;
+  inset: calc(var(--ce-top-h) + env(safe-area-inset-top)) 0 0 0;
+  z-index: 62;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border: 0;
+}
+
+/* Beats base.css's `touch-action: manipulation` on .y2k-ce button (0,1,1): dragging
+   a full-screen scrim must not scroll the program parked behind it. */
+.y2k-ce .y2k-ce-menu-scrim {
+  touch-action: none;
+}
+
+.y2k-ce-menu-scrim:focus-visible {
+  /* The ring is the size of the viewport, so it has to be drawn inside it. */
+  outline-offset: -4px;
+}
+
+.y2k-ce-menu {
+  position: fixed;
+  top: calc(var(--ce-top-h) + env(safe-area-inset-top));
+  /* Both insets plus auto margins centre a fixed panel on the content column. */
+  inset-inline: 0;
+  margin-inline: auto;
+  z-index: 63;
+  max-width: 560px;
+  /* Taller than any phone: it scrolls, and it scrolls without dragging the page
+     behind it once it hits the end. dvh second, so a browser without it keeps the
+     vh line rather than dropping the cap and losing the scroll altogether. */
+  max-height: calc(100vh - var(--ce-top-h) - env(safe-area-inset-top) - 8px);
+  max-height: calc(100dvh - var(--ce-top-h) - env(safe-area-inset-top) - 8px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+  color: var(--y2k-text);
+  animation: y2k-ce-menu-in 140ms ease-out;
+}
+
+.y2k-ce-menu,
+.y2k-ce-pop {
+  /* .y2k-out draws the bevel; both panels also need to sit off the page under it. */
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-face-2),
+    inset -1px -1px 0 var(--y2k-shadow),
+    0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+html[data-mode='dark'] .y2k-ce-menu,
+html[data-mode='dark'] .y2k-ce-pop {
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-face-2),
+    inset -1px -1px 0 var(--y2k-shadow),
+    0 0 16px color-mix(in srgb, var(--y2k-accent) 45%, transparent);
+}
+
+/* base.css only resets ul[class], and none of these lists carry one. */
+.y2k-ce-menu ul,
+.y2k-ce-pop ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* The expanded group's rows, indented and railed so the nesting the desktop shows
+   with a fly-out is still legible when it is inline instead. */
+.y2k-ce-menu ul ul {
+  margin-left: 7px;
+  box-shadow: inset 3px 0 0 var(--y2k-shadow);
+}
+
+.y2k-ce .y2k-ce-mi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 10px;
+  font-family: var(--y2k-font);
+  font-size: 14px;
+  text-align: left;
+  color: var(--y2k-text);
+  background: none;
+  border: 0;
+}
+
+.y2k-ce-mi svg {
+  display: block;
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+/* Prefixed, like the rule above: the padding shorthand on .y2k-ce .y2k-ce-mi would
+   otherwise out-specify a bare class and flatten the indent. */
+.y2k-ce .y2k-ce-mi--sub {
+  padding-left: 16px;
+  font-size: 13px;
+}
+
+/* Accordion groups, not fly-outs — see TopBar.tsx's header for why. The marker is
+   the disclosure triangle rather than the desktop's ▸ pointing at a submenu. */
+.y2k-ce-mi[aria-expanded]::after {
+  content: '▸';
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.y2k-ce-mi[aria-expanded='true']::after {
+  content: '▾';
+}
+
+/* The Win98 highlight: on touch it is the press flash, and data-pressed keeps it
+   lit under the program that is currently on screen. */
+.y2k-ce-mi:active,
+.y2k-ce-mi:focus-visible,
+.y2k-ce-mi[data-pressed='true'] {
+  background: var(--y2k-select);
+  color: var(--y2k-select-text);
+  outline-offset: -3px;
+}
+
+@media (hover: hover) {
+  .y2k-ce-mi:hover {
+    background: var(--y2k-select);
+    color: var(--y2k-select-text);
+  }
+}
+
+/* Group label: the era's own idiom, a navy (CRT: magenta) header strip. */
+.y2k-ce-mi-head {
+  padding: 6px 8px;
+  font-family: var(--y2k-pixel);
+  font-size: 8px;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  color: var(--y2k-title-text);
+  background: linear-gradient(90deg, var(--y2k-title-a), var(--y2k-title-b));
+}
+
+.y2k-ce-mi-dim {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-style: italic;
+  /* Not the desktop's --y2k-shadow-on-face grey: in the CRT palette that is black
+     on near-black, and this row is the only thing the group has to say. */
+  color: var(--y2k-text-dim);
+}
+
+.y2k-ce-mi-sep {
+  height: 2px;
+  margin: 4px 2px;
+  list-style: none;
+  border-top: 1px solid var(--y2k-shadow);
+  border-bottom: 1px solid var(--y2k-light);
+}
+
+.y2k-ce-mi-row {
+  display: flex;
+  align-items: stretch;
+  list-style: none;
+}
+
+.y2k-ce .y2k-ce-mi-quit {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-family: var(--y2k-mono);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--y2k-text);
+  background: none;
+  border: 0;
+  /* A hairline divider, so the quit target reads as a second control rather than
+     as the right-hand end of the row it sits on. */
+  box-shadow: inset 1px 0 0 var(--y2k-shadow);
+}
+
+/* Red under the thumb, because quitting is the one destructive row in the menu.
+   --y2k-title-text, not --y2k-light: the light token is a grey-purple in the CRT
+   palette and would sit on the pink at no contrast at all. */
+.y2k-ce-mi-quit:active {
+  background: var(--y2k-hot);
+  color: var(--y2k-title-text);
+}
+
+/* Command bar */
+
+.y2k-ce-cmd {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 60;
+  height: calc(var(--ce-cmd-h) + env(safe-area-inset-bottom));
+  /* The home bar's strip belongs to the chrome, not to a key: the silver extends
+     into it and the keys stay above the swipe zone. */
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--y2k-face);
+  color: var(--y2k-text);
+  box-shadow:
+    inset 0 1px 0 var(--y2k-light),
+    inset 0 -1px 0 var(--y2k-shadow),
+    0 -2px 0 var(--y2k-dark);
+}
+
+html[data-mode='dark'] .y2k-ce-cmd {
+  box-shadow:
+    inset 0 1px 0 var(--y2k-light),
+    inset 0 -1px 0 var(--y2k-shadow),
+    0 -2px 0 var(--y2k-dark),
+    0 -3px 14px color-mix(in srgb, var(--y2k-accent) 35%, transparent);
+}
+
+.y2k-ce-cmd-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--ce-cmd-h);
+  max-width: 560px;
+  margin-inline: auto;
+  padding-inline: 4px;
+}
+
+/* Three equal keys, because the bar must not change shape as you navigate: the
+   thumb learns the three positions once. */
+.y2k-ce .y2k-ce-cmd-btn {
+  flex: 1 1 0;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.y2k-ce .y2k-ce-cmd-btn:active,
+.y2k-ce .y2k-ce-cmd-btn[aria-expanded='true'] {
+  padding: 2px 9px 0 11px;
+}
+
+/*
+ * Inert keys. The desktop greys a disabled button with --y2k-shadow over the face,
+ * which the CRT palette turns into black on near-black; a soft key that has to
+ * keep saying what it is gets mixed toward the face instead, and keeps the
+ * engraved highlight only where there is a light to engrave into.
+ */
+.y2k-ce-cmd-btn[aria-disabled='true'] {
+  color: color-mix(in srgb, var(--y2k-text) 45%, var(--y2k-face));
+  cursor: default;
+}
+
+html[data-mode='light'] .y2k-ce-cmd-btn[aria-disabled='true'] {
+  text-shadow: 1px 1px 0 var(--y2k-light);
+}
+
+/* And they do not go in when pressed, since pressing them does nothing. */
+.y2k-ce .y2k-ce-cmd-btn[aria-disabled='true']:active {
+  padding: 0 10px;
+  border-color: var(--y2k-light) var(--y2k-dark) var(--y2k-dark) var(--y2k-light);
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-face-2),
+    inset -1px -1px 0 var(--y2k-shadow);
+}
+
+/* Command-bar popup */
+
+/*
+ * Anchored to the key that opens it — bottom: 100% is the top edge of the bar,
+ * safe-area padding included. The max() puts its right edge 6px inside the content
+ * column: 274px in from the centre once the viewport is wider than the 560px
+ * column, and 6px from the screen edge when it is narrower, where 50% - 274px has
+ * gone negative and the 6px wins.
+ */
+.y2k-ce-pop {
+  position: absolute;
+  bottom: 100%;
+  right: max(6px, calc(50% - 274px));
+  z-index: 61;
+  width: min(300px, calc(100% - 12px));
+  max-height: min(58vh, 420px);
+  max-height: min(58dvh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-bottom: 4px;
+  padding: 4px;
+  color: var(--y2k-text);
+  animation: y2k-ce-pop-in 120ms ease-out;
+}
+
+.y2k-ce-pop-head {
+  padding: 6px 8px;
+  font-family: var(--y2k-pixel);
+  font-size: 8px;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  color: var(--y2k-title-text);
+  background: linear-gradient(90deg, var(--y2k-title-a), var(--y2k-title-b));
+}
+
+.y2k-ce .y2k-ce-pop-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 9px;
+  font-family: var(--y2k-font);
+  font-size: 14px;
+  text-align: left;
+  color: var(--y2k-text);
+  background: none;
+  border: 0;
+}
+
+.y2k-ce-pop-item svg {
+  display: block;
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+/*
+ * The program's own menu names, which are inert here exactly as they are inert in
+ * the desktop's .y2k-menubar. They are text, not targets, so they lose the 44px
+ * floor and get the menubar's underlined access key back — five of them at tap
+ * height would push the two rows that actually do something off the screen.
+ */
+.y2k-ce .y2k-ce-pop-item[aria-disabled='true'] {
+  display: block;
+  min-height: 0;
+  padding: 3px 9px;
+  font-size: 12px;
+  color: var(--y2k-text-dim);
+}
+
+.y2k-ce-pop-item[aria-disabled='true']::first-letter {
+  text-decoration: underline;
+}
+
+.y2k-ce-pop-item:active,
+.y2k-ce-pop-item:focus-visible {
+  background: var(--y2k-select);
+  color: var(--y2k-select-text);
+  outline-offset: -3px;
+}
+
+@media (hover: hover) {
+  .y2k-ce-pop-item:hover {
+    background: var(--y2k-select);
+    color: var(--y2k-select-text);
+  }
+}
+
+/* An inert row highlights under nothing. */
+.y2k-ce .y2k-ce-pop-item[aria-disabled='true']:active,
+.y2k-ce .y2k-ce-pop-item[aria-disabled='true']:hover {
+  background: none;
+  color: var(--y2k-text-dim);
+}
+
+/* Motion */
+
+/*
+ * Both panels slide out of the bar they belong to, which is the only animation the
+ * chrome has: it says where the panel came from, so it is worth the 120ms.
+ */
+@keyframes y2k-ce-menu-in {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+}
+
+@keyframes y2k-ce-pop-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+/*
+ * base.css already collapses every animation to a hair under reduced motion, but a
+ * collapsed slide still paints one frame at the offset. These have to be off, not
+ * fast: the panel appears where it is going to be.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .y2k-ce-menu,
+  .y2k-ce-pop {
+    animation: none;
+  }
+}

@@ -1,8 +1,10 @@
 /**
  * Starfield screensaver, and the sparkle cursor trail.
  *
- * Both are motion-only decoration, so the caller skips rendering them entirely
- * under prefers-reduced-motion rather than rendering them frozen.
+ * The trail is motion-only decoration, so its callers skip rendering it entirely
+ * under prefers-reduced-motion rather than rendering it frozen. The screensaver
+ * cannot take that way out on the handheld, where it is a Start menu item rather
+ * than an idle timer, so it draws a still field instead — see below.
  *
  * The trail is JS-tracked because CSS caps cursor images at about 32px and a
  * cursor image cannot leave a wake behind it. Every sparkle is a fixed-position
@@ -20,6 +22,15 @@ export const Screensaver = ({ onWake }: { onWake: () => void }) => {
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
 
+    /*
+     * The desktop only ever reaches this component from an idle timer that is
+     * switched off under reduced motion. DYLAN CE reaches it from Start → Suspend,
+     * which a visitor who asked for less movement can press deliberately — and the
+     * honest answer to that press is a dark screen with a still field on it, not a
+     * flying one and not nothing at all.
+     */
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
     const stars: Star[] = Array.from({ length: 220 }, () => ({
@@ -31,8 +42,9 @@ export const Screensaver = ({ onWake }: { onWake: () => void }) => {
     const onResize = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
+      // Resizing a canvas clears it, and a still field has no next frame to redraw it.
+      if (still) draw();
     };
-    window.addEventListener('resize', onResize);
 
     let frame = 0;
     const draw = () => {
@@ -41,11 +53,13 @@ export const Screensaver = ({ onWake }: { onWake: () => void }) => {
       const cx = width / 2;
       const cy = height / 2;
       for (const star of stars) {
-        star.z -= 0.006;
-        if (star.z <= 0.02) {
-          star.x = Math.random() * 2 - 1;
-          star.y = Math.random() * 2 - 1;
-          star.z = 1;
+        if (!still) {
+          star.z -= 0.006;
+          if (star.z <= 0.02) {
+            star.x = Math.random() * 2 - 1;
+            star.y = Math.random() * 2 - 1;
+            star.z = 1;
+          }
         }
         const k = 0.55 / star.z;
         const sx = cx + star.x * k * cx;
@@ -56,8 +70,10 @@ export const Screensaver = ({ onWake }: { onWake: () => void }) => {
         ctx.fillStyle = `rgb(${shade},${shade},${Math.min(255, shade + 20)})`;
         ctx.fillRect(sx, sy, size, size);
       }
-      frame = window.requestAnimationFrame(draw);
+      if (!still) frame = window.requestAnimationFrame(draw);
     };
+
+    window.addEventListener('resize', onResize);
     draw();
 
     return () => {
@@ -71,7 +87,8 @@ export const Screensaver = ({ onWake }: { onWake: () => void }) => {
       className="y2k-screensaver"
       role="button"
       tabIndex={0}
-      aria-label="Screensaver — press any key or click to return to the desktop"
+      /* Both shells render this, and only one of them has a desktop or a mouse. */
+      aria-label="Screensaver — press any key, click or tap to wake the screen"
       onPointerDown={onWake}
       onKeyDown={onWake}
     >

@@ -17,12 +17,11 @@ export const Marquee = ({ text, label }: { text: string; label?: string }) => (
 
 export const MARQUEE_TEXT = `★ WELCOME TO MY HOMEPAGE ★  ${IDENTITY.availability.toUpperCase()} ★  DRAG THE WINDOWS, THEY REALLY MOVE ★  NO POP-UPS EXCEPT THE ONES I MADE ON PURPOSE ★`;
 
-export const UnderConstruction = ({ label = 'UNDER CONSTRUCTION' }: { label?: string }) => (
-  <span className="y2k-construction" data-decorative>
-    <span>▲</span>
-    {label}
-    <span>▲</span>
-  </span>
-);
+/**
+ * DYLAN CE's version. The desktop's line brags about dragging windows, which is
+ * the one thing this machine cannot do — a handheld has no overlap and no mouse —
+ * so the boast moves to what a thumb can actually verify.
+ */
+export const MOBILE_MARQUEE_TEXT = `★ WELCOME TO MY HOMEPAGE ★  ${IDENTITY.availability.toUpperCase()} ★  TAP A PROGRAM, IT REALLY OPENS ★  NO POP-UPS EXCEPT THE ONES I MADE ON PURPOSE ★`;
 
 export const RainbowRule = () => <hr className="y2k-hr" data-decorative />;

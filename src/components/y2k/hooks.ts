@@ -17,10 +17,10 @@ export function useReducedMotion(): boolean {
 }
 
 /**
- * Narrow viewports get the tiled page instead of the window manager, since
- * dragging title bars with a thumb is miserable. Coarse pointers count as narrow
- * up to a larger width: a tablet in portrait has the pixels for windows but not
- * the input for them.
+ * Narrow viewports get DYLAN CE, the handheld shell, instead of the window
+ * manager, since dragging title bars with a thumb is miserable. Coarse pointers
+ * count as narrow up to a larger width: a tablet in portrait has the pixels for
+ * windows but not the input for them.
  */
 export function useNarrow(breakpoint = 860): boolean {
   const [narrow, setNarrow] = useState<boolean | null>(null);

@@ -2,8 +2,8 @@
  * The desktop: a Windows 98/2000 machine that happens to be a personal site.
  *
  * Owns the boot/BSOD/screensaver states, the desktop chrome and the light/dark
- * toggle. Narrow viewports get MobileY2k instead. Window dragging lives in
- * wm.ts, which bypasses React on the drag path.
+ * toggle. Narrow viewports get MobileApp — DYLAN CE, a different machine — instead.
+ * Window dragging lives in wm.ts, which bypasses React on the drag path.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { persistMode, type Mode } from '../../lib/mode';
@@ -15,12 +15,19 @@ import Taskbar from './Taskbar';
 import Y2kWindow from './Y2kWindow';
 import Clippy from './Clippy';
 import Boot from './Boot';
-import { Bsod, Dialog, type DialogSpec } from './Dialog';
+import { Bsod, Dialog, GUESTBOOK_FULL, type DialogSpec } from './Dialog';
 import { Screensaver, SparkleTrail } from './effects';
-import MobileY2k from './Mobile';
+import MobileApp from './mobile/MobileApp';
 import { MARQUEE_TEXT, Marquee } from './deco';
 import { useIdle, useNarrow, useReducedMotion } from './hooks';
-import { useWindowManager, type OpenRequest, type Resume, type WindowKind, type WindowState } from './wm';
+import {
+  useWindowManager,
+  WINDOW_MENUS,
+  type OpenRequest,
+  type Resume,
+  type WindowKind,
+  type WindowState,
+} from './wm';
 
 import WelcomeWindow from './content/WelcomeWindow';
 import ExperienceWindow from './content/ExperienceWindow';
@@ -49,30 +56,6 @@ const DESKTOP_ICONS: { kind: WindowKind; label: string; icon: IconName }[] = [
   { kind: 'recycle', label: 'Recycle Bin', icon: 'trash' },
   { kind: 'help', label: 'Help', icon: 'help' },
 ];
-
-const MENUS: Partial<Record<WindowKind, string[]>> = {
-  welcome: ['File', 'Edit', 'View', 'Go', 'Bookmarks'],
-  experience: ['File', 'Edit', 'View', 'Insert', 'Help'],
-  projects: ['File', 'Edit', 'View', 'Tools', 'Help'],
-  about: ['File', 'Edit', 'Search', 'Help'],
-  guestbook: ['File', 'Edit', 'View', 'Help'],
-  project: ['File', 'Edit', 'View'],
-};
-
-const SIGN_DIALOG: DialogSpec = {
-  title: 'guestbook.cgi',
-  icon: 'warn',
-  body: (
-    <>
-      <p style={{ margin: 0 }}>guestbook is full, sorry! (1999)</p>
-      <p style={{ margin: '6px 0 0', fontSize: 11 }}>
-        It is also read-only, and there is no database behind it. Nothing you type on this site is
-        stored anywhere.
-      </p>
-    </>
-  ),
-  okLabel: 'Aw, OK',
-};
 
 type Props = {
   /** Whether public/resume.pdf exists, plus every href a window could need. */
@@ -108,12 +91,11 @@ const App = ({ resume }: Props) => {
     });
   }, []);
 
-  /** The mobile page scrolls; the desktop must not. */
+  /** DYLAN CE is a document and scrolls; the desktop is a screen and must not. */
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.add('y2k-locked');
     root.classList.toggle('y2k-mobile', narrow);
-    return () => root.classList.remove('y2k-locked', 'y2k-mobile');
+    return () => root.classList.remove('y2k-mobile');
   }, [narrow]);
 
   /**
@@ -136,7 +118,7 @@ const App = ({ resume }: Props) => {
   }, [booting, narrow]);
 
   if (narrow) {
-    return <MobileY2k onToggleMode={toggleMode} mode={mode} resume={resume} />;
+    return <MobileApp onToggleMode={toggleMode} mode={mode} resume={resume} />;
   }
 
   const openKind = (kind: WindowKind, arg?: string) => open({ kind, arg: arg ?? null });
@@ -160,7 +142,7 @@ const App = ({ resume }: Props) => {
       case 'contact':
         return <ContactWindow />;
       case 'guestbook':
-        return <GuestbookWindow onSign={() => setDialog(SIGN_DIALOG)} />;
+        return <GuestbookWindow onSign={() => setDialog(GUESTBOOK_FULL)} />;
       case 'recycle':
         return (
           <div className="y2k-client y2k-client--face">
@@ -228,7 +210,7 @@ const App = ({ resume }: Props) => {
             onMaximize={wm.maximize}
             onMove={wm.move}
             onResize={wm.resize}
-            menu={MENUS[win.kind]}
+            menu={WINDOW_MENUS[win.kind]}
           >
             {renderContent(win)}
           </Y2kWindow>

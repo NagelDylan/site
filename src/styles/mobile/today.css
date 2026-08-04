@@ -1,0 +1,318 @@
+/*
+ * DYLAN CE, layer 3: the Today screen.
+ *
+ * Two surfaces share this file and they are lit differently on purpose:
+ *
+ *   1. The wallpaper. The hero, the section headings and the badge furniture sit
+ *      straight on the navy/plum (or CRT) background base.css paints, so every one
+ *      of them is white or --y2k-banner-text with a hard shadow behind it — the
+ *      discipline the page this replaced used, kept because it is the only thing
+ *      that clears AA over a striped gradient.
+ *   2. Silver CE chrome. The launcher tiles and the call-to-action buttons are
+ *      Win98 bevels in --y2k-face, raised at rest and inverted while pressed,
+ *      because a tile a thumb cannot see move has no feedback at all.
+ *
+ * What this file may NOT do is reach for --y2k-accent-3: it is #00f0ff in dark and
+ * #0000c0 in light, and the light value on a navy wallpaper is invisible. The
+ * palette here is deliberately narrow — white, --y2k-banner-text, --y2k-accent —
+ * because those three are legible in both modes without a per-mode override.
+ *
+ * No animation is declared here. The only moving parts on this screen are the
+ * marquee and the blinking stars, both of which are y2k.css classes covered by its
+ * reduced-motion block and base.css's global floor.
+ */
+
+.y2k-ce-today {
+  /*
+   * A translucent scrim, not a token: every --y2k-* surface colour is opaque
+   * silver chrome, and what these panels need is to darken the wallpaper enough to
+   * carry white text while the stripes still show through.
+   */
+  --ce-panel: rgba(0, 0, 0, 0.45);
+  --ce-panel-2: rgba(0, 0, 0, 0.3);
+  /* Text over the wallpaper is always shadowed: the gradient runs from plum to
+     navy underneath it, so no single colour is safe on its own. */
+  --ce-ink-shadow: 1px 1px 0 var(--y2k-dark);
+
+  padding-bottom: 18px;
+  line-height: 1.5;
+  /* The same backstop apps.css puts on .y2k-ce-app: this screen is the densest on
+     the device, and one badge or headline that will not break must not be able to
+     give the whole handheld a horizontal scrollbar. `clip`, not `hidden`, so the
+     column does not become a scroll container on the other axis. */
+  overflow-x: clip;
+}
+
+/*
+ * Dark mode inverts the scrim rather than restating it. The CRT wallpaper is
+ * already near-black, so darkening it further leaves the panels invisible; they
+ * have to lift off the background instead of sinking into it.
+ */
+html[data-mode='dark'] .y2k-ce-today {
+  --ce-panel: rgba(255, 255, 255, 0.07);
+  --ce-panel-2: rgba(255, 255, 255, 0.04);
+}
+
+/* The Marquee component has no CE hook of its own, so it is styled in place. */
+.y2k-ce-today > .y2k-marquee {
+  padding: 6px 0;
+  font-family: var(--y2k-mono);
+  font-size: 12px;
+  background: var(--y2k-dark);
+  border-bottom: 2px solid var(--y2k-accent);
+}
+
+.y2k-ce-today > .y2k-hr {
+  margin: 14px 12px;
+}
+
+.y2k-ce-today h2 {
+  margin: 0 12px 8px;
+  font-family: var(--y2k-pixel);
+  font-size: 12px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: var(--y2k-banner-text);
+  text-shadow: var(--ce-ink-shadow);
+}
+
+/* Hero */
+
+.y2k-ce-hero {
+  display: grid;
+  gap: 8px;
+  padding: 16px 14px 4px;
+  text-align: center;
+}
+
+.y2k-ce-hero-greet {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.y2k-ce-hero h1 {
+  font-family: var(--y2k-pixel);
+  /* Clamped low at the bottom end: "Dylan Nagel" in a pixel font has to survive a
+     320px screen without hyphenating. */
+  font-size: clamp(15px, 5.4vw, 21px);
+  line-height: 1.5;
+  color: var(--y2k-banner-text);
+  text-shadow: var(--ce-ink-shadow);
+}
+
+.y2k-ce-hero-head {
+  text-wrap: balance;
+}
+
+.y2k-ce-hero-photo {
+  /* Scaled down from the file's 160px grid, with the ratio pinned by the width and
+     height attributes so the hero cannot reflow when the image decodes. */
+  width: 120px;
+  margin-inline: auto;
+  border: 3px ridge var(--y2k-accent);
+}
+
+.y2k-ce-hero-sub {
+  text-wrap: pretty;
+}
+
+/* Calls to action */
+
+.y2k-ce-cta {
+  display: grid;
+  gap: 8px;
+  margin: 12px 12px 0;
+}
+
+/*
+ * Stacked full-width, and 44px because these are the two taps the whole screen
+ * exists to collect. The <a> variant needs the grid centring that a <button> gets
+ * for free.
+ *
+ * The .y2k-ce-today prefix is load-bearing on every min-height in this file:
+ * base.css sets its 34px floor with `.y2k-ce button`, which is a class *and* a
+ * type and therefore outranks a bare class of mine.
+ */
+.y2k-ce-today .y2k-ce-cta-btn {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 6px 12px;
+  font-family: var(--y2k-font);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  color: var(--y2k-text);
+  background: var(--y2k-face);
+  border: 2px solid;
+  border-color: var(--y2k-light) var(--y2k-dark) var(--y2k-dark) var(--y2k-light);
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-face-2),
+    inset -1px -1px 0 var(--y2k-shadow);
+}
+
+.y2k-ce-cta-btn:active {
+  border-color: var(--y2k-dark) var(--y2k-light) var(--y2k-light) var(--y2k-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-shadow),
+    inset -1px -1px 0 var(--y2k-face-2);
+  /* The 1px nudge is the whole pressed illusion: Win98 moved the label, not the
+     button. */
+  padding: 7px 11px 5px 13px;
+}
+
+/* At a glance */
+
+.y2k-ce-glance {
+  margin: 0 12px;
+  padding: 10px 8px 8px;
+  background: var(--ce-panel);
+  border: 3px ridge var(--y2k-accent);
+}
+
+.y2k-ce-glance h2 {
+  margin: 0 0 8px;
+}
+
+/*
+ * Rows are buttons because every one of them navigates. The three columns are
+ * fixed-label / value / chevron so the labels line up down the panel the way a
+ * Pocket PC's Today list did.
+ */
+.y2k-ce-today .y2k-ce-glance-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) 12px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 7px 8px;
+  text-align: left;
+  color: var(--y2k-title-text);
+  background: var(--ce-panel-2);
+  border: 2px solid;
+  border-color: var(--y2k-light) var(--y2k-dark) var(--y2k-dark) var(--y2k-light);
+}
+
+.y2k-ce-glance-row + .y2k-ce-glance-row {
+  margin-top: 6px;
+}
+
+.y2k-ce-glance-row:active {
+  border-color: var(--y2k-dark) var(--y2k-light) var(--y2k-light) var(--y2k-dark);
+  background: var(--ce-panel);
+}
+
+.y2k-ce-glance-label {
+  align-self: start;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  color: var(--y2k-accent);
+  overflow-wrap: anywhere;
+}
+
+.y2k-ce-glance-val {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.y2k-ce-glance-val span {
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* The first line of a row is the fact; the rest is qualification. */
+.y2k-ce-glance-val span:first-child {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.y2k-ce-glance-go {
+  justify-self: end;
+  color: var(--y2k-banner-text);
+}
+
+/* The launcher */
+
+/*
+ * minmax(90px, …) with a 6px gap is arithmetic, not taste: three tiles fit the
+ * 296px of usable width on a 320px screen, four fit 480px, and five fit the 560px
+ * cap. A wider minimum drops the 320px case to two columns.
+ */
+.y2k-ce-progs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 6px;
+  margin: 0 12px;
+}
+
+.y2k-ce-today .y2k-ce-prog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 76px;
+  padding: 8px 4px;
+  font-size: 10px;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+  color: var(--y2k-text);
+  background: var(--y2k-face);
+  border: 2px solid;
+  border-color: var(--y2k-light) var(--y2k-dark) var(--y2k-dark) var(--y2k-light);
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-face-2),
+    inset -1px -1px 0 var(--y2k-shadow);
+}
+
+.y2k-ce-prog svg {
+  flex: none;
+  width: 34px;
+  height: 34px;
+}
+
+.y2k-ce-prog:active {
+  border-color: var(--y2k-dark) var(--y2k-light) var(--y2k-light) var(--y2k-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--y2k-shadow),
+    inset -1px -1px 0 var(--y2k-face-2);
+  padding: 9px 3px 7px 5px;
+}
+
+/* Socials and the guestbook */
+
+.y2k-ce-social {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  margin: 14px 12px 0;
+  padding: 12px 10px;
+  text-align: center;
+  background: var(--ce-panel);
+  border: 3px ridge var(--y2k-accent);
+}
+
+/* Inline links still have to be thumbable, hence the 34px box around the text. */
+.y2k-ce-social a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--y2k-accent-2);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.y2k-ce-social .y2k-ce-cta-btn {
+  flex: 1 0 100%;
+}
