@@ -141,12 +141,25 @@ const App = ({ resume }: Props) => {
     open({ kind: 'welcome' });
   }, [measured, narrow, open]);
 
-  /** The paperclip introduces himself once the boot is out of the way. */
+  /**
+   * The paperclip introduces himself once the boot is out of the way — on the
+   * desktop only. On the handheld he is strictly opt-in (the tray ☻, Start, or
+   * the Menu soft key): there he is a sheet across the bottom of the screen, and
+   * one of those arriving unasked on a phone is a pop-up, which is the one thing
+   * the marquee promises this site does not do.
+   *
+   * Latched to once per boot, so dismissing him and then resizing the window does
+   * not summon him again. A reboot clears the latch — that is a fresh machine.
+   */
+  const introduced = useRef(false);
   useEffect(() => {
-    if (booting) return;
-    const timer = window.setTimeout(() => setAssistant(true), 1200);
+    if (booting || narrow || introduced.current) return;
+    const timer = window.setTimeout(() => {
+      introduced.current = true;
+      setAssistant(true);
+    }, 1200);
     return () => window.clearTimeout(timer);
-  }, [booting]);
+  }, [booting, narrow]);
 
   /*
    * Crossing the breakpoint swaps machines, so carry the view across. Without
