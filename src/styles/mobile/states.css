@@ -191,7 +191,7 @@ html[data-mode='dark'] .y2k-ce-reset h2 {
  * On the desktop he is a floating aside pinned above the taskbar's right corner,
  * where there is always empty teal to float over. Here there is no spare corner —
  * one program owns the screen — so he becomes a bottom sheet docked directly above
- * the soft keys, inside the same 560px column the content uses.
+ * the soft keys, spanning the width the content does.
  *
  * He also drops out of y2k.css's 8000 to 55, below the bars. He is a program-level
  * interruption, not part of the device: at 8000 the Start menu's scrim would darken
@@ -203,7 +203,7 @@ html[data-mode='dark'] .y2k-ce-reset h2 {
   z-index: 55;
   inset-inline: 0;
   bottom: calc(var(--ce-cmd-h) + env(safe-area-inset-bottom) + 6px);
-  width: min(560px, 100% - 12px);
+  width: calc(100% - 12px);
   margin-inline: auto;
 }
 

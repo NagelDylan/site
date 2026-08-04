@@ -1,15 +1,16 @@
 /*
  * DYLAN CE, layer 1: the device.
  *
- * This file owns only the shell root and the column it centres. The bars live in
+ * This file owns only the shell root and its full-bleed column. The bars live in
  * chrome.css, the home screen in today.css, the programs in apps.css and the
  * boot/BSOD overlays in states.css, and each of those loads after this one so it
  * can raise a floor set here without a specificity fight.
  *
  * Two things are deliberate rather than incidental:
- *   1. No fake phone bezel. On a phone the viewport *is* the device screen, and a
- *      drawn bezel would spend the only pixels the content has. The device only
- *      becomes visible at 620px, where there is wallpaper to spare.
+ *   1. No fake phone bezel, and no capped column. The viewport *is* the device
+ *      screen at every width — a drawn bezel or a centred 560px column would
+ *      spend pixels the content could have used, and on a tablet it read as a
+ *      narrow site marooned in wallpaper rather than as a handheld.
  *   2. The colours all come from the tokens y2k.css declares on
  *      :is(.y2k-root, .y2k-ce), which is what lets the desktop's content
  *      components render in here untouched. That block also carries the desktop's
@@ -62,36 +63,9 @@ html[data-mode='dark'] .y2k-ce {
 }
 
 .y2k-ce-screen {
+  /* Full-bleed on purpose: the shell fills the viewport at every width. Kept as a
+     positioning context for the command-bar popup. */
   position: relative;
-  max-width: 560px;
-  margin-inline: auto;
-}
-
-/*
- * 620px and up is a tablet reaching this UI through useNarrow's coarse-pointer
- * branch. The column stops growing at 560px either way, so without an edge the
- * page reads as a narrow site marooned in wallpaper. Give it the bevel of a
- * handheld screen instead and let the wallpaper flank it.
- */
-@media (min-width: 620px) {
-  .y2k-ce-screen {
-    /* The same subtraction .y2k-ce-app makes, insets included: a tablet in portrait
-       reaches this shell too, and one that reports a safe area would otherwise get
-       a column taller than the space left for it. vh first, dvh second, so a
-       browser without dvh keeps the line above rather than no height at all. */
-    min-height: calc(
-      100vh - var(--ce-top-h) - var(--ce-cmd-h) - env(safe-area-inset-top) -
-        env(safe-area-inset-bottom)
-    );
-    min-height: calc(
-      100dvh - var(--ce-top-h) - var(--ce-cmd-h) - env(safe-area-inset-top) -
-        env(safe-area-inset-bottom)
-    );
-    box-shadow:
-      0 0 0 2px var(--y2k-shadow),
-      0 0 0 4px var(--y2k-face),
-      0 12px 34px rgba(0, 0, 0, 0.45);
-  }
 }
 
 /*

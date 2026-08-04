@@ -241,8 +241,8 @@ html[data-mode='dark'] .y2k-ce-today {
 
 /*
  * minmax(90px, …) with a 6px gap is arithmetic, not taste: three tiles fit the
- * 296px of usable width on a 320px screen, four fit 480px, and five fit the 560px
- * cap. A wider minimum drops the 320px case to two columns.
+ * 296px of usable width on a 320px screen, four fit 480px, and auto-fill keeps
+ * adding columns from there. A wider minimum drops the 320px case to two.
  */
 .y2k-ce-progs {
   display: grid;

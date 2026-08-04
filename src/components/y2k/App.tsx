@@ -183,17 +183,29 @@ const App = ({ resume }: Props) => {
          bottom of the screen here, so carrying him over would drop one over the
          content unasked. */
       setAssistant(false);
+      /*
+       * Welcome.htm never crosses over. It is the *desktop's* arrival window — it
+       * exists only so nobody lands on a bare desktop, and the greeting below
+       * opens it before the boot console has even finished — whereas the
+       * handheld's arrival is Today, which renders a superset of it: the same
+       * hero, CTAs, résumé buttons and links, plus the glance panel and the
+       * launcher. Carrying it over meant booting wide, going narrow mid-boot and
+       * landing on a cut-down copy of the home screen with the real one a soft key
+       * away. The Welcome.htm tile is still there for anyone who wants the window.
+       */
+      const carried = windows.windows.filter((win) => win.kind !== 'welcome');
       /* Windows become running programs in z-order, so the focused one ends up on
          screen and the rest land in Start → Running Programs. */
-      for (const win of [...windows.windows].sort((a, b) => a.z - b.z)) {
+      for (const win of [...carried].sort((a, b) => a.z - b.z)) {
         ce.open(win.kind, win.arg);
       }
-      const active = windows.windows.find((win) => win.id === windows.activeId);
+      const active = carried.find((win) => win.id === windows.activeId);
       if (active) {
         ce.open(active.kind, active.arg);
       } else {
-        /* Nothing focused means every window is minimised, and the handheld's
-           equivalent of that is Today. */
+        /* Nothing carried is focused — every window is minimised, or the only one
+           on screen was Welcome.htm. Either way the handheld's equivalent is
+           Today, with anything else that came over left running behind it. */
         ce.home();
       }
     } else {
