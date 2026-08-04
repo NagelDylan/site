@@ -178,6 +178,11 @@ const App = ({ resume }: Props) => {
 
     const { wm: windows, shell: ce } = latest.current;
     if (narrow) {
+      /* He is opt-in on the handheld, and a resize is not opting in: a paperclip
+         that was a small aside in a desktop corner becomes a sheet across the
+         bottom of the screen here, so carrying him over would drop one over the
+         content unasked. */
+      setAssistant(false);
       /* Windows become running programs in z-order, so the focused one ends up on
          screen and the rest land in Start → Running Programs. */
       for (const win of [...windows.windows].sort((a, b) => a.z - b.z)) {
