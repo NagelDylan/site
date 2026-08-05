@@ -586,6 +586,10 @@
  * browser's default appearance — hence the track being drawn here too. The
  * -webkit- and -moz- pseudo-elements cannot share a rule: one unknown selector
  * drops the whole block.
+ *
+ * touch-action beats base.css's `manipulation` on .y2k-ce input (0,1,1): a drag
+ * along a 30px control is the gesture, and left to `manipulation` the browser is
+ * free to read it as a pan and scroll the player out from under the finger.
  */
 .y2k-ce .y2k-winamp input[type='range'] {
   -webkit-appearance: none;
@@ -593,6 +597,7 @@
   height: 30px;
   padding: 0;
   background: none;
+  touch-action: none;
 }
 
 .y2k-ce .y2k-winamp input[type='range']::-webkit-slider-runnable-track {

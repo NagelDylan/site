@@ -39,6 +39,9 @@ const WinampWindow = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
+  /** Wanted output level, mirrored so the graph built later can start at it. */
+  const levelRef = useRef(0.5);
   const frameRef = useRef(0);
   /** The twelve bar elements, written to directly by the loop below. */
   const barsRef = useRef<(HTMLElement | null)[]>([]);
@@ -49,9 +52,24 @@ const WinampWindow = () => {
     ? duration
     : track.durationSec;
 
+  /*
+   * Volume lives on the gain node, not on the element. iOS ignores writes to
+   * `HTMLMediaElement.volume` outright — output there belongs to the hardware
+   * buttons — so on a phone `audio.volume = 0` is a no-op and a mute built out of
+   * it does nothing. `muted` is the one level-ish property iOS does honour, and it
+   * covers the no-WebAudio case; the gain node covers everything else and is what
+   * makes the slider audible at all on a phone.
+   */
   useEffect(() => {
+    const level = muted ? 0 : volume;
+    levelRef.current = level;
     const audio = audioRef.current;
-    if (audio) audio.volume = muted ? 0 : volume;
+    if (audio) {
+      audio.volume = level;
+      audio.muted = muted;
+    }
+    const gain = gainRef.current;
+    if (gain) gain.gain.value = level;
   }, [muted, volume]);
 
   /*
@@ -74,12 +92,18 @@ const WinampWindow = () => {
     const analyser = ctx.createAnalyser();
     analyser.fftSize = FFT_SIZE;
     analyser.smoothingTimeConstant = 0.75;
+    const gain = ctx.createGain();
+    // The graph can be built long after the slider was last touched, so it starts
+    // at whatever level is currently wanted rather than at unity.
+    gain.gain.value = levelRef.current;
     // An AnalyserNode is a pass-through, so this both measures and plays.
     // Forgetting `.connect(destination)` is the classic way to make WebAudio
-    // silence an element.
-    source.connect(analyser).connect(ctx.destination);
+    // silence an element. Gain sits ahead of the analyser so the bars show what
+    // is actually coming out — muted reads as flat, not as a silent light show.
+    source.connect(gain).connect(analyser).connect(ctx.destination);
     ctxRef.current = ctx;
     analyserRef.current = analyser;
+    gainRef.current = gain;
   }, []);
 
   /*

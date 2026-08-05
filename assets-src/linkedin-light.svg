@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1584" height="396" viewBox="0 0 1584 396">
+  <defs>
+    <!-- The Win98 desktop teal, hatched the same way as the site background.
+         The only Y2K cue besides the neon rule. -->
+    <pattern id="hatch" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="20" height="20" fill="#008080"/>
+      <rect width="10" height="20" fill="#007b7b"/>
+    </pattern>
+    <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b6ff00"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1584" height="396" fill="url(#hatch)"/>
+
+  <!-- All content right-aligned: LinkedIn's profile photo covers the lower left. -->
+  <g text-anchor="end" font-family="Verdana, Geneva, sans-serif">
+    <text x="1440" y="170" font-size="70" font-weight="bold" fill="#ffffff">DYLAN NAGEL</text>
+    <rect x="1130" y="196" width="310" height="5" fill="url(#rule)"/>
+    <text x="1440" y="242" font-size="28" fill="#e4f4f4">Full-Stack Developer · AI &amp; LLM Systems</text>
+    <text x="1440" y="282" font-size="21" fill="#b6ff00">dylan.nagelbros.com</text>
+  </g>
+</svg>

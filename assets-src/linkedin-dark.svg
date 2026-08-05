@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1584" height="396" viewBox="0 0 1584 396">
+  <defs>
+    <!-- Faint grid: enough to read as a CRT desktop, not enough to date the
+         banner the way window chrome would. -->
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <rect width="36" height="36" fill="#0a0810"/>
+      <rect width="36" height="1" fill="#1a1326"/>
+      <rect width="1" height="36" fill="#1a1326"/>
+    </pattern>
+    <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff2fb9"/>
+      <stop offset="1" stop-color="#00f0ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1584" height="396" fill="url(#grid)"/>
+
+  <!-- All content right-aligned: LinkedIn's profile photo covers the lower left. -->
+  <g text-anchor="end" font-family="Verdana, Geneva, sans-serif">
+    <text x="1440" y="170" font-size="70" font-weight="bold" fill="#f2e9ff">DYLAN NAGEL</text>
+    <rect x="1130" y="196" width="310" height="5" fill="url(#rule)"/>
+    <text x="1440" y="242" font-size="28" fill="#b9a9d0">Full-Stack Developer · AI &amp; LLM Systems</text>
+    <text x="1440" y="282" font-size="21" fill="#00f0ff">dylan.nagelbros.com</text>
+  </g>
+</svg>
