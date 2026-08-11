@@ -25,6 +25,7 @@ const ContactWindow = () => {
   const [sending, setSending] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [copied, setCopied] = useState(false);
+  const [delivered, setDelivered] = useState(false);
   const honeypot = useHoneypot();
 
   const onSubmit = async (event: React.SyntheticEvent) => {
@@ -44,6 +45,11 @@ const ContactWindow = () => {
     });
     setSending(false);
     setOutcome({ kind: result.ok ? "sent" : "failed", message });
+
+    if (result.ok) {
+      setMessage("");
+      setDelivered(true);
+    }
   };
 
   const copyEmail = async () => {
@@ -169,7 +175,10 @@ const ContactWindow = () => {
             <textarea
               className="y2k-textarea"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                setDelivered(false);
+              }}
             />
           </label>
 
@@ -195,13 +204,23 @@ const ContactWindow = () => {
               flexWrap: "wrap",
             }}
           >
-            <button
-              type="submit"
-              className="y2k-btn y2k-btn-lg"
-              disabled={sending}
-            >
-              {sending ? "Sending…" : "Send ▶"}
-            </button>
+            {delivered ? (
+              <button
+                type="button"
+                className="y2k-btn y2k-btn-lg"
+                disabled
+              >
+                ✓ Sent
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="y2k-btn y2k-btn-lg"
+                disabled={sending}
+              >
+                {sending ? "Sending…" : "Send ▶"}
+              </button>
+            )}
           </div>
         </form>
       </div>
