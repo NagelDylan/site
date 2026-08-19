@@ -20,7 +20,7 @@ export type Copy = {
     skills: string;
     education: string;
   };
-  projectBlurbs: Record<"acronymize" | "flowsense" | "tanks", string>;
+  projectBlurbs: Record<"acronymize" | "flowsense" | "tanks" | "breadcrumbs", string>;
 };
 
 /**
@@ -62,5 +62,7 @@ export const COPY: Copy = {
       "UPLOAD A PDF, HOVER A WORD, GET A REAL EXPLANATION that knows what page you are on!! Built at Hack the 6ix 2024 with a team of 4. RAG pipeline doing the heavy lifting.",
     tanks:
       "WII PLAY TANKS, REBUILT FROM SCRATCH IN C#!! Every enemy has personality traits that change how it hunts you. A* pathfinding, auto-aim that LEADS YOUR TARGET, the works. 🚧 my magnum opus 🚧",
+    breadcrumbs:
+      "TURN YOUR TRIP PHOTOS INTO A MAP!! Pan around and Postgres hands back exactly the stops and routes in view, at the zoom level you're at. I owned the DATABASE and the MAP end to end — PostGIS, RLS, the whole Mapbox integration.",
   },
 };

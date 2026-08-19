@@ -87,6 +87,27 @@ export const FEATURED: Project[] = [
       height: 360,
     },
   },
+  {
+    slug: 'breadcrumbs',
+    name: 'Breadcrumbs',
+    summary:
+      'Travel-journal Android app that turns trip photos into an interactive map: routes, stops, and photos plotted from EXIF geolocation.',
+    team: 'Team of 4',
+    stack: ['Kotlin', 'Jetpack Compose', 'Mapbox Maps SDK', 'Supabase (Postgres, PostGIS, Auth, Storage)', 'Ktor'],
+    highlights: [
+      'Designed the Postgres schema (trips, trip_members, trip_photos, trip_stops, friends) with PostGIS geography columns, and the RLS model scoping trip visibility to owners, members, and accepted friends.',
+      'Wrote the zoom-aware Postgres RPC functions the map queries directly — get_visible_map_nodes/edges take the current viewport bounds and zoom, and return only the clusters and route segments on screen.',
+      'Built the Mapbox map screen end to end: a debounced viewport-to-query pipeline, signed Supabase Storage URLs batched per load, and a country-boundary fill layer that shades every country a user has visited.',
+      'EXIF geolocation extraction with timestamp-gap interpolation, so a batch of photos with partial metadata still places and sorts correctly on the map and timeline.',
+    ],
+    framing: 'University team project (4 people) — the backend, database, and the map screen were my scope end to end.',
+    links: [
+      { label: 'GitHub', href: 'https://github.com/NagelDylan/Breadcrumbs' },
+      { label: 'Video walkthrough', href: 'https://www.youtube.com/watch?v=u_c2kvMxSnY' },
+    ],
+    // No animated WebP yet — only a static screenshot exists in the repo so far.
+    media: null,
+  },
 ];
 
 /** Older projects, in short form. */
